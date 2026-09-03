@@ -1,0 +1,43 @@
+# --- Segredos: NUNCA versionar -------------------------------------------
+wp-config.php
+wp-config-local.php
+.env
+*.env
+
+# --- Banco de dados --------------------------------------------------------
+*.sql
+*.sql.gz
+*.sqlite
+wp-content/database/
+
+# --- Logs e cache ----------------------------------------------------------
+error_log
+*.log
+wp-content/debug.log
+wp-content/cache/
+wp-content/upgrade/
+wp-content/upgrade-temp-backup/
+wp-content/uploads/jetbackup-*/
+wp-content/backup*/
+
+# --- Drop-ins de desenvolvimento local -------------------------------------
+wp-content/db.php
+wp-content/advanced-cache.php
+wp-content/object-cache.php
+
+# --- Uploads --------------------------------------------------------------
+# A midia enviada pelo cliente pelo painel NAO vai para o Git (fica no
+# servidor / backup). A excecao e uploads/contorno/, que sao os assets
+# migrados do projeto React: eles precisam ser versionados para que a
+# importacao seja reproduzivel em staging e producao.
+wp-content/uploads/*
+!wp-content/uploads/contorno/
+
+# --- Dependencias ----------------------------------------------------------
+node_modules/
+vendor/
+
+# --- Sistema operacional ---------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini

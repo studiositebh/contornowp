@@ -1,0 +1,119 @@
+/* UI dos campos estruturados de Unidade e CTN. */
+
+.contorno-group-help {
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	background: rgb(16 184 177 / 0.08);
+	border-left: 3px solid #10b8b1;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.contorno-fields {
+	display: grid;
+	gap: 18px;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.contorno-field--textarea,
+.contorno-field--list,
+.contorno-field--media_list,
+.contorno-field--repeater {
+	grid-column: 1 / -1;
+}
+
+.contorno-field__label {
+	display: block;
+	margin-bottom: 5px;
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #1d2327;
+}
+
+.contorno-field input[type="text"],
+.contorno-field input[type="url"],
+.contorno-field input[type="number"],
+.contorno-field select,
+.contorno-field textarea {
+	width: 100%;
+	max-width: 100%;
+}
+
+.contorno-field__checkbox {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+}
+
+/* ---- Midia ---- */
+
+.contorno-media {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.contorno-media [data-contorno-media-input] {
+	flex: 1 1 220px;
+}
+
+.contorno-media__preview {
+	display: block;
+	width: 100%;
+	max-width: 220px;
+	height: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+}
+
+/* ---- Repeater ---- */
+
+.contorno-repeater__rows {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.contorno-repeater__row {
+	position: relative;
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	padding: 14px 40px 14px 14px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+}
+
+.contorno-repeater__cell--list,
+.contorno-repeater__cell--textarea {
+	grid-column: 1 / -1;
+}
+
+.contorno-repeater__cell .contorno-field__label {
+	font-size: 11px;
+	text-transform: none;
+	letter-spacing: 0;
+	color: #50575e;
+}
+
+.contorno-repeater__cell input,
+.contorno-repeater__cell textarea,
+.contorno-repeater__cell select {
+	width: 100%;
+}
+
+.contorno-repeater__remove {
+	position: absolute;
+	top: 8px;
+	right: 10px;
+	color: #b32d2e;
+	font-size: 18px;
+	line-height: 1;
+	text-decoration: none;
+	cursor: pointer;
+}

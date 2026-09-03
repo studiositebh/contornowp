@@ -1,0 +1,15 @@
+/*
+Theme Name: Contorno do Corpo
+Theme URI: https://contornodocorpo.com.br
+Author: Conecta Digital
+Description: Tema oficial da Academia Contorno do Corpo. Reproduz o design system da versao React (tokens turquesa/grafite, CTN dark premium) e expoe os componentes dinamicos (unidades, CTN, planos, agenda EVO) como shortcodes/blocos utilizaveis em qualquer page builder.
+Version: 0.1.0
+Requires at least: 6.5
+Requires PHP: 8.1
+License: GPLv2 or later
+Text Domain: contorno
+Tags: custom-theme
+*/
+
+/* Os estilos reais ficam em assets/css/ (tokens.css, site.css, ctn.css).
+   Este arquivo existe apenas para o cabecalho obrigatorio do tema. */

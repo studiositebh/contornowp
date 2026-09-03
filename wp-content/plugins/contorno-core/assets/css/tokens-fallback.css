@@ -1,0 +1,80 @@
+/*
+ * Fallback minimo de tokens.
+ *
+ * Usado APENAS quando o tema ativo nao e o Contorno (o tema define os tokens
+ * completos em assets/css/tokens.css). Garante que os componentes do plugin
+ * nao fiquem sem cor nem espacamento.
+ */
+
+:root {
+	--brand: #10b8b1;
+	--brand-ink: #018075;
+	--brand-pink: #d72364;
+	--graphite: #000000;
+	--sand: #f0f5f9;
+
+	--background: #ffffff;
+	--foreground: #000000;
+	--card: #ffffff;
+	--secondary: #f0f5f9;
+	--muted-foreground: #949398;
+	--border: #e6e8ea;
+
+	--dark-bg: #0b0b0b;
+	--dark-bg-alt: #111111;
+	--dark-bg-soft: #0d0d0d;
+	--dark-surface: #141414;
+	--dark-foreground: #ffffff;
+	--dark-border: rgb(255 255 255 / 0.1);
+	--dark-muted: rgb(255 255 255 / 0.72);
+
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.25rem;
+	--space-6: 1.5rem;
+	--space-8: 2rem;
+	--space-10: 2.5rem;
+	--space-12: 3rem;
+	--space-14: 3.5rem;
+	--space-16: 4rem;
+	--space-20: 5rem;
+	--space-28: 7rem;
+
+	--text-xs: 0.75rem;
+	--text-sm: 0.875rem;
+	--text-base: 1rem;
+	--text-lg: 1.125rem;
+	--text-xl: 1.25rem;
+	--text-2xl: 1.5rem;
+	--text-3xl: 1.875rem;
+	--text-4xl: 2.25rem;
+	--text-5xl: 3rem;
+
+	--radius: 0.75rem;
+	--radius-sm: 0.5rem;
+	--radius-md: 0.65rem;
+	--radius-lg: 0.75rem;
+	--radius-xl: 1rem;
+	--radius-2xl: 1.25rem;
+	--radius-full: 999px;
+
+	--shadow-card: 0 1px 2px rgb(0 0 0 / 0.08), 0 18px 40px -20px rgb(0 0 0 / 0.18);
+	--shadow-hover-pink: 0 12px 28px -14px rgb(215 35 100 / 0.5);
+	--shadow-dark: 0 24px 60px -28px rgb(0 0 0 / 0.65);
+
+	--motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--motion-enter: 620ms;
+	--motion-hover: 220ms;
+	--motion-media: 420ms;
+
+	--container-max: 90rem;
+}
+
+.site-container {
+	width: 100%;
+	max-width: var(--container-max);
+	margin-inline: auto;
+	padding-inline: 1.25rem;
+}

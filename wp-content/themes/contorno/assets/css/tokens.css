@@ -1,0 +1,149 @@
+/*
+ * Design tokens — porte fiel de src/styles.css do projeto React.
+ *
+ * ESTA E A CAMADA GLOBAL. Nunca configurar a mesma cor manualmente em pagina
+ * do WPBakery: usar as classes/variaveis daqui.
+ */
+
+:root {
+	/* ---- Marca --------------------------------------------------------- */
+	--brand: #10b8b1;
+	--brand-ink: #018075;
+	--brand-deep: #004145;
+	--brand-mid: #2193a4;
+	--brand-bright: #04bfb6;
+	--brand-pink: #d72364;
+
+	--graphite: #000000;
+	--ivory: #ffffff;
+	--sand: #f0f5f9;
+	--surface-muted: #f0f5f9;
+
+	/* ---- Papeis semanticos -------------------------------------------- */
+	--background: #ffffff;
+	--foreground: #000000;
+	--card: #ffffff;
+	--card-foreground: var(--foreground);
+	--primary: var(--brand);
+	--primary-foreground: #ffffff;
+	--secondary: var(--sand);
+	--secondary-foreground: var(--foreground);
+	--muted: var(--sand);
+	--muted-foreground: #949398;
+	--accent: var(--brand);
+	--accent-foreground: #ffffff;
+	--border: #e6e8ea;
+	--input: #e6e8ea;
+	--ring: var(--brand);
+
+	/* ---- Superficies dark / CTN --------------------------------------- */
+	--dark-bg: #0b0b0b;
+	--dark-bg-alt: #111111;
+	--dark-bg-soft: #0d0d0d;
+	--dark-surface: #141414;
+	--dark-foreground: #ffffff;
+	--dark-border: rgb(255 255 255 / 0.1);
+	--dark-muted: rgb(255 255 255 / 0.72);
+
+	/* ---- Tipografia ---------------------------------------------------- */
+	--font-sans: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-serif: var(--font-sans);
+
+	--text-xs: 0.75rem;
+	--text-sm: 0.875rem;
+	--text-base: 1rem;
+	--text-lg: 1.125rem;
+	--text-xl: 1.25rem;
+	--text-2xl: 1.5rem;
+	--text-3xl: 1.875rem;
+	--text-4xl: 2.25rem;
+	--text-5xl: 3rem;
+	--text-6xl: 3.75rem;
+
+	--tracking-eyebrow: 0.18em;
+	--tracking-cta: 0.18em;
+	--tracking-tight: -0.015em;
+
+	/* ---- Espacamento e ritmo ------------------------------------------ */
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.25rem;
+	--space-6: 1.5rem;
+	--space-8: 2rem;
+	--space-10: 2.5rem;
+	--space-12: 3rem;
+	--space-14: 3.5rem;
+	--space-16: 4rem;
+	--space-20: 5rem;
+	--space-28: 7rem;
+
+	--section-py: var(--space-14);
+	--section-py-md: var(--space-20);
+	--section-py-lg: var(--space-28);
+
+	/* ---- Containers ---------------------------------------------------- */
+	--container-max: 90rem;
+	--container-px: 1.25rem;
+	--container-px-lg: 2rem;
+
+	/* ---- Raio ---------------------------------------------------------- */
+	--radius: 0.75rem;
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+	--radius-2xl: calc(var(--radius) + 8px);
+	--radius-full: 999px;
+
+	/* ---- Sombras ------------------------------------------------------- */
+	--shadow-card: 0 1px 2px rgb(0 0 0 / 0.08), 0 18px 40px -20px rgb(0 0 0 / 0.18);
+	--shadow-elegant: 0 30px 60px -30px rgb(0 0 0 / 0.35);
+	--shadow-hover-pink: 0 12px 28px -14px rgb(215 35 100 / 0.5), 0 20px 40px -22px rgb(215 35 100 / 0.32);
+	--shadow-dark: 0 24px 60px -28px rgb(0 0 0 / 0.65);
+
+	/* ---- Movimento ----------------------------------------------------- */
+	--motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--motion-enter: 620ms;
+	--motion-hover: 220ms;
+	--motion-media: 420ms;
+
+	/* ---- Breakpoints (referencia; media queries usam os valores) ------- */
+	--bp-sm: 640px;
+	--bp-md: 768px;
+	--bp-lg: 1024px;
+	--bp-xl: 1280px;
+}
+
+/*
+ * Escopo dark: aplicado nas CTNs e em qualquer secao com tom escuro.
+ * Troca apenas os papeis semanticos — a marca continua a mesma.
+ */
+.is-tone-dark,
+.is-tone-ctn,
+.ctn-page,
+.contorno-page--ctn {
+	--background: var(--dark-bg);
+	--foreground: var(--dark-foreground);
+	--card: var(--dark-surface);
+	--card-foreground: var(--dark-foreground);
+	--muted-foreground: var(--dark-muted);
+	--border: var(--dark-border);
+	--secondary: var(--dark-bg-alt);
+	--shadow-card: var(--shadow-dark);
+}
+
+/* Paleta do editor de blocos, para o cliente ver as mesmas cores. */
+.has-brand-color { color: var(--brand); }
+.has-brand-background-color { background-color: var(--brand); }
+.has-brand-ink-color { color: var(--brand-ink); }
+.has-brand-ink-background-color { background-color: var(--brand-ink); }
+.has-brand-pink-color { color: var(--brand-pink); }
+.has-brand-pink-background-color { background-color: var(--brand-pink); }
+.has-graphite-color { color: var(--graphite); }
+.has-graphite-background-color { background-color: var(--graphite); }
+.has-sand-color { color: var(--sand); }
+.has-sand-background-color { background-color: var(--sand); }
+.has-ivory-color { color: var(--ivory); }
+.has-ivory-background-color { background-color: var(--ivory); }
