@@ -1,0 +1,179 @@
+@import "../../../../assets/less/config/variables.less";
+
+// block that regulates visibility of elements on a page
+// depending on selected layout or not
+// begin
+.vc_selected-post-custom-layout-visible-ne {
+  display: inherit;
+}
+
+.vc_selected-post-custom-layout-visible-e {
+  display: none;
+}
+
+.vc_not-empty {
+  .vc_selected-post-custom-layout-visible-e {
+    display: inherit;
+  }
+  .vc_selected-post-custom-layout-visible-ne {
+    display: none;
+  }
+}
+
+.vc_post-custom-layout-selected {
+  .vc_selected-post-custom-layout-visible-e {
+    display: inherit;
+  }
+  .vc_selected-post-custom-layout-visible-ne {
+    display: none;
+  }
+  &.vc_selected-post-custom-layout-visible-e {
+    display: inherit;
+  }
+  &.vc_selected-post-custom-layout-visible-ne {
+    display: none;
+  }
+}
+
+#wpb_wpbakery .vc_navbar {
+  &:not(.vc_post-custom-layout-selected) {
+    a {
+      pointer-events: none;
+      opacity: 0.2;
+    }
+    a#vc_logo {
+      pointer-events: auto;
+      opacity: 1;
+    }
+  }
+  &.vc_not-empty {
+    a {
+      pointer-events: auto;
+      opacity: 1;
+    }
+  }
+}
+
+.vc_navbar.vc_navbar-frontend {
+  &:not(.vc_post-custom-layout-selected) {
+    #vc_add-new-element,
+    #vc_templates-editor-button,
+    #vc_post-settings-button,
+    #vc_custom-code-button,
+    #vc_screen-size-control,
+    #vc_button-save-draft,
+    #vc_button-update,
+    #vc_seo-button,
+    #vc_more-options {
+      pointer-events: none;
+      opacity: 0.2;
+    }
+  }
+  &.vc_not-empty {
+    #vc_add-new-element,
+    #vc_templates-editor-button,
+    #vc_post-settings-button,
+    #vc_custom-code-button,
+    #vc_screen-size-control,
+    #vc_button-save-draft,
+    #vc_button-update {
+      pointer-events: auto;
+      opacity: 1;
+    }
+  }
+}
+
+// end
+
+.vc_post-custom-layout-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 40px 0;
+
+  #vc_ui-panel-post-settings & {
+    justify-content: left;
+    margin: 0;
+    margin-top: 15px;
+  }
+}
+
+a.vc_post-custom-layout {
+  all: unset;
+  width: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 60px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: none;
+  border: none;
+  text-align: center;
+
+  &:focus {
+    box-shadow: none;
+  }
+
+  #vc_ui-panel-post-settings & {
+    margin: 0 15px 0 0;
+
+    svg {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  svg * {
+    transition: all .2s ease-in-out;
+  }
+
+  &:hover {
+    .vc_layout-label {
+      color: #2271B1;
+    }
+
+    svg path {
+      fill: @vc_main_color_hover;
+    }
+  }
+}
+
+.vc-active-post-custom-layout {
+  cursor: auto;
+
+  a:where(:not(.wp-element-button)) {
+    text-decoration: none;
+  }
+
+  .vc_layout-label {
+    color: #2271B1;
+  }
+
+  svg path {
+    fill: @vc_main_color_hover;
+  }
+}
+
+.vc_layout-label {
+  font-family: 'Roboto', sans-serif;
+  margin: 24px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #939393;
+  transition: color .2s ease-in-out;
+
+}
+
+.vc_editor.compose-mode {
+  .vc_welcome.vc_select-post-custom-layout-frontend-editor {
+    margin-top: 10%;
+  }
+}
+
+#vc_settings-featured-image::before,
+#vc_settings-featured-image::after {
+  content: '';
+  clear: both;
+  display: table;
+}

@@ -1,0 +1,25 @@
+// wpb-module
+#vc_settings-modules .form-table tbody > tr:first-child > th {
+    display: none;
+}
+.wpb-module-wrapper {
+    width: 280px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    &:not(:first-child) {
+        margin-top: 35px;
+    }
+    p {
+        width: 220px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        margin-top: 0;
+        font-weight: 600;
+        color: #1d2327;
+    }
+    .wpb-toggle-wrapper {
+        display: flex;
+    }
+}
