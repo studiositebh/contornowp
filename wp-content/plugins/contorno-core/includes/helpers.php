@@ -103,7 +103,7 @@ function contorno_youtube_lazy_embed( string $video_id, string $title = '', stri
 		esc_attr( $video_id ),
 		esc_attr( $ratio ),
 		esc_url( $poster ),
-		esc_html( '' !== $title ? sprintf( /* translators: %s: video title */ __( 'Assistir: %s', 'contorno' ), $title ) : __( 'Assistir ao video', 'contorno' ) )
+		esc_html( '' !== $title ? sprintf( /* translators: %s: video title */ __( 'Assistir: %s', 'contorno' ), $title ) : __( 'Assistir ao vídeo', 'contorno' ) )
 	);
 }
 

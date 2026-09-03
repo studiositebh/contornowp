@@ -25,8 +25,8 @@ function contorno_brand(): array {
 	$brand = array(
 		'name'          => 'Contorno do Corpo',
 		'long_name'     => 'Academia Contorno do Corpo',
-		'tagline'       => 'Experiencia premium. Resultados reais.',
-		'description'   => 'Academia Contorno do Corpo: experiencia premium, resultados reais e uma unidade perto de voce em Minas Gerais.',
+		'tagline'       => 'Experiência premium. Resultados reais.',
+		'description'   => 'Academia Contorno do Corpo: experiência premium, resultados reais e uma unidade perto de você em Minas Gerais.',
 		'city'          => 'Belo Horizonte',
 		'region'        => 'MG',
 		'country'       => 'BR',

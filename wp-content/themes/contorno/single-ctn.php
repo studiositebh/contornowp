@@ -44,14 +44,41 @@ while ( have_posts() ) :
 		);
 
 		contorno_component( 'ctn_brands' );
-		contorno_component( 'ctn_equipment' );
+
+		/*
+		 * ctn_equipment NAO entra aqui de proposito.
+		 *
+		 * A landing aprovada nao mostra a secao de destaques de equipamento —
+		 * o proprio React marca o componente como "mantido para reuso futuro"
+		 * e nao o renderiza. Manter aqui traria os videos de equipamento para
+		 * a landing, contrariando a regra de um unico video principal.
+		 *
+		 * O elemento continua disponivel no WPBakery: quando o cliente quiser
+		 * a secao, insere "CTN — Equipamentos" na area editorial da CTN.
+		 */
+
 		contorno_component( 'ctn_videos' );
+
+		// CTA intermediario, entre os videos e a localizacao.
+		contorno_component(
+			'contorno_cta',
+			array(
+				'headline'  => __( 'Pronto para treinar em outro nível?', 'contorno' ),
+				'cta_label' => sprintf(
+					/* translators: %s: CTN name */
+					__( 'Quero treinar na %s', 'contorno' ),
+					get_the_title()
+				),
+				'cta_url'   => '#planos',
+				'tone'      => 'ctn',
+			)
+		);
 
 		contorno_component(
 			'contorno_location',
 			array(
 				'eyebrow' => __( 'Onde estamos', 'contorno' ),
-				'title'   => __( 'Localizacao', 'contorno' ),
+				'title'   => __( 'Localização', 'contorno' ),
 				'tone'    => 'ctn',
 			)
 		);

@@ -46,7 +46,7 @@ final class Contorno_CLI {
 
 		$steps = isset( $assoc_args['steps'] )
 			? array_map( 'trim', explode( ',', (string) $assoc_args['steps'] ) )
-			: array( 'assets', 'units', 'ctns', 'pages', 'menus' );
+			: array( 'assets', 'thumbs', 'units', 'ctns', 'pages', 'menus' );
 
 		$migration = new Contorno_Migration( $force, $dry_run );
 		$report    = $migration->run( $steps );

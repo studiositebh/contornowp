@@ -11,8 +11,14 @@
 	color: var(--dark-foreground);
 }
 
-.ctn-page a,
-.contorno-page--ctn a {
+/*
+ * Links da pele CTN em turquesa — mas NUNCA os botões.
+ *
+ * Sem o :not(), esta regra (0,2,0) vencia .contorno-btn--primary (0,1,0) e o
+ * CTA principal ficava com texto turquesa sobre fundo turquesa: ilegível.
+ */
+.ctn-page a:not(.contorno-btn),
+.contorno-page--ctn a:not(.contorno-btn) {
 	color: var(--brand);
 }
 
@@ -33,37 +39,69 @@
 	position: relative;
 	isolation: isolate;
 	display: flex;
-	align-items: flex-end;
 	min-height: 100svh;
 	overflow: hidden;
 	background: #000;
 	color: #fff;
 }
 
+/*
+ * Dois gradientes sobrepostos, como no React: um lateral (mais forte à
+ * esquerda, onde fica o texto) e um vertical suave. Um único gradiente
+ * escuro apagava a fotografia premium.
+ */
 .ctn-hero__scrim {
 	position: absolute;
 	inset: 0;
-	background:
-		linear-gradient(to top, rgb(0 0 0 / 0.94), rgb(0 0 0 / 0.55) 55%, rgb(0 0 0 / 0.65));
+	background: linear-gradient(to right, rgb(0 0 0), rgb(0 0 0 / 0.82) 50%, rgb(0 0 0 / 0.35));
+}
+
+.ctn-hero__scrim-v {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(to top, rgb(0 0 0), transparent 50%, rgb(0 0 0 / 0.45));
 }
 
 .ctn-hero__inner {
 	position: relative;
+	z-index: 1;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-8);
-	padding-block: var(--space-16) var(--space-20);
+	padding-block: 1.75rem var(--space-14);
 	width: 100%;
+	min-height: 100svh;
+}
+
+@media (min-width: 768px) {
+	.ctn-hero__inner {
+		padding-block: 2.25rem var(--space-20);
+	}
 }
 
 .ctn-hero__logo-img {
 	width: auto;
-	height: 4rem;
+	height: 3.25rem;
 }
 
 @media (min-width: 768px) {
 	.ctn-hero__logo-img {
-		height: 5.5rem;
+		height: 4rem;
+	}
+}
+
+/* Conteúdo ancorado embaixo no mobile e centralizado no desktop. */
+.ctn-hero__body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	justify-content: flex-end;
+	padding-top: var(--space-10);
+}
+
+@media (min-width: 768px) {
+	.ctn-hero__body {
+		justify-content: center;
+		padding-top: var(--space-16);
 	}
 }
 
@@ -71,10 +109,25 @@
 	max-width: 48rem;
 }
 
-.ctn-hero__title {
-	font-size: var(--text-4xl);
+.ctn-hero__kicker {
+	margin: var(--space-4) 0 0;
+	font-size: var(--text-sm);
+	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: 0.02em;
+	letter-spacing: 0.18em;
+	color: rgb(255 255 255 / 0.8);
+}
+
+.ctn-hero__title {
+	margin-top: var(--space-4);
+	font-size: var(--text-4xl);
+	line-height: 1.05;
+}
+
+@media (min-width: 640px) {
+	.ctn-hero__title {
+		font-size: var(--text-5xl);
+	}
 }
 
 @media (min-width: 768px) {
@@ -83,26 +136,51 @@
 	}
 }
 
-.ctn-hero__headline {
-	font-size: var(--text-xl);
-	color: var(--brand);
-	font-weight: 600;
+@media (min-width: 1024px) {
+	.ctn-hero__title {
+		font-size: 4.5rem;
+	}
 }
 
 .ctn-hero__subtitle {
-	color: rgb(255 255 255 / 0.78);
-	max-width: 40rem;
+	margin-top: var(--space-5);
+	font-size: var(--text-base);
+	color: rgb(255 255 255 / 0.8);
+	max-width: 36rem;
+}
+
+@media (min-width: 768px) {
+	.ctn-hero__subtitle {
+		font-size: var(--text-lg);
+	}
 }
 
 .ctn-hero__actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--space-3);
-	margin-top: var(--space-6);
+	margin-top: var(--space-8);
+}
+
+/* Faixa de informações: bairro • cidade • número principal. */
+.ctn-hero__facts {
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem var(--space-6);
+	margin: var(--space-10) 0 0;
+	padding: 0;
+	font-size: var(--text-sm);
+	color: rgb(255 255 255 / 0.7);
+}
+
+.ctn-hero__facts-sep {
+	color: rgb(255 255 255 / 0.35);
 }
 
 .ctn-hero__tagline {
-	margin-top: var(--space-8);
+	margin-top: var(--space-6);
 	font-size: var(--text-xs);
 	font-weight: 700;
 	letter-spacing: 0.32em;

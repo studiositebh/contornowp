@@ -94,7 +94,7 @@ function contorno_vc_image( string $param, string $heading, string $group = '', 
 			'param_name'  => $param,
 			'heading'     => $heading,
 			'group'       => $group,
-			'description' => '' !== $description ? $description : __( 'Selecione da Biblioteca de Midia.', 'contorno' ),
+			'description' => '' !== $description ? $description : __( 'Selecione da Biblioteca de Mídia.', 'contorno' ),
 		)
 	);
 }
@@ -138,8 +138,8 @@ function contorno_vc_toggle( string $param, string $heading, bool $default_yes =
 		$param,
 		$heading,
 		$default_yes
-			? array( __( 'Sim', 'contorno' ) => 'yes', __( 'Nao', 'contorno' ) => 'no' )
-			: array( __( 'Nao', 'contorno' ) => 'no', __( 'Sim', 'contorno' ) => 'yes' ),
+			? array( __( 'Sim', 'contorno' ) => 'yes', __( 'Não', 'contorno' ) => 'no' )
+			: array( __( 'Não', 'contorno' ) => 'no', __( 'Sim', 'contorno' ) => 'yes' ),
 		$group
 	);
 }
@@ -164,7 +164,7 @@ function contorno_vc_tone( string $default = 'light' ): array {
 		);
 	}
 
-	return contorno_vc_select( 'tone', __( 'Tom da secao', 'contorno' ), $options, __( 'Aparencia', 'contorno' ) );
+	return contorno_vc_select( 'tone', __( 'Tom da seção', 'contorno' ), $options, __( 'Aparência', 'contorno' ) );
 }
 
 /**
@@ -173,7 +173,7 @@ function contorno_vc_tone( string $default = 'light' ): array {
  * @return array<string,mixed>
  */
 function contorno_vc_unit_picker(): array {
-	$options = array( __( 'Unidade da pagina atual', 'contorno' ) => '' );
+	$options = array( __( 'Unidade da página atual', 'contorno' ) => '' );
 
 	foreach ( contorno_get_units() as $unit ) {
 		$options[ (string) get_the_title( $unit->ID ) ] = (string) $unit->post_name;
@@ -188,7 +188,7 @@ function contorno_vc_unit_picker(): array {
  * @return array<string,mixed>
  */
 function contorno_vc_ctn_picker(): array {
-	$options = array( __( 'CTN da pagina atual', 'contorno' ) => '' );
+	$options = array( __( 'CTN da página atual', 'contorno' ) => '' );
 
 	foreach ( contorno_get_ctns() as $ctn ) {
 		$options[ (string) get_the_title( $ctn->ID ) ] = (string) $ctn->post_name;
@@ -207,8 +207,8 @@ add_action(
 			return;
 		}
 
-		$editorial = __( 'Conteudo', 'contorno' );
-		$look      = __( 'Aparencia', 'contorno' );
+		$editorial = __( 'Conteúdo', 'contorno' );
+		$look      = __( 'Aparência', 'contorno' );
 		$cta_group = __( 'CTA', 'contorno' );
 
 		/* ---------------------------------------------------------------
@@ -223,14 +223,14 @@ add_action(
 				'description' => __( 'Hero institucional com imagem, headline e CTAs.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
-					contorno_vc_text( 'highlight', __( 'Trecho destacado do titulo', 'contorno' ), $editorial, __( 'Parte do titulo que recebe a cor da marca. Ex.: "Na pratica".', 'contorno' ) ),
-					contorno_vc_textarea( 'subtitle', __( 'Subtitulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial, __( "Use o caractere | para forçar uma quebra de linha.", "contorno" ) ),
+					contorno_vc_text( 'highlight', __( 'Trecho destacado do título', 'contorno' ), $editorial, __( 'Parte do título que recebe a cor da marca. Ex.: "Na pratica".', 'contorno' ) ),
+					contorno_vc_textarea( 'subtitle', __( 'Subtítulo', 'contorno' ), $editorial ),
 					contorno_vc_image( 'image', __( 'Imagem de fundo', 'contorno' ), $editorial ),
 					contorno_vc_text( 'cta_label', __( 'CTA principal — texto', 'contorno' ), $cta_group ),
 					contorno_vc_url( 'cta_url', __( 'CTA principal — link', 'contorno' ), $cta_group ),
-					contorno_vc_text( 'cta2_label', __( 'CTA secundario — texto', 'contorno' ), $cta_group ),
-					contorno_vc_url( 'cta2_url', __( 'CTA secundario — link', 'contorno' ), $cta_group ),
+					contorno_vc_text( 'cta2_label', __( 'CTA secundário — texto', 'contorno' ), $cta_group ),
+					contorno_vc_url( 'cta2_url', __( 'CTA secundário — link', 'contorno' ), $cta_group ),
 					contorno_vc_toggle( 'show_search', __( 'Exibir busca de unidades', 'contorno' ), false, $look ),
 					contorno_vc_select(
 						'height',
@@ -243,6 +243,27 @@ add_action(
 						$look
 					),
 					contorno_vc_text( 'overlay', __( 'Opacidade do escurecimento (0-100)', 'contorno' ), $look ),
+					contorno_vc_select(
+						'scrim',
+						__( 'Direção do escurecimento', 'contorno' ),
+						array(
+							__( 'Lateral (texto à esquerda)', 'contorno' ) => 'side',
+							__( 'De baixo para cima', 'contorno' )         => 'bottom',
+						),
+						$look
+					),
+					contorno_vc_text(
+						'focal',
+						__( 'Enquadramento da foto', 'contorno' ),
+						$look,
+						__( 'Qual ponto da foto fica visível. Ex.: "center", "62% 18%", "top".', 'contorno' )
+					),
+					contorno_vc_text(
+						'search_card',
+						__( 'Título do cartão de busca', 'contorno' ),
+						$editorial,
+						__( 'Só aparece quando a busca de unidades está ativada.', 'contorno' )
+					),
 				),
 			)
 		);
@@ -255,10 +276,10 @@ add_action(
 				'name'        => __( 'CONTORNO — PUV', 'contorno' ),
 				'base'        => 'contorno_puv',
 				'category'    => CONTORNO_VC_CATEGORY,
-				'description' => __( 'Bloco texto + imagem para proposta de valor e conteudo institucional.', 'contorno' ),
+				'description' => __( 'Bloco texto + imagem para proposta de valor e conteúdo institucional.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'bullets', __( 'Itens com check', 'contorno' ), $editorial, __( 'Um item por linha.', 'contorno' ) ),
 					contorno_vc_text( 'extra_text', __( 'Texto complementar', 'contorno' ), $editorial ),
@@ -268,7 +289,7 @@ add_action(
 					contorno_vc_url( 'cta_url', __( 'CTA — link', 'contorno' ), $cta_group ),
 					contorno_vc_select(
 						'layout',
-						__( 'Posicao da imagem', 'contorno' ),
+						__( 'Posição da imagem', 'contorno' ),
 						array(
 							__( 'Imagem a direita', 'contorno' ) => 'image-right',
 							__( 'Imagem a esquerda', 'contorno' ) => 'image-left',
@@ -291,7 +312,7 @@ add_action(
 				'description' => __( 'Faixa promocional com imagem de fundo e CTA.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto', 'contorno' ), $editorial ),
 					contorno_vc_image( 'image', __( 'Imagem de fundo', 'contorno' ), $editorial ),
 					contorno_vc_text( 'cta_label', __( 'CTA — texto', 'contorno' ), $cta_group ),
@@ -319,7 +340,7 @@ add_action(
 				'name'        => __( 'CONTORNO — CTA', 'contorno' ),
 				'base'        => 'contorno_cta',
 				'category'    => CONTORNO_VC_CATEGORY,
-				'description' => __( 'Faixa de fechamento de pagina com headline e botao.', 'contorno' ),
+				'description' => __( 'Faixa de fechamento de página com headline e botão.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'headline', __( 'Headline', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto', 'contorno' ), $editorial ),
@@ -339,10 +360,10 @@ add_action(
 				'name'        => __( 'CONTORNO — Destaques', 'contorno' ),
 				'base'        => 'contorno_highlights',
 				'category'    => CONTORNO_VC_CATEGORY,
-				'description' => __( 'Grade de cards com icone, titulo e texto.', 'contorno' ),
+				'description' => __( 'Grade de cards com ícone, título e texto.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial ),
 					array(
 						'type'        => 'param_group',
@@ -351,22 +372,22 @@ add_action(
 						'group'       => $editorial,
 						'value'       => '',
 						'params'      => array(
-							contorno_vc_text( 'label', __( 'Titulo do destaque', 'contorno' ) ),
+							contorno_vc_text( 'label', __( 'Título do destaque', 'contorno' ) ),
 							contorno_vc_textarea( 'text', __( 'Texto', 'contorno' ) ),
 							contorno_vc_select(
 								'icon',
-								__( 'Icone', 'contorno' ),
+								__( 'Ícone', 'contorno' ),
 								array(
-									__( 'Automatico pelo titulo', 'contorno' ) => '',
-									__( 'Musculacao', 'contorno' )   => 'dumbbell',
+									__( 'Automático pelo título', 'contorno' ) => '',
+									__( 'Musculação', 'contorno' )   => 'dumbbell',
 									__( 'Funcional', 'contorno' )    => 'activity',
 									__( 'Cardio', 'contorno' )       => 'heart-pulse',
 									__( 'Aulas / equipe', 'contorno' ) => 'users',
-									__( 'Vestiario', 'contorno' )    => 'shower',
+									__( 'Vestiário', 'contorno' )    => 'shower',
 									__( 'Estacionamento', 'contorno' ) => 'car',
 									__( 'Wi-Fi', 'contorno' )        => 'wifi',
-									__( 'Horario', 'contorno' )      => 'clock',
-									__( 'Localizacao', 'contorno' )  => 'map-pin',
+									__( 'Horário', 'contorno' )      => 'clock',
+									__( 'Localização', 'contorno' )  => 'map-pin',
 									__( 'Premium', 'contorno' )      => 'sparkles',
 								)
 							),
@@ -394,7 +415,7 @@ add_action(
 				'description' => __( 'Componente controlado: grade no desktop, carrossel de 1 unidade no mobile, busca e filtros.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial ),
 					contorno_vc_select(
 						'columns',
@@ -404,10 +425,10 @@ add_action(
 					),
 					contorno_vc_text( 'limit', __( 'Quantidade (-1 para todas)', 'contorno' ), __( 'Fonte de dados', 'contorno' ) ),
 					contorno_vc_toggle( 'featured', __( 'Somente unidades em destaque', 'contorno' ), false, __( 'Fonte de dados', 'contorno' ) ),
-					contorno_vc_text( 'city', __( 'Filtrar por cidade (slug, separado por virgula)', 'contorno' ), __( 'Fonte de dados', 'contorno' ) ),
+					contorno_vc_text( 'city', __( 'Filtrar por cidade (slug, separado por vírgula)', 'contorno' ), __( 'Fonte de dados', 'contorno' ) ),
 					contorno_vc_toggle( 'show_search', __( 'Exibir campo de busca', 'contorno' ), true, $look ),
-					contorno_vc_toggle( 'prescription', __( 'CTA de prescricao de treino', 'contorno' ), false, $cta_group ),
-					contorno_vc_text( 'empty_text', __( 'Texto quando nada e encontrado', 'contorno' ), $editorial ),
+					contorno_vc_toggle( 'prescription', __( 'CTA de prescrição de treino', 'contorno' ), false, $cta_group ),
+					contorno_vc_text( 'empty_text', __( 'Texto quando nada é encontrado', 'contorno' ), $editorial ),
 					contorno_vc_tone(),
 				),
 			)
@@ -421,20 +442,20 @@ add_action(
 				'name'        => __( 'CONTORNO — Planos', 'contorno' ),
 				'base'        => 'contorno_plans',
 				'category'    => CONTORNO_VC_CATEGORY,
-				'description' => __( 'Cards de planos. Precos, beneficios, badge e checkout vem dos campos da Unidade/CTN — nao se edita aqui.', 'contorno' ),
+				'description' => __( 'Cards de planos. Preços, benefícios, badge e checkout vêm dos campos da Unidade/CTN — não se edita aqui.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial ),
 					contorno_vc_text( 'cta_label', __( 'Texto do botao dos cards', 'contorno' ), $cta_group ),
-					contorno_vc_text( 'note', __( 'Nota de rodape (ex.: pagamento seguro)', 'contorno' ), $editorial ),
+					contorno_vc_text( 'note', __( 'Nota de rodapé (ex.: pagamento seguro)', 'contorno' ), $editorial ),
 					contorno_vc_unit_picker(),
 					contorno_vc_ctn_picker(),
 					contorno_vc_select(
 						'skin',
 						__( 'Pele', 'contorno' ),
 						array(
-							__( 'Automatica (dark nas CTNs)', 'contorno' ) => 'auto',
+							__( 'Automática (dark nas CTNs)', 'contorno' ) => 'auto',
 							__( 'Clara', 'contorno' )                      => 'light',
 							__( 'Dark CTN', 'contorno' )                   => 'dark',
 						),
@@ -453,10 +474,10 @@ add_action(
 				'name'        => __( 'CONTORNO — Aulas Coletivas', 'contorno' ),
 				'base'        => 'contorno_classes',
 				'category'    => CONTORNO_VC_CATEGORY,
-				'description' => __( 'Componente controlado: grade semanal oficial EVO com horarios, filtros e drawer. A filial e configurada nos campos da Unidade.', 'contorno' ),
+				'description' => __( 'Componente controlado: grade semanal oficial EVO com horários, filtros e drawer. A filial é configurada nos campos da Unidade.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo da secao', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título da seção', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial ),
 					contorno_vc_image( 'banner', __( 'Imagem do cabecalho', 'contorno' ), $editorial ),
 					contorno_vc_unit_picker(),
@@ -470,11 +491,11 @@ add_action(
 		 * Secoes de Unidade
 		 * ------------------------------------------------------------- */
 		$unit_sections = array(
-			'contorno_unit_hero'          => array( __( 'CONTORNO — Hero da Unidade', 'contorno' ), __( 'Hero com foto, endereco, status de pre-venda e CTAs da unidade.', 'contorno' ), false ),
-			'contorno_unit_info'          => array( __( 'CONTORNO — Faixa Informativa', 'contorno' ), __( 'Endereco, horario e contato da unidade.', 'contorno' ), false ),
-			'contorno_unit_highlights'    => array( __( 'CONTORNO — Destaques da Unidade', 'contorno' ), __( 'Cards com icone a partir do campo Destaques da unidade.', 'contorno' ), true ),
+			'contorno_unit_hero'          => array( __( 'CONTORNO — Hero da Unidade', 'contorno' ), __( 'Hero com foto, endereço, status de pré-venda e CTAs da unidade.', 'contorno' ), false ),
+			'contorno_unit_info'          => array( __( 'CONTORNO — Faixa Informativa', 'contorno' ), __( 'Endereço, horário e contato da unidade.', 'contorno' ), false ),
+			'contorno_unit_highlights'    => array( __( 'CONTORNO — Destaques da Unidade', 'contorno' ), __( 'Cards com ícone a partir do campo Destaques da unidade.', 'contorno' ), true ),
 			'contorno_unit_differentials' => array( __( 'CONTORNO — Diferenciais da Unidade', 'contorno' ), __( 'Lista de diferenciais cadastrados na unidade.', 'contorno' ), true ),
-			'contorno_unit_video'         => array( __( 'CONTORNO — Video da Unidade', 'contorno' ), __( 'Video da unidade com carregamento sob demanda.', 'contorno' ), true ),
+			'contorno_unit_video'         => array( __( 'CONTORNO — Vídeo da Unidade', 'contorno' ), __( 'Vídeo da unidade com carregamento sob demanda.', 'contorno' ), true ),
 		);
 
 		foreach ( $unit_sections as $base => $meta ) {
@@ -484,7 +505,7 @@ add_action(
 
 			if ( $has_header ) {
 				$params[] = contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial );
-				$params[] = contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial );
+				$params[] = contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial );
 				$params[] = contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial );
 				$params[] = contorno_vc_tone();
 			}
@@ -511,7 +532,7 @@ add_action(
 				'description' => __( 'Galeria com lightbox a partir do campo Galeria da Unidade/CTN.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial ),
 					contorno_vc_unit_picker(),
 					contorno_vc_ctn_picker(),
@@ -526,13 +547,13 @@ add_action(
 		 * ------------------------------------------------------------- */
 		vc_map(
 			array(
-				'name'        => __( 'CONTORNO — Localizacao', 'contorno' ),
+				'name'        => __( 'CONTORNO — Localização', 'contorno' ),
 				'base'        => 'contorno_location',
 				'category'    => CONTORNO_VC_CATEGORY,
-				'description' => __( 'Mapa + endereco + horarios a partir dos campos da Unidade/CTN.', 'contorno' ),
+				'description' => __( 'Mapa + endereço + horários a partir dos campos da Unidade/CTN.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_unit_picker(),
 					contorno_vc_ctn_picker(),
 					contorno_vc_tone(),
@@ -548,16 +569,16 @@ add_action(
 				'name'        => __( 'CONTORNO — Area Editorial', 'contorno' ),
 				'base'        => 'contorno_editorial_area',
 				'category'    => CONTORNO_VC_CATEGORY,
-				'description' => __( 'Injeta o conteudo editorial livre daquela Unidade/CTN na posicao escolhida do template compartilhado.', 'contorno' ),
+				'description' => __( 'Injeta o conteúdo editorial livre daquela Unidade/CTN na posição escolhida do template compartilhado.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_select(
 						'slot',
 						__( 'Slot', 'contorno' ),
 						array(
-							__( 'Conteudo principal', 'contorno' )     => 'main',
+							__( 'Conteúdo principal', 'contorno' )     => 'main',
 							__( 'Antes dos planos', 'contorno' )       => 'before_plans',
 							__( 'Depois dos planos', 'contorno' )      => 'after_plans',
-							__( 'Antes do rodape', 'contorno' )        => 'before_footer',
+							__( 'Antes do rodapé', 'contorno' )        => 'before_footer',
 						)
 					),
 					contorno_vc_unit_picker(),
@@ -573,19 +594,19 @@ add_action(
 				'name'        => __( 'CTN — Hero', 'contorno' ),
 				'base'        => 'ctn_hero',
 				'category'    => CONTORNO_VC_CATEGORY_CTN,
-				'description' => __( 'Hero dark com o logo CTN sobre a imagem. Nao usa o header institucional.', 'contorno' ),
+				'description' => __( 'Hero dark com o logo CTN sobre a imagem. Não usa o header institucional.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_text( 'headline', __( 'Headline', 'contorno' ), $editorial ),
-					contorno_vc_textarea( 'subtitle', __( 'Subtitulo', 'contorno' ), $editorial ),
+					contorno_vc_textarea( 'subtitle', __( 'Subtítulo', 'contorno' ), $editorial ),
 					contorno_vc_text( 'tagline', __( 'Tagline', 'contorno' ), $editorial ),
 					contorno_vc_image( 'image', __( 'Imagem do hero', 'contorno' ), $editorial ),
 					contorno_vc_text( 'image_alt', __( 'Texto alternativo', 'contorno' ), $editorial ),
 					contorno_vc_text( 'cta_label', __( 'CTA principal — texto', 'contorno' ), $cta_group ),
 					contorno_vc_url( 'cta_url', __( 'CTA principal — link', 'contorno' ), $cta_group ),
-					contorno_vc_text( 'cta2_label', __( 'CTA secundario — texto', 'contorno' ), $cta_group ),
-					contorno_vc_url( 'cta2_url', __( 'CTA secundario — link', 'contorno' ), $cta_group ),
+					contorno_vc_text( 'cta2_label', __( 'CTA secundário — texto', 'contorno' ), $cta_group ),
+					contorno_vc_url( 'cta2_url', __( 'CTA secundário — link', 'contorno' ), $cta_group ),
 					contorno_vc_toggle( 'show_logo', __( 'Exibir logo CTN sobre o hero', 'contorno' ), true, $look ),
 					contorno_vc_ctn_picker(),
 				),
@@ -597,17 +618,17 @@ add_action(
 				'name'        => __( 'CTN — PUV', 'contorno' ),
 				'base'        => 'ctn_puv',
 				'category'    => CONTORNO_VC_CATEGORY_CTN,
-				'description' => __( 'PUV com equipamento premium protagonista (Panatta quando disponivel) + numeros.', 'contorno' ),
+				'description' => __( 'PUV com equipamento premium protagonista (Panatta quando disponível) + números.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
-					contorno_vc_textarea( 'text', __( 'Descricao', 'contorno' ), $editorial, __( 'Um paragrafo por linha.', 'contorno' ) ),
-					contorno_vc_image( 'image', __( 'Imagem do equipamento', 'contorno' ), $editorial, __( 'Maquina/equipamento premium em primeiro plano. Nunca foto generica de academia.', 'contorno' ) ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
+					contorno_vc_textarea( 'text', __( 'Descrição', 'contorno' ), $editorial, __( 'Um parágrafo por linha.', 'contorno' ) ),
+					contorno_vc_image( 'image', __( 'Imagem do equipamento', 'contorno' ), $editorial, __( 'Máquina/equipamento premium em primeiro plano. Nunca foto genérica de academia.', 'contorno' ) ),
 					contorno_vc_text( 'image_alt', __( 'Texto alternativo', 'contorno' ), $editorial ),
 					contorno_vc_text( 'extra_text', __( 'Texto complementar', 'contorno' ), $editorial ),
 					contorno_vc_text( 'cta_label', __( 'CTA — texto', 'contorno' ), $cta_group ),
 					contorno_vc_url( 'cta_url', __( 'CTA — link', 'contorno' ), $cta_group ),
-					contorno_vc_toggle( 'show_stats', __( 'Exibir numeros', 'contorno' ), true, $look ),
+					contorno_vc_toggle( 'show_stats', __( 'Exibir números', 'contorno' ), true, $look ),
 					contorno_vc_ctn_picker(),
 				),
 			)
@@ -618,16 +639,16 @@ add_action(
 				'name'        => __( 'CTN — Sobre', 'contorno' ),
 				'base'        => 'ctn_about',
 				'category'    => CONTORNO_VC_CATEGORY_CTN,
-				'description' => __( 'Sobre com video vertical 9:16. Nao voltar para imagem estatica.', 'contorno' ),
+				'description' => __( 'Sobre com vídeo vertical 9:16. Não voltar para imagem estatica.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
-					contorno_vc_textarea( 'text', __( 'Texto', 'contorno' ), $editorial, __( 'Um paragrafo por linha.', 'contorno' ) ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
+					contorno_vc_textarea( 'text', __( 'Texto', 'contorno' ), $editorial, __( 'Um parágrafo por linha.', 'contorno' ) ),
 					contorno_vc_textarea( 'features', __( 'Itens de estrutura', 'contorno' ), $editorial, __( 'Um item por linha.', 'contorno' ) ),
-					contorno_vc_text( 'video_id', __( 'Video vertical — ID do YouTube/Short', 'contorno' ), __( 'Video', 'contorno' ) ),
-					contorno_vc_url( 'video', __( 'Video vertical — arquivo (prioritario)', 'contorno' ), __( 'Video', 'contorno' ) ),
-					contorno_vc_image( 'poster', __( 'Poster vertical', 'contorno' ), __( 'Video', 'contorno' ) ),
-					contorno_vc_text( 'caption', __( 'Legenda de apoio', 'contorno' ), __( 'Video', 'contorno' ) ),
+					contorno_vc_text( 'video_id', __( 'Vídeo vertical — ID do YouTube/Short', 'contorno' ), __( 'Vídeo', 'contorno' ) ),
+					contorno_vc_url( 'video', __( 'Vídeo vertical — arquivo (prioritario)', 'contorno' ), __( 'Vídeo', 'contorno' ) ),
+					contorno_vc_image( 'poster', __( 'Poster vertical', 'contorno' ), __( 'Vídeo', 'contorno' ) ),
+					contorno_vc_text( 'caption', __( 'Legenda de apoio', 'contorno' ), __( 'Vídeo', 'contorno' ) ),
 					contorno_vc_ctn_picker(),
 				),
 			)
@@ -641,7 +662,7 @@ add_action(
 				'description' => __( 'Faixa com logos das marcas de equipamento.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial ),
 					contorno_vc_ctn_picker(),
 				),
@@ -653,11 +674,17 @@ add_action(
 				'name'        => __( 'CTN — Equipamentos', 'contorno' ),
 				'base'        => 'ctn_equipment',
 				'category'    => CONTORNO_VC_CATEGORY_CTN,
-				'description' => __( 'Destaques de equipamento cadastrados na CTN.', 'contorno' ),
+				'description' => __( 'Destaques de equipamento cadastrados na CTN. Não entra na landing por padrão — insira quando quiser a seção.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial ),
+					contorno_vc_toggle(
+						'show_media',
+						__( 'Exibir vídeo ou foto de cada equipamento', 'contorno' ),
+						false,
+						$look
+					),
 					contorno_vc_ctn_picker(),
 				),
 			)
@@ -668,15 +695,15 @@ add_action(
 				'name'        => __( 'CTN — Ronnie + Playlist', 'contorno' ),
 				'base'        => 'ctn_videos',
 				'category'    => CONTORNO_VC_CATEGORY_CTN,
-				'description' => __( 'Um video principal + box vertical "Ver mais" com link de playlist.', 'contorno' ),
+				'description' => __( 'Um vídeo principal + box vertical "Ver mais" com link de playlist.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial ),
-					contorno_vc_text( 'video_id', __( 'Video principal — ID do YouTube', 'contorno' ), __( 'Video', 'contorno' ) ),
-					contorno_vc_text( 'more_title', __( 'Box "Ver mais" — titulo', 'contorno' ), __( 'Ver mais', 'contorno' ) ),
+					contorno_vc_text( 'video_id', __( 'Vídeo principal — ID do YouTube', 'contorno' ), __( 'Vídeo', 'contorno' ) ),
+					contorno_vc_text( 'more_title', __( 'Box "Ver mais" — título', 'contorno' ), __( 'Ver mais', 'contorno' ) ),
 					contorno_vc_textarea( 'more_text', __( 'Box "Ver mais" — texto', 'contorno' ), __( 'Ver mais', 'contorno' ) ),
-					contorno_vc_text( 'more_label', __( 'Box "Ver mais" — texto do botao', 'contorno' ), __( 'Ver mais', 'contorno' ) ),
+					contorno_vc_text( 'more_label', __( 'Box "Ver mais" — texto do botão', 'contorno' ), __( 'Ver mais', 'contorno' ) ),
 					contorno_vc_url( 'playlist_url', __( 'URL da playlist', 'contorno' ), __( 'Ver mais', 'contorno' ) ),
 					contorno_vc_ctn_picker(),
 				),
@@ -691,7 +718,7 @@ add_action(
 				'description' => __( 'Cards das CTNs cadastradas — usado no hub /ctn.', 'contorno' ),
 				'params'      => array(
 					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
-					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial ),
 					contorno_vc_textarea( 'text', __( 'Texto de apoio', 'contorno' ), $editorial ),
 					contorno_vc_select( 'columns', __( 'Colunas', 'contorno' ), array( '2' => '2', '3' => '3' ), $look ),
 				),

@@ -109,6 +109,19 @@
 			});
 		}
 
+		// Botão do cartão do hero: leva para /unidades com o termo aplicado.
+		const submit = root.querySelector('[data-contorno-unit-search-submit]');
+		if (submit) {
+			submit.addEventListener('click', function () {
+				const archive = input.dataset.archive || '/unidades/';
+				const term = input.value.trim();
+
+				window.location.href = term
+					? archive + (archive.indexOf('?') === -1 ? '?' : '&') + 'q=' + encodeURIComponent(term)
+					: archive;
+			});
+		}
+
 		// Termo vindo da URL (?q=) aplicado na chegada.
 		if (!isRemote && window.URLSearchParams) {
 			var initial = new URLSearchParams(window.location.search).get('q');

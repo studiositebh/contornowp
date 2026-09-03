@@ -168,6 +168,57 @@ function contorno_field_image_urls( string $name, ?int $post_id = null, string $
 }
 
 /**
+ * Renderiza uma imagem RESPONSIVA a partir de um valor de campo.
+ *
+ * Quando o valor e um ID de anexo, usa wp_get_attachment_image(), que emite
+ * srcset e sizes automaticamente — o navegador baixa a versao do tamanho
+ * certo em vez do original. Isso evita servir um JPG de 2,8 MB num card de
+ * 350px, que era o caso antes.
+ *
+ * Quando o valor e um caminho solto (asset ainda nao na Biblioteca), cai num
+ * <img> simples: sem srcset, mas funcional.
+ *
+ * @param array<string,string> $attr Atributos extra (class, alt, loading...).
+ */
+function contorno_image_tag( mixed $value, string $size = 'contorno-card', array $attr = array() ): string {
+	if ( is_array( $value ) ) {
+		$value = $value['ID'] ?? ( $value['url'] ?? ( $value[0] ?? '' ) );
+	}
+
+	$defaults = array(
+		'alt'      => '',
+		'loading'  => 'lazy',
+		'decoding' => 'async',
+	);
+
+	$attr = array_merge( $defaults, $attr );
+
+	if ( is_numeric( $value ) && (int) $value > 0 ) {
+		$html = wp_get_attachment_image( (int) $value, $size, false, $attr );
+
+		if ( is_string( $html ) && '' !== $html ) {
+			return $html;
+		}
+	}
+
+	$url = contorno_resolve_media( $value, $size );
+
+	if ( '' === $url ) {
+		return '';
+	}
+
+	$parts = '';
+	foreach ( $attr as $key => $val ) {
+		if ( '' === (string) $val && 'alt' !== $key ) {
+			continue;
+		}
+		$parts .= sprintf( ' %s="%s"', sanitize_key( (string) $key ), esc_attr( (string) $val ) );
+	}
+
+	return sprintf( '<img src="%s"%s />', esc_url( $url ), $parts );
+}
+
+/**
  * Converte ID de anexo, caminho relativo ou URL absoluta em URL utilizavel.
  */
 function contorno_resolve_media( mixed $value, string $size = 'full' ): string {
@@ -187,6 +238,22 @@ function contorno_resolve_media( mixed $value, string $size = 'full' ): string {
 
 	// Caminho do projeto React (/units/..., /brand/..., /ctn/...).
 	return contorno_asset_url( $value );
+}
+
+/**
+ * Serializa um valor para guardar em meta.
+ *
+ * JSON_UNESCAPED_UNICODE e obrigatorio aqui. Sem ele, "musculacao" com cedilha
+ * viraria "ç" no JSON, e o update_metadata() do WordPress aplica
+ * wp_unslash() no valor — o que remove a barra e deixa "u00e7" literal na
+ * tela. JSON_UNESCAPED_SLASHES evita o mesmo problema com "\/" em URLs.
+ *
+ * @param array<int|string,mixed> $value
+ */
+function contorno_encode_json( array $value ): string {
+	$json = wp_json_encode( $value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+
+	return is_string( $json ) ? $json : '[]';
 }
 
 /**
@@ -229,7 +296,7 @@ function contorno_sanitize_field( mixed $value, array $definition ): mixed {
 			$items = array_map( static fn ( $item ): string => sanitize_text_field( (string) $item ), (array) $items );
 			$items = array_values( array_filter( $items, static fn ( string $item ): bool => '' !== trim( $item ) ) );
 
-			return (string) wp_json_encode( $items );
+			return contorno_encode_json( $items );
 
 		case 'repeater':
 			$rows      = is_array( $value ) ? $value : array();
@@ -269,7 +336,7 @@ function contorno_sanitize_field( mixed $value, array $definition ): mixed {
 				}
 			}
 
-			return (string) wp_json_encode( $clean );
+			return contorno_encode_json( $clean );
 
 		case 'text':
 		default:

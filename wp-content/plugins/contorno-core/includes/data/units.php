@@ -155,6 +155,44 @@ function contorno_plan_checkout_url( array $plan, ?int $post_id = null ): string
 }
 
 /**
+ * Destino do CTA de um plano.
+ *
+ * Os dois caminhos do React, preservados:
+ *
+ *  - UNIDADE: passa pelo formulario de matricula, levando unidade e plano na
+ *    URL (/matricula/?unidade={slug}&plano={id}). E la que o aluno preenche
+ *    os dados antes de ir ao checkout.
+ *
+ *  - CTN: vai DIRETO ao checkout da EVO cadastrado no plano. A landing CTN
+ *    nao tem etapa de dados propria.
+ *
+ * @param array<string,mixed> $plan
+ * @return array{url:string,external:bool}
+ */
+function contorno_plan_cta_target( array $plan, int $post_id ): array {
+	$checkout = contorno_plan_checkout_url( $plan, $post_id );
+
+	if ( CONTORNO_CPT_CTN === get_post_type( $post_id ) ) {
+		return array( 'url' => $checkout, 'external' => true );
+	}
+
+	$page = get_page_by_path( 'matricula' );
+	$base = $page instanceof WP_Post ? (string) get_permalink( $page ) : home_url( '/matricula/' );
+
+	$url = add_query_arg(
+		array_filter(
+			array(
+				'unidade' => (string) get_post_field( 'post_name', $post_id ),
+				'plano'   => isset( $plan['id'] ) ? (string) $plan['id'] : '',
+			)
+		),
+		$base
+	);
+
+	return array( 'url' => $url, 'external' => false );
+}
+
+/**
  * Link do Google Maps a partir do maps_query ou do endereco.
  */
 function contorno_maps_url( ?int $post_id = null ): string {

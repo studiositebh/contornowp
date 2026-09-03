@@ -449,7 +449,7 @@ ol {
 
 .contorno-hero {
 	position: relative;
-	isolate: isolate;
+	isolation: isolate;
 	display: flex;
 	align-items: center;
 	overflow: hidden;
@@ -457,16 +457,39 @@ ol {
 	background-color: var(--graphite);
 }
 
+/*
+ * Com o cartão de busca, o hero não pode recortar: o cartão transborda de
+ * propósito. A imagem e o escurecimento usam inset:0, então continuam contidos.
+ */
+.contorno-hero:has(.contorno-hero__search-outer) {
+	overflow: visible;
+}
+
+/*
+ * Alturas medidas no React (HomeHero): min-h-[700px] / md:min-h-[740px].
+ * Nao usar svh aqui: em telas curtas o hero encolhia e a tipografia
+ * desalinhava em relacao a versao aprovada.
+ */
 .contorno-hero.is-height-tall {
-	min-height: 88svh;
+	min-height: 700px;
 }
 
 .contorno-hero.is-height-medium {
-	min-height: 60svh;
+	min-height: 460px;
 }
 
 .contorno-hero.is-height-short {
-	min-height: 42svh;
+	min-height: 340px;
+}
+
+@media (min-width: 768px) {
+	.contorno-hero.is-height-tall {
+		min-height: 740px;
+	}
+
+	.contorno-hero.is-height-medium {
+		min-height: 520px;
+	}
 }
 
 .contorno-hero.is-tone-light {
@@ -498,23 +521,57 @@ ol {
 	);
 }
 
+/*
+ * Escurecimento lateral do hero da Home — porte do gradiente aprovado
+ * (bg-gradient-to-r from-black 12% via-black/55 38% to-transparent 72%).
+ * Mantém o texto legível à esquerda e a fotografia limpa à direita.
+ */
+.contorno-hero.is-scrim-side .contorno-hero__scrim {
+	background: linear-gradient(
+		to right,
+		rgb(0 0 0) 12%,
+		rgb(0 0 0 / 0.55) 38%,
+		rgb(0 0 0 / 0) 72%
+	);
+}
+
+@media (max-width: 767px) {
+	/* No mobile o texto ocupa a largura toda: gradiente vertical funciona melhor. */
+	.contorno-hero.is-scrim-side .contorno-hero__scrim {
+		background: linear-gradient(
+			to top,
+			rgb(0 0 0 / 0.9),
+			rgb(0 0 0 / 0.7) 55%,
+			rgb(0 0 0 / 0.45)
+		);
+	}
+}
+
 .contorno-hero__inner {
 	position: relative;
 	padding-block: var(--space-20);
 }
 
+/* Larguras e escala tipografica medidas no HomeHero do React. */
 .contorno-hero__copy {
-	max-width: 44rem;
+	max-width: 36rem;
 }
 
 .contorno-hero__title {
-	font-size: var(--text-4xl);
+	font-size: 2.15rem;
+	line-height: 1.06;
 	margin-bottom: var(--space-5);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
 	.contorno-hero__title {
-		font-size: var(--text-6xl);
+		font-size: 2.85rem;
+	}
+}
+
+@media (min-width: 1024px) {
+	.contorno-hero__title {
+		font-size: 3.35rem;
 	}
 }
 
@@ -524,9 +581,17 @@ ol {
 }
 
 .contorno-hero__subtitle {
-	font-size: var(--text-lg);
-	color: rgb(255 255 255 / 0.82);
-	max-width: 36rem;
+	font-size: 1.05rem;
+	line-height: 1.625;
+	color: rgb(255 255 255 / 0.9);
+	max-width: 30rem;
+	margin-top: var(--space-5);
+}
+
+@media (min-width: 640px) {
+	.contorno-hero__subtitle {
+		font-size: var(--text-lg);
+	}
 }
 
 .contorno-hero.is-tone-light .contorno-hero__subtitle {
@@ -542,9 +607,56 @@ ol {
 	margin-top: var(--space-6);
 }
 
-.contorno-hero__search {
-	margin-top: var(--space-8);
-	max-width: 34rem;
+/*
+ * Cartão de busca do hero — porte do UnitSearch variant="card": branco,
+ * sombra alta e transbordando metade da altura sobre a seção seguinte.
+ */
+.contorno-hero__search-outer {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	z-index: 3;
+	transform: translateY(38%);
+}
+
+@media (min-width: 640px) {
+	.contorno-hero__search-outer {
+		transform: translateY(50%);
+	}
+}
+
+.contorno-hero__search-card {
+	background: #fff;
+	color: var(--foreground);
+	border-radius: var(--radius-2xl);
+	padding: 1.25rem;
+	box-shadow: 0 24px 70px -28px rgb(17 17 17 / 0.55);
+}
+
+@media (min-width: 640px) {
+	.contorno-hero__search-card {
+		padding: 1.5rem 2rem;
+	}
+}
+
+.contorno-hero__search-title {
+	margin: 0 0 1.25rem;
+	text-align: center;
+	font-size: var(--text-lg);
+	font-weight: 600;
+	color: #111111;
+}
+
+@media (min-width: 640px) {
+	.contorno-hero__search-title {
+		font-size: var(--text-xl);
+	}
+}
+
+/* O cartão transborda: a seção seguinte precisa de folga para não colidir. */
+.contorno-hero__search-outer ~ * ,
+.contorno-hero:has(.contorno-hero__search-outer) + .contorno-section {
+	padding-top: calc(var(--section-py) + 5rem);
 }
 
 /* ====================================================================
@@ -597,33 +709,75 @@ ol {
 }
 
 /* ====================================================================
+ * Convivência com o WPBakery
+ * ================================================================== */
+
+/*
+ * O WPBakery aplica margem negativa de -15px nas linhas e padding de 15px
+ * nas colunas, assumindo um container com padding próprio. Nossos elementos
+ * são full-width e cuidam do próprio container (.site-container), então a
+ * linha ficava 30px mais larga que a viewport no mobile.
+ *
+ * Neutralizamos isso apenas nas linhas que contêm elementos CONTORNO/CTN.
+ * Linhas montadas com elementos nativos do builder seguem o padrão dele.
+ */
+.contorno-page .vc_row:has(> .wpb_column > .vc_column-inner > .wpb_wrapper > [class*="contorno-"]),
+.contorno-page .vc_row:has(> .wpb_column > .vc_column-inner > .wpb_wrapper > [class*="ctn-"]),
+.contorno-page .vc_row:has(.contorno-hero),
+.contorno-page .vc_row:has(.contorno-section),
+.contorno-page .vc_row:has(.contorno-banner),
+.contorno-page .vc_row:has(.contorno-final-cta),
+.contorno-page .vc_row:has(.ctn-hero),
+.contorno-page .vc_row:has(.ctn-list) {
+	margin-inline: 0;
+}
+
+.contorno-page .vc_row:has([class*="contorno-"]) > .wpb_column > .vc_column-inner,
+.contorno-page .vc_row:has([class*="ctn-"]) > .wpb_column > .vc_column-inner {
+	padding-inline: 0;
+}
+
+/* Nunca deixar o conteúdo do builder empurrar a página para os lados. */
+.contorno-page {
+	overflow-x: clip;
+}
+
+/* ====================================================================
  * Movimento
  * ================================================================== */
 
+/*
+ * A ENTRADA usa `translate`; o HOVER usa `transform`.
+ *
+ * Separar as duas propriedades e deliberado. Quando ambas usavam `transform`,
+ * a regra de entrada (mais especifica, por causa de .contorno-js) anulava a
+ * elevacao de hover dos cards — o hover mudava cor e sombra, mas o card nao
+ * subia. `translate` e `transform` compoem sem disputa de especificidade.
+ */
 .contorno-js .motion-reveal {
 	opacity: 0;
-	transform: translateY(18px);
+	translate: 0 18px;
 	transition:
 		opacity var(--motion-enter) var(--motion-ease),
-		transform var(--motion-enter) var(--motion-ease);
+		translate var(--motion-enter) var(--motion-ease);
 }
 
 .motion-reveal.is-inview {
 	opacity: 1;
-	transform: none;
+	translate: 0;
 }
 
 .contorno-js .motion-stagger .motion-item {
 	opacity: 0;
-	transform: translateY(16px);
+	translate: 0 16px;
 	transition:
 		opacity var(--motion-enter) var(--motion-ease),
-		transform var(--motion-enter) var(--motion-ease);
+		translate var(--motion-enter) var(--motion-ease);
 }
 
 .motion-stagger.is-inview .motion-item {
 	opacity: 1;
-	transform: none;
+	translate: 0;
 }
 
 .motion-stagger.is-inview .motion-item:nth-child(1) { transition-delay: 0ms; }
@@ -831,7 +985,7 @@ ol {
  * ================================================================== */
 
 .site-footer {
-	background: var(--graphite);
+	background: #111111;
 	color: rgb(255 255 255 / 0.78);
 	padding-top: var(--space-16);
 }
@@ -883,6 +1037,11 @@ ol {
 
 .site-footer a {
 	color: rgb(255 255 255 / 0.78);
+	/*
+	 * O e-mail institucional (30 caracteres sem espaço) não cabe na coluna em
+	 * 1024px e empurrava a página inteira 10px para o lado.
+	 */
+	overflow-wrap: anywhere;
 }
 
 .site-footer a:hover {
@@ -965,6 +1124,8 @@ ol {
 	.animate-whatsapp-pulse {
 		opacity: 1 !important;
 		transform: none !important;
+		/* A entrada usa `translate`; precisa ser neutralizada aqui também. */
+		translate: none !important;
 		filter: none !important;
 		animation: none !important;
 		transition: none !important;

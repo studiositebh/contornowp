@@ -18,6 +18,51 @@ function contorno_should_render_native_metaboxes(): bool {
 	return (bool) apply_filters( 'contorno_render_native_metaboxes', true );
 }
 
+/**
+ * Ordem de exibicao das caixas no editor.
+ *
+ * O esquema (registry.php) e organizado por dominio; aqui definimos a ordem
+ * de LEITURA para quem administra a academia no dia a dia: primeiro o que
+ * muda com frequencia (dados gerais e status comercial), depois cadastro,
+ * conteudo, comercial, integracoes e por fim SEO.
+ *
+ * Grupos ausentes desta lista entram no fim, na ordem do esquema.
+ *
+ * @return string[]
+ */
+function contorno_metabox_order( string $post_type ): array {
+	$order = array(
+		CONTORNO_CPT_UNIT => array(
+			'identidade',
+			'status',
+			'localizacao',
+			'midia',
+			'conteudo',
+			'planos',
+			'aulas',
+			'integracao',
+			'editorial',
+			'seo',
+		),
+		CONTORNO_CPT_CTN => array(
+			'identidade',
+			'hero',
+			'puv',
+			'sobre',
+			'estrutura',
+			'videos',
+			'localizacao',
+			'planos',
+			'aulas',
+			'cta',
+			'editorial',
+			'seo',
+		),
+	);
+
+	return (array) apply_filters( 'contorno_metabox_order', $order[ $post_type ] ?? array(), $post_type );
+}
+
 add_action(
 	'add_meta_boxes',
 	static function ( string $post_type ): void {
@@ -31,7 +76,20 @@ add_action(
 			return;
 		}
 
-		foreach ( $schema[ $post_type ] as $group_key => $group ) {
+		$groups = $schema[ $post_type ];
+		$order  = contorno_metabox_order( $post_type );
+
+		// Ordem preferida primeiro; o que sobrar mantem a ordem do esquema.
+		$keys = array_values( array_filter( $order, static fn ( string $key ): bool => isset( $groups[ $key ] ) ) );
+		foreach ( array_keys( $groups ) as $key ) {
+			if ( ! in_array( $key, $keys, true ) ) {
+				$keys[] = (string) $key;
+			}
+		}
+
+		foreach ( $keys as $index => $group_key ) {
+			$group = $groups[ $group_key ];
+
 			add_meta_box(
 				'contorno-' . $group_key,
 				(string) ( $group['label'] ?? $group_key ),
@@ -40,7 +98,9 @@ add_action(
 				},
 				$post_type,
 				'normal',
-				'default'
+				// 'high' garante que as caixas do Contorno fiquem acima das de
+				// terceiros (WPBakery, Resumo) na primeira abertura da tela.
+				0 === $index ? 'high' : 'default'
 			);
 		}
 	}

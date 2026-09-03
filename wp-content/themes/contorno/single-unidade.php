@@ -66,7 +66,7 @@ while ( have_posts() ) :
 
 		contorno_component(
 			'contorno_unit_video',
-			array( 'title' => __( 'Conheca a unidade', 'contorno' ) )
+			array( 'title' => __( 'Conheça a unidade', 'contorno' ) )
 		);
 
 		contorno_component(
@@ -82,7 +82,7 @@ while ( have_posts() ) :
 			'contorno_location',
 			array(
 				'eyebrow' => __( 'Onde estamos', 'contorno' ),
-				'title'   => __( 'Localizacao', 'contorno' ),
+				'title'   => __( 'Localização', 'contorno' ),
 			)
 		);
 

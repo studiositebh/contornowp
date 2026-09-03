@@ -43,7 +43,7 @@ add_action(
 
 		printf(
 			'<div class="notice notice-info inline"><p>%s</p></div>',
-			esc_html__( 'Dica: para montar esta pagina com os elementos CONTORNO no WPBakery, selecione o template "Pagina em branco (WPBakery)" em Atributos da pagina.', 'contorno' )
+			esc_html__( 'Dica: para montar esta página com os elementos CONTORNO no WPBakery, selecione o template "Página em branco (WPBakery)" em Atributos da página.', 'contorno' )
 		);
 	}
 );

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-03T03:48:21.227Z",
+  "generatedAt": "2026-09-03T13:14:51.445Z",
   "source": "academia-contorno-do-corpo (React / TanStack Router)",
   "canonicalUrl": "https://contornodocorpo.com.br",
   "brand": {
@@ -44,19 +44,132 @@
       "title": "Home",
       "template": "templates/page-blank.php",
       "isFront": true,
-      "content": "[vc_row][vc_column][contorno_hero title=\"Experiência premium. Resultados reais. Na prática, todo dia.\" highlight=\"Na prática\" subtitle=\"Academias completas, estrutura de alto padrão, aulas incríveis e a maior rede do Brasil para transformar sua rotina.\" image=\"/brand/hero-home.jpg\" height=\"tall\" overlay=\"60\" cta_label=\"Encontre sua unidade\" cta_url=\"/unidades/\" show_search=\"yes\"][/vc_column][/vc_row]\n[vc_row][vc_column][contorno_units eyebrow=\"Unidades em destaque\" title=\"Encontre a Contorno do Corpo mais perto de voce\" columns=\"4\" limit=\"4\" featured=\"yes\" show_search=\"no\"][/vc_column][/vc_row]\n[vc_row][vc_column][contorno_highlights eyebrow=\"Nossos diferenciais\" title=\"Muito mais que uma academia\" columns=\"3\" tone=\"dark\" align=\"left\" items=\"JTVCJTdCJTIybGFiZWwlMjIlM0ElMjJFc3RydXR1cmElMjBQcmVtaXVtJTIyJTJDJTIydGV4dCUyMiUzQSUyMkFtYmllbnRlcyUyMHBlbnNhZG9zJTIwcGFyYSUyMHRyZWluYXIlMjBjb20lMjBjb25mb3J0byUyQyUyMGFtcGxpdHVkZSUyMGUlMjBwYWRyJUMzJUEzbyUyMENvbnRvcm5vLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkVxdWlwYW1lbnRvcyUyME1vZGVybm9zJTIyJTJDJTIydGV4dCUyMiUzQSUyMkxpbmhhJTIwY29tcGxldGElMjBwYXJhJTIwbXVzY3VsYSVDMyVBNyVDMyVBM28lMkMlMjBjYXJkaW8lMjBlJTIwdHJlaW5vcyUyMGRlJTIwYWx0YSUyMHBlcmZvcm1hbmNlLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkFwcCUyMEV4Y2x1c2l2byUyMiUyQyUyMnRleHQlMjIlM0ElMjJUcmVpbm9zJTJDJTIwaG9yJUMzJUExcmlvcyUyMGUlMjBhJTIwYWNhZGVtaWElMjBuYSUyMHBhbG1hJTIwZGElMjBtJUMzJUEzbyUyQyUyMG5vJTIwc2V1JTIwcml0bW8uJTIyJTJDJTIyaWNvbiUyMiUzQSUyMiUyMiU3RCUyQyU3QiUyMmxhYmVsJTIyJTNBJTIyQXVsYXMlMjBwYXJhJTIwVG9kb3MlMjIlMkMlMjJ0ZXh0JTIyJTNBJTIyTW9kYWxpZGFkZXMlMjBwYXJhJTIwZGlmZXJlbnRlcyUyMG9iamV0aXZvcyUyQyUyMG4lQzMlQUR2ZWlzJTIwZSUyMG1vbWVudG9zJTIwZGElMjBzZW1hbmEuJTIyJTJDJTIyaWNvbiUyMiUzQSUyMiUyMiU3RCUyQyU3QiUyMmxhYmVsJTIyJTNBJTIyQ29uZm9ydG8lMjAlMjYlMjBFeHBlcmklQzMlQUFuY2lhJTIyJTJDJTIydGV4dCUyMiUzQSUyMkNsaW1hdGl6YSVDMyVBNyVDMyVBM28lMkMlMjBjaXJjdWxhJUMzJUE3JUMzJUEzbyUyMGUlMjBhdGVuZGltZW50byUyMHByJUMzJUIzeGltb3MlMjBkbyUyMGFsdW5vLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkNvbXVuaWRhZGUlMjBDb250b3JubyUyMiUyQyUyMnRleHQlMjIlM0ElMjJVbWElMjByZWRlJTIwZGUlMjB1bmlkYWRlcyUyMGVtJTIwTWluYXMlMjBlJTIwdW1hJTIwY29tdW5pZGFkZSUyMHF1ZSUyMHRyZWluYSUyMGp1bnRvLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlNUQ=\"][/vc_column][/vc_row]\n[vc_row][vc_column][contorno_puv eyebrow=\"Exclusivo\" title=\"CTN Prime\" text=\"Centro de Treinamento Contorno\nYOUR ONLY LIMIT IS YOU. O maior e mais completo CT de BH espera por voce.\" image=\"/ctn/castelo/gallery-05.jpg\" image_alt=\"Estrutura premium do Centro de Treinamento Contorno\" layout=\"image-right\" tone=\"dark\" cta_label=\"Conheca as CTNs\" cta_url=\"/ctn/\"][/vc_column][/vc_row]\n[vc_row][vc_column][contorno_cta headline=\"O momento de mudar e agora.\" text=\"Matricule-se e transforme sua vida!\" cta_label=\"Quero me matricular\" cta_url=\"/matricula/\" image=\"/brand/cta-gym.jpg\"][/vc_column][/vc_row]"
+      "content": "[vc_row][vc_column][contorno_hero title=\"Experiência premium.|Resultados reais.|Na prática, todo dia.\" highlight=\"Na prática\" subtitle=\"Academias completas, estrutura de alto padrão, aulas incríveis e a maior rede do Brasil para transformar sua rotina.\" image=\"/brand/hero-home.jpg\" height=\"tall\" overlay=\"60\" focal=\"62% 18%\" scrim=\"side\" cta_label=\"Encontre sua unidade\" cta_url=\"/unidades/\" show_search=\"yes\" search_card=\"Encontre a unidade ideal para você\"][/vc_column][/vc_row][vc_row][vc_column][contorno_units eyebrow=\"Unidades em destaque\" title=\"Encontre a Contorno do Corpo mais perto de voce\" columns=\"4\" limit=\"4\" featured=\"yes\" show_search=\"no\"][/vc_column][/vc_row][vc_row][vc_column][contorno_highlights eyebrow=\"Nossos diferenciais\" title=\"Muito mais que uma academia\" columns=\"3\" tone=\"dark\" align=\"left\" items=\"JTVCJTdCJTIybGFiZWwlMjIlM0ElMjJFc3RydXR1cmElMjBQcmVtaXVtJTIyJTJDJTIydGV4dCUyMiUzQSUyMkFtYmllbnRlcyUyMHBlbnNhZG9zJTIwcGFyYSUyMHRyZWluYXIlMjBjb20lMjBjb25mb3J0byUyQyUyMGFtcGxpdHVkZSUyMGUlMjBwYWRyJUMzJUEzbyUyMENvbnRvcm5vLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkVxdWlwYW1lbnRvcyUyME1vZGVybm9zJTIyJTJDJTIydGV4dCUyMiUzQSUyMkxpbmhhJTIwY29tcGxldGElMjBwYXJhJTIwbXVzY3VsYSVDMyVBNyVDMyVBM28lMkMlMjBjYXJkaW8lMjBlJTIwdHJlaW5vcyUyMGRlJTIwYWx0YSUyMHBlcmZvcm1hbmNlLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkFwcCUyMEV4Y2x1c2l2byUyMiUyQyUyMnRleHQlMjIlM0ElMjJUcmVpbm9zJTJDJTIwaG9yJUMzJUExcmlvcyUyMGUlMjBhJTIwYWNhZGVtaWElMjBuYSUyMHBhbG1hJTIwZGElMjBtJUMzJUEzbyUyQyUyMG5vJTIwc2V1JTIwcml0bW8uJTIyJTJDJTIyaWNvbiUyMiUzQSUyMiUyMiU3RCUyQyU3QiUyMmxhYmVsJTIyJTNBJTIyQXVsYXMlMjBwYXJhJTIwVG9kb3MlMjIlMkMlMjJ0ZXh0JTIyJTNBJTIyTW9kYWxpZGFkZXMlMjBwYXJhJTIwZGlmZXJlbnRlcyUyMG9iamV0aXZvcyUyQyUyMG4lQzMlQUR2ZWlzJTIwZSUyMG1vbWVudG9zJTIwZGElMjBzZW1hbmEuJTIyJTJDJTIyaWNvbiUyMiUzQSUyMiUyMiU3RCUyQyU3QiUyMmxhYmVsJTIyJTNBJTIyQ29uZm9ydG8lMjAlMjYlMjBFeHBlcmklQzMlQUFuY2lhJTIyJTJDJTIydGV4dCUyMiUzQSUyMkNsaW1hdGl6YSVDMyVBNyVDMyVBM28lMkMlMjBjaXJjdWxhJUMzJUE3JUMzJUEzbyUyMGUlMjBhdGVuZGltZW50byUyMHByJUMzJUIzeGltb3MlMjBkbyUyMGFsdW5vLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkNvbXVuaWRhZGUlMjBDb250b3JubyUyMiUyQyUyMnRleHQlMjIlM0ElMjJVbWElMjByZWRlJTIwZGUlMjB1bmlkYWRlcyUyMGVtJTIwTWluYXMlMjBlJTIwdW1hJTIwY29tdW5pZGFkZSUyMHF1ZSUyMHRyZWluYSUyMGp1bnRvLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlNUQ=\"][/vc_column][/vc_row][vc_row][vc_column][contorno_puv eyebrow=\"Exclusivo\" title=\"CTN Prime\" text=\"Centro de Treinamento Contorno\nYOUR ONLY LIMIT IS YOU. O maior e mais completo CT de BH espera por voce.\" image=\"/ctn/castelo/gallery-05.jpg\" image_alt=\"Estrutura premium do Centro de Treinamento Contorno\" layout=\"image-right\" tone=\"dark\" cta_label=\"Conheca as CTNs\" cta_url=\"/ctn/\"][/vc_column][/vc_row][vc_row][vc_column][contorno_blog_preview eyebrow=\"Blog\" title=\"Novidades da Contorno\" limit=\"3\" cta_label=\"Ver o blog\"][/vc_column][/vc_row][vc_row][vc_column][contorno_cta headline=\"O momento de mudar e agora.\" text=\"Matricule-se e transforme sua vida!\" cta_label=\"Quero me matricular\" cta_url=\"/matricula/\" image=\"/brand/cta-gym.jpg\"][/vc_column][/vc_row]"
     },
     {
       "slug": "unidades",
       "title": "Unidades",
       "template": "templates/page-blank.php",
-      "content": "[vc_row][vc_column][contorno_hero eyebrow=\"Rede Contorno do Corpo\" title=\"Encontre a unidade mais perto de voce\" subtitle=\"Estrutura de alto padrao, aulas coletivas e planos para todos os objetivos.\" image=\"/brand/hero-home.jpg\" height=\"medium\" overlay=\"65\"][/vc_column][/vc_row]\n[vc_row][vc_column][contorno_units title=\"Nossas unidades\" columns=\"3\" limit=\"-1\" show_search=\"yes\"][/vc_column][/vc_row]\n[vc_row][vc_column][contorno_cta headline=\"Pronto para comecar?\" cta_label=\"Matricule-se\" cta_url=\"/matricula/\" image=\"/brand/cta-gym.jpg\"][/vc_column][/vc_row]"
+      "content": "[vc_row][vc_column][contorno_hero eyebrow=\"Rede Contorno do Corpo\" title=\"Encontre a unidade mais perto de voce\" subtitle=\"Estrutura de alto padrao, aulas coletivas e planos para todos os objetivos.\" image=\"/brand/hero-home.jpg\" height=\"medium\" overlay=\"65\"][/vc_column][/vc_row][vc_row][vc_column][contorno_units title=\"Nossas unidades\" columns=\"3\" limit=\"-1\" show_search=\"yes\"][/vc_column][/vc_row][vc_row][vc_column][contorno_cta headline=\"Pronto para comecar?\" cta_label=\"Matricule-se\" cta_url=\"/matricula/\" image=\"/brand/cta-gym.jpg\"][/vc_column][/vc_row]"
     },
     {
       "slug": "ctn",
       "title": "CTN",
       "template": "templates/page-ctn.php",
-      "content": "[vc_row][vc_column][ctn_hero eyebrow=\"Centros de Treinamento Contorno\" title=\"CTN\" headline=\"Centro de Treinamento Contorno\" subtitle=\"YOUR ONLY LIMIT IS YOU. Equipamentos de alto nivel e estrutura premium.\" image=\"/ctn/hub-hero.jpg\" image_alt=\"Centro de Treinamento Contorno\" cta_label=\"Ver as CTNs\" cta_url=\"#ctns\" show_logo=\"yes\"][/vc_column][/vc_row]\n[vc_row][vc_column][ctn_puv eyebrow=\"Equipamentos\" title=\"Maquinas de alto nivel, do primeiro ao ultimo treino\" text=\"Linha completa Panatta, Hammer, Realleader, Supreme e Shua.\nCada equipamento escolhido para entregar amplitude, biomecanica correta e resultado real.\" image=\"/ctn/institucional/leg-press-realleader.jpg\" image_alt=\"Leg Press Realleader dourado — equipamento de alto nivel dos Centros de Treinamento Contorno\" show_stats=\"no\"][/vc_column][/vc_row]\n[vc_row][vc_column][ctn_brands eyebrow=\"Marcas\" title=\"Equipamentos premium\"][/vc_column][/vc_row]\n[vc_row][vc_column][ctn_list eyebrow=\"Unidades CTN\" title=\"Escolha o seu Centro de Treinamento\" columns=\"2\"][/vc_column][/vc_row]"
+      "content": "[vc_row][vc_column][ctn_hero eyebrow=\"Centros de Treinamento Contorno\" title=\"CTN\" headline=\"Centro de Treinamento Contorno\" subtitle=\"YOUR ONLY LIMIT IS YOU. Equipamentos de alto nivel e estrutura premium.\" image=\"/ctn/hub-hero.jpg\" image_alt=\"Centro de Treinamento Contorno\" cta_label=\"Ver as CTNs\" cta_url=\"#ctns\" show_logo=\"yes\"][/vc_column][/vc_row][vc_row][vc_column][ctn_puv eyebrow=\"Equipamentos\" title=\"Maquinas de alto nivel, do primeiro ao ultimo treino\" text=\"Linha completa Panatta, Hammer, Realleader, Supreme e Shua.\nCada equipamento escolhido para entregar amplitude, biomecanica correta e resultado real.\" image=\"/ctn/institucional/leg-press-realleader.jpg\" image_alt=\"Leg Press Realleader dourado — equipamento de alto nivel dos Centros de Treinamento Contorno\" show_stats=\"no\"][/vc_column][/vc_row][vc_row][vc_column][ctn_brands eyebrow=\"Marcas\" title=\"Equipamentos premium\"][/vc_column][/vc_row][vc_row][vc_column][ctn_list eyebrow=\"Unidades CTN\" title=\"Escolha o seu Centro de Treinamento\" columns=\"2\"][/vc_column][/vc_row]"
+    },
+    {
+      "slug": "planos",
+      "title": "Planos",
+      "template": "templates/page-blank.php",
+      "seo": {
+        "title": "Planos | Contorno do Corpo",
+        "description": "Escolha a unidade para ver planos, valores e matrícula."
+      },
+      "content": "[vc_row][vc_column][contorno_puv eyebrow=\"Planos\" title=\"Planos por unidade\" text=\"Os planos e valores variam de acordo com a unidade. Escolha a Contorno mais perto de você para ver as opções e seguir para a matrícula.\" cta_label=\"Encontre sua unidade\" cta_url=\"/unidades/\" tone=\"light\"][/vc_column][/vc_row][vc_row][vc_column][contorno_units eyebrow=\"Unidades\" title=\"Escolha sua unidade\" columns=\"3\" limit=\"-1\" show_search=\"yes\"][/vc_column][/vc_row]"
+    },
+    {
+      "slug": "matricula",
+      "title": "Matrícula",
+      "template": "templates/page-blank.php",
+      "noIndex": true,
+      "seo": {
+        "title": "Matrícula | Contorno do Corpo",
+        "description": "Preencha seus dados para continuar para o checkout da matrícula."
+      },
+      "content": "[vc_row][vc_column][contorno_enrollment_form][/vc_column][/vc_row]"
+    },
+    {
+      "slug": "confirmacao",
+      "parent": "matricula",
+      "title": "Matrícula confirmada",
+      "template": "templates/page-blank.php",
+      "noIndex": true,
+      "seo": {
+        "title": "Matrícula confirmada | Contorno do Corpo",
+        "description": "Sua matrícula foi recebida. Escolha sua unidade para acessar a prescrição de treino."
+      },
+      "content": "[vc_row][vc_column][contorno_enrollment_confirmation image=\"/brand/cta-gym.jpg\"][/vc_column][/vc_row]"
+    },
+    {
+      "slug": "sobre",
+      "title": "Sobre",
+      "template": "templates/page-blank.php",
+      "seo": {
+        "title": "Sobre | Contorno do Corpo",
+        "description": "A Academia Contorno do Corpo está no mercado há 25 anos, proporcionando saúde e bem-estar aos seus alunos."
+      },
+      "content": "[vc_row][vc_column][contorno_puv eyebrow=\"Sobre\" title=\"A Contorno\" text=\"A Academia Contorno do Corpo está no mercado há 25 anos, proporcionando saúde e bem-estar aos seus alunos. Inauguramos nossa primeira unidade no ano 2000 na Av. do Contorno, no bairro São Lucas, e foi daí que surgiu o nosso nome.\n\nTodos esses anos de mercado nos proporcionaram a possibilidade de melhorar a cada dia, agregando experiência, evolução e transformação. Seguimos buscando preparação e evolução constante para atender o nosso público.\" image=\"/brand/hero-home.jpg\" image_alt=\"Estrutura da Academia Contorno do Corpo\" layout=\"image-right\"][/vc_column][/vc_row][vc_row][vc_column][contorno_highlights eyebrow=\"Nossos diferenciais\" title=\"Muito mais que uma academia\" columns=\"3\" tone=\"dark\" items=\"JTVCJTdCJTIybGFiZWwlMjIlM0ElMjJFc3RydXR1cmElMjBQcmVtaXVtJTIyJTJDJTIydGV4dCUyMiUzQSUyMkFtYmllbnRlcyUyMHBlbnNhZG9zJTIwcGFyYSUyMHRyZWluYXIlMjBjb20lMjBjb25mb3J0byUyQyUyMGFtcGxpdHVkZSUyMGUlMjBwYWRyJUMzJUEzbyUyMENvbnRvcm5vLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkVxdWlwYW1lbnRvcyUyME1vZGVybm9zJTIyJTJDJTIydGV4dCUyMiUzQSUyMkxpbmhhJTIwY29tcGxldGElMjBwYXJhJTIwbXVzY3VsYSVDMyVBNyVDMyVBM28lMkMlMjBjYXJkaW8lMjBlJTIwdHJlaW5vcyUyMGRlJTIwYWx0YSUyMHBlcmZvcm1hbmNlLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkFwcCUyMEV4Y2x1c2l2byUyMiUyQyUyMnRleHQlMjIlM0ElMjJUcmVpbm9zJTJDJTIwaG9yJUMzJUExcmlvcyUyMGUlMjBhJTIwYWNhZGVtaWElMjBuYSUyMHBhbG1hJTIwZGElMjBtJUMzJUEzbyUyQyUyMG5vJTIwc2V1JTIwcml0bW8uJTIyJTJDJTIyaWNvbiUyMiUzQSUyMiUyMiU3RCUyQyU3QiUyMmxhYmVsJTIyJTNBJTIyQXVsYXMlMjBwYXJhJTIwVG9kb3MlMjIlMkMlMjJ0ZXh0JTIyJTNBJTIyTW9kYWxpZGFkZXMlMjBwYXJhJTIwZGlmZXJlbnRlcyUyMG9iamV0aXZvcyUyQyUyMG4lQzMlQUR2ZWlzJTIwZSUyMG1vbWVudG9zJTIwZGElMjBzZW1hbmEuJTIyJTJDJTIyaWNvbiUyMiUzQSUyMiUyMiU3RCUyQyU3QiUyMmxhYmVsJTIyJTNBJTIyQ29uZm9ydG8lMjAlMjYlMjBFeHBlcmklQzMlQUFuY2lhJTIyJTJDJTIydGV4dCUyMiUzQSUyMkNsaW1hdGl6YSVDMyVBNyVDMyVBM28lMkMlMjBjaXJjdWxhJUMzJUE3JUMzJUEzbyUyMGUlMjBhdGVuZGltZW50byUyMHByJUMzJUIzeGltb3MlMjBkbyUyMGFsdW5vLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkNvbXVuaWRhZGUlMjBDb250b3JubyUyMiUyQyUyMnRleHQlMjIlM0ElMjJVbWElMjByZWRlJTIwZGUlMjB1bmlkYWRlcyUyMGVtJTIwTWluYXMlMjBlJTIwdW1hJTIwY29tdW5pZGFkZSUyMHF1ZSUyMHRyZWluYSUyMGp1bnRvLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlNUQ=\"][/vc_column][/vc_row][vc_row][vc_column][contorno_units eyebrow=\"Rede Contorno\" title=\"Encontre a unidade mais perto de você\" columns=\"3\" limit=\"6\" featured=\"yes\" show_search=\"no\"][/vc_column][/vc_row][vc_row][vc_column][contorno_cta headline=\"O momento de mudar é agora.\" text=\"Matricule-se e transforme sua vida!\" cta_label=\"Quero me matricular\" cta_url=\"/matricula/\" image=\"/brand/cta-gym.jpg\"][/vc_column][/vc_row]"
+    },
+    {
+      "slug": "fale-conosco",
+      "title": "Fale Conosco",
+      "template": "templates/page-blank.php",
+      "seo": {
+        "title": "Fale Conosco | Contorno do Corpo",
+        "description": "Fale com a equipe da Contorno do Corpo. Estamos prontos para ajudar."
+      },
+      "content": "[vc_row][vc_column width=\"5/12\"][contorno_contact_channels eyebrow=\"Atendimento\" title=\"Fale Conosco\" text=\"Envie sua mensagem e nossa equipe retorna o contato.\"][/vc_column][vc_column width=\"7/12\"][contorno_contact_form][/vc_column][/vc_row]"
+    },
+    {
+      "slug": "aplicativo",
+      "title": "Aplicativo",
+      "template": "templates/page-blank.php",
+      "seo": {
+        "title": "Aplicativo | Contorno do Corpo",
+        "description": "App Contorno do Corpo: sua academia no seu ritmo."
+      },
+      "content": "[vc_row][vc_column][contorno_puv eyebrow=\"App Contorno do Corpo\" title=\"Sua academia no seu ritmo\" text=\"O app Contorno do Corpo é o seu aliado para treinar melhor, acompanhar resultados e ficar por dentro de tudo.\" bullets=\"Treinos e fichas na palma da mão\nHorários das aulas coletivas\nAcompanhamento de resultados\nNovidades da sua unidade\" image=\"/brand/app-phones.png\" image_alt=\"App Contorno do Corpo\" layout=\"image-right\"][/vc_column][/vc_row][vc_row][vc_column][contorno_cta headline=\"Baixe agora e comece hoje.\" cta_label=\"Encontre sua unidade\" cta_url=\"/unidades/\" image=\"/brand/cta-gym.jpg\"][/vc_column][/vc_row]"
+    },
+    {
+      "slug": "clube-contorno",
+      "title": "Clube Contorno",
+      "template": "templates/page-blank.php",
+      "seo": {
+        "title": "Clube Contorno | Contorno do Corpo",
+        "description": "Parcerias e negócios locais com a rede Contorno do Corpo."
+      },
+      "content": "[vc_row][vc_column][contorno_puv title=\"Clube Contorno\" text=\"Abrimos espaço para negócios locais, influenciadores e marcas trabalharem conosco. Envie sua proposta para o time comercial.\" cta_label=\"Fale conosco\" cta_url=\"/fale-conosco/\"][/vc_column][/vc_row]"
+    },
+    {
+      "slug": "blog",
+      "title": "Blog",
+      "template": "templates/page-blank.php",
+      "seo": {
+        "title": "Blog | Contorno do Corpo",
+        "description": "Conteúdos e novidades da Contorno do Corpo."
+      },
+      "content": "[vc_row][vc_column][contorno_hero eyebrow=\"Blog\" title=\"Conteúdos e novidades da Contorno\" subtitle=\"Inaugurações, eventos, treinos e tudo que acontece na rede.\" image=\"/brand/hero-home.jpg\" height=\"short\" overlay=\"65\" scrim=\"side\"][/vc_column][/vc_row][vc_row][vc_column][contorno_blog_list per_page=\"9\"][/vc_column][/vc_row]"
+    },
+    {
+      "slug": "regulamentos",
+      "title": "Regulamentos",
+      "useBuilder": false,
+      "seo": {
+        "title": "Regulamentos | Contorno do Corpo",
+        "description": "Regulamentos e políticas da Academia Contorno do Corpo."
+      },
+      "content": "<p>Os documentos oficiais de regulamento, termos e políticas serão publicados nesta página.</p>"
+    },
+    {
+      "slug": "termos-de-uso",
+      "title": "Termos de Uso",
+      "useBuilder": false,
+      "seo": {
+        "title": "Termos de Uso | Contorno do Corpo",
+        "description": "Termos de uso da Academia Contorno do Corpo."
+      },
+      "content": "<p>O documento oficial de termos de uso será publicado nesta página.</p>"
+    },
+    {
+      "slug": "politica-de-privacidade",
+      "title": "Política de Privacidade",
+      "useBuilder": false,
+      "seo": {
+        "title": "Política de Privacidade | Contorno do Corpo",
+        "description": "Política de privacidade da Academia Contorno do Corpo."
+      },
+      "content": "<h2>Introdução</h2>\n<p>Esta Política de Privacidade explica como Academia Contorno do Corpo trata dados pessoais coletados por meio deste site e de seus canais digitais.</p>\n<p>O tratamento de dados pessoais é realizado de acordo com as finalidades descritas nesta política e com a legislação aplicável.</p>\n<h2>Controlador dos dados</h2>\n<p>Academia Contorno do Corpo, Belo Horizonte – MG. E-mail para assuntos de privacidade: <a href=\"mailto:contato@contornodocorpo.com.br\">contato@contornodocorpo.com.br</a></p>\n<h2>Dados tratados</h2>\n<h3>Formulário de contato</h3>\n<p>O formulário disponível em /fale-conosco solicita: nome, e-mail, telefone (opcional) e conteúdo da mensagem. Ao enviar, essas informações são encaminhadas por meio do cliente de e-mail do visitante para o endereço contato@contornodocorpo.com.br. O site não armazena as mensagens em banco de dados próprio.</p>\n<h3>WhatsApp</h3>\n<p>Ao utilizar o botão de WhatsApp, o visitante é direcionado para um serviço externo operado pela Meta. Os dados enviados nesse canal estão sujeitos às práticas de privacidade da plataforma utilizada e não são controlados integralmente por este site.</p>\n<h3>Telefone e e-mail</h3>\n<p>Dados enviados diretamente por telefone ou e-mail podem ser tratados para responder à solicitação apresentada pelo titular.</p>\n<h3>Navegação</h3>\n<p>Na data desta publicação, o site não utiliza ferramentas de analytics, pixels de marketing ou cookies de rastreamento identificados no código do projeto. Podem existir cookies ou tecnologias similares associados a serviços de terceiros incorporados, como Google Maps.</p>\n<h2>Finalidades</h2>\n<ul>\n<li>Receber e analisar solicitações de contato;</li>\n<li>Responder dúvidas e pedidos apresentados pelo próprio titular;</li>\n<li>Organizar o atendimento solicitado;</li>\n<li>Realizar procedimentos preliminares relacionados a uma possível contratação;</li>\n<li>Manter a segurança e prevenir uso indevido dos canais digitais;</li>\n<li>Cumprir obrigações legais e regulatórias, quando aplicável;</li>\n<li>Exercer ou defender direitos em processos judiciais, administrativos ou arbitrais, quando aplicável;</li>\n<li>Manter registros necessários para proteção da organização e do titular, conforme a operação do canal utilizado.</li>\n</ul>\n<h2>Hipóteses legais</h2>\n<p>As hipóteses legais aplicáveis dependem da finalidade e do contexto de cada tratamento. Conforme o caso, podem ser consideradas, entre outras, situações como procedimentos preliminares relacionados a contrato a pedido do titular, cumprimento de obrigação legal ou regulatória, exercício regular de direitos, legítimo interesse — quando cabível e após avaliação — e consentimento apenas para finalidades opcionais específicas que realmente o exijam.</p>\n<p>O envio do formulário de contato não é tratado como consentimento genérico para qualquer finalidade de tratamento de dados.</p>\n<h2>Dados pessoais sensíveis</h2>\n<p>O formulário de contato não foi desenvolvido para o envio de documentos sigilosos ou outras informações pessoais sensíveis. Caso esse tipo de informação seja necessário, a equipe indicará um canal apropriado após o contato inicial.</p>\n<p>Caso o próprio usuário inclua espontaneamente informações sensíveis na mensagem, elas serão tratadas apenas na medida necessária para analisar a solicitação e adotar as providências cabíveis.</p>\n<h2>Compartilhamento e operadores</h2>\n<p>Para operar o site e seus canais digitais, Academia Contorno do Corpo utiliza fornecedores técnicos que podem tratar dados pessoais em nome da organização ou em interação com o visitante, conforme a finalidade de cada serviço:</p>\n<ul>\n<li>Provedor de hospedagem do site — hospedagem e distribuição do site;</li>\n<li>Google Maps — exibição de mapa de localização nas páginas de unidade e de contato;</li>\n<li>WhatsApp (Meta) — canal de atendimento iniciado pelo visitante;</li>\n<li>EVO / W12 — sistema de gestão, grade de aulas coletivas e checkout de matrícula.</li>\n</ul>\n<p>Esses fornecedores devem tratar os dados para as finalidades contratadas ou disponibilizadas ao visitante, conforme suas próprias políticas e instruções aplicáveis.</p>\n<h2>Transferência internacional</h2>\n<p>Alguns fornecedores utilizados pelo site podem processar dados em infraestrutura localizada fora do Brasil. Quando isso ocorrer, o tratamento estará sujeito às salvaguardas previstas na legislação aplicável e às práticas dos respectivos fornecedores.</p>\n<h2>Retenção e eliminação</h2>\n<p>Os dados pessoais não serão mantidos indefinidamente. Em regra, serão conservados pelo período necessário para responder à solicitação, durante eventual relação contratual, para cumprimento de obrigações legais, para exercício regular de direitos e pelo tempo necessário à segurança dos canais digitais.</p>\n<p>Mensagens recebidas por e-mail, telefone ou WhatsApp seguem a política de organização e arquivamento adotada para o respectivo canal, ainda não detalhada nesta política pública.</p>\n<h2>Segurança</h2>\n<p>São adotadas medidas técnicas e administrativas razoáveis para proteger os dados pessoais contra acessos não autorizados, perda, alteração, divulgação ou destruição indevida. Nenhum ambiente digital é completamente isento de riscos.</p>\n<h2>Direitos dos titulares</h2>\n<p>O titular pode solicitar, nos termos da legislação aplicável, informações sobre o tratamento de seus dados pessoais, incluindo confirmação da existência de tratamento, acesso, correção, informações sobre compartilhamento, oposição quando cabível e revogação de consentimento quando alguma operação específica se basear nessa hipótese legal.</p>\n<p>Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados pessoais, entre em contato pelo e-mail <a href=\"mailto:contato@contornodocorpo.com.br\">contato@contornodocorpo.com.br</a>.</p>\n<h2>Links e serviços externos</h2>\n<p>O site possui links e integrações com serviços externos, como WhatsApp e Google Maps. Esses serviços possuem práticas próprias de privacidade, sobre as quais a organização não tem controle integral.</p>\n<h2>Cookies e tecnologias</h2>\n<p>Na data desta publicação, não foram identificados no projeto cookies de analytics, marketing, captcha ou rastreamento comportamental. O site utiliza recursos de terceiros que podem envolver tecnologias próprias, como o mapa incorporado do Google Maps.</p>\n<h2>Crianças e adolescentes</h2>\n<p>Os canais deste site não são direcionados especificamente a crianças ou adolescentes. Caso seja identificado o tratamento indevido de dados desse público, serão adotadas as providências adequadas.</p>\n<h2>Atualizações da política</h2>\n<p>Esta Política de Privacidade poderá ser atualizada para refletir alterações legais, operacionais ou tecnológicas.</p>\n<p>Última atualização: agosto de 2026</p>"
     }
   ],
   "units": [
@@ -10630,6 +10743,7 @@
   ],
   "assets": [
     "/brand/Logocompartilhamento.webp",
+    "/brand/app-phones.png",
     "/brand/cta-gym.jpg",
     "/brand/ctn-logo.webp",
     "/brand/favicon.webp",

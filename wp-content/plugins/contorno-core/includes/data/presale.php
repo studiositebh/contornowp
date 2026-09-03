@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 const CONTORNO_PRE_SALE_DEFAULT_LABEL = 'NOVA UNIDADE';
-const CONTORNO_PRE_SALE_STATUS_LABEL  = 'PRE-VENDA';
+const CONTORNO_PRE_SALE_STATUS_LABEL  = 'PRÉ-VENDA';
 
 function contorno_unit_status( ?int $post_id = null ): string {
 	$status = contorno_field_text( 'status', $post_id, 'open' );

@@ -59,8 +59,11 @@ $contorno_core_modules = array(
 	'includes/helpers.php',
 	'includes/assets.php',
 	'includes/seo.php',
+	'includes/forms.php',
+	'includes/redirects.php',
 	'includes/shortcodes/loader.php',
 	'includes/builder/wpbakery.php',
+	'includes/builder/wpbakery-phase2.php',
 	'includes/admin/migration-page.php',
 	'includes/cli/commands.php',
 );

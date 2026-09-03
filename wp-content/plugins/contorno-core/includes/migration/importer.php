@@ -100,6 +100,78 @@ final class Contorno_Migration {
 		return is_array( $data ) ? $data : null;
 	}
 
+	/**
+	 * Conteudo de exemplo que o WordPress cria na instalacao.
+	 *
+	 * "Ola, mundo!" e a pagina "Pagina de exemplo" nao sao conteudo da
+	 * Contorno e apareceriam no blog. Vao para a lixeira (nao delete
+	 * definitivo) na primeira importacao.
+	 */
+	private function trash_sample_content(): void {
+		$samples = array(
+			array( 'type' => 'post', 'slug' => 'ola-mundo' ),
+			array( 'type' => 'post', 'slug' => 'hello-world' ),
+			array( 'type' => 'page', 'slug' => 'pagina-exemplo' ),
+			array( 'type' => 'page', 'slug' => 'pagina-de-exemplo' ),
+			array( 'type' => 'page', 'slug' => 'sample-page' ),
+		);
+
+		foreach ( $samples as $sample ) {
+			$found = get_posts(
+				array(
+					'post_type'      => $sample['type'],
+					'name'           => $sample['slug'],
+					'post_status'    => array( 'publish', 'draft', 'pending' ),
+					'posts_per_page' => 1,
+				)
+			);
+
+			if ( ! isset( $found[0] ) ) {
+				continue;
+			}
+
+			// So mexe no que ainda tem o texto padrao do WordPress. Se alguem
+			// reaproveitou o post para conteudo real, fica como esta.
+			if ( ! $this->is_default_sample( $found[0] ) ) {
+				continue;
+			}
+
+			if ( $this->dry_run ) {
+				$this->report->log( sprintf( 'Enviaria para a lixeira: %s/%s', $sample['type'], $sample['slug'] ) );
+				continue;
+			}
+
+			wp_trash_post( $found[0]->ID );
+			$this->report->log( sprintf( 'Conteudo de exemplo do WordPress na lixeira: %s/%s', $sample['type'], $sample['slug'] ) );
+		}
+	}
+
+	/**
+	 * Heuristica conservadora: so trata como exemplo o texto padrao do
+	 * WordPress, em portugues e em ingles.
+	 */
+	private function is_default_sample( WP_Post $post ): bool {
+		$needles = array(
+			'Boas-vindas ao WordPress',
+			'Bem-vindo ao WordPress',
+			'Welcome to WordPress',
+			'Esse é o seu primeiro post',
+			'This is your first post',
+			'Esta é uma página de exemplo',
+			'Este é um exemplo de página',
+			'página de exemplo',
+			'This is an example page',
+		);
+
+		foreach ( $needles as $needle ) {
+			if ( str_contains( $post->post_content, $needle ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public function run( array $steps = array( 'assets', 'units', 'ctns', 'pages', 'menus' ) ): Contorno_Migration_Report {
 		$dataset = self::read_dataset();
 
@@ -124,6 +196,10 @@ final class Contorno_Migration {
 			$this->import_assets( (array) ( $dataset['assets'] ?? array() ) );
 		}
 
+		if ( in_array( 'thumbs', $steps, true ) ) {
+			$this->regenerate_thumbnails();
+		}
+
 		if ( in_array( 'units', $steps, true ) ) {
 			$this->import_entities( (array) ( $dataset['units'] ?? array() ), CONTORNO_CPT_UNIT, 'units' );
 		}
@@ -133,6 +209,7 @@ final class Contorno_Migration {
 		}
 
 		if ( in_array( 'pages', $steps, true ) ) {
+			$this->trash_sample_content();
 			$this->import_pages( (array) ( $dataset['pages'] ?? array() ) );
 		}
 
@@ -216,6 +293,56 @@ final class Contorno_Migration {
 		}
 
 		$this->report->log( sprintf( 'Anexos: %d criados, %d ja existiam.', $this->report->counts['attachments'], $this->report->counts['skipped'] ) );
+	}
+
+	/**
+	 * Regera os derivados dos anexos importados.
+	 *
+	 * Necessario quando um novo add_image_size() entra no tema: os anexos que
+	 * ja existiam nao tem aquele tamanho e ficam fora do srcset. Idempotente —
+	 * o WordPress reaproveita os arquivos que ja existem.
+	 */
+	private function regenerate_thumbnails(): void {
+		$attachments = get_posts(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'meta_key'       => '_contorno_source_path', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			)
+		);
+
+		if ( array() === $attachments ) {
+			return;
+		}
+
+		if ( $this->dry_run ) {
+			$this->report->log( sprintf( 'Regeraria os derivados de %d anexos.', count( $attachments ) ) );
+
+			return;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$done = 0;
+
+		foreach ( $attachments as $id ) {
+			$file = get_attached_file( (int) $id );
+
+			if ( ! is_string( $file ) || ! is_readable( $file ) ) {
+				continue;
+			}
+
+			$meta = wp_generate_attachment_metadata( (int) $id, $file );
+
+			if ( is_array( $meta ) ) {
+				wp_update_attachment_metadata( (int) $id, $meta );
+				++$done;
+			}
+		}
+
+		$this->report->log( sprintf( 'Derivados regerados: %d anexos.', $done ) );
 	}
 
 	private function find_attachment_by_source( string $path ): int {
@@ -385,7 +512,16 @@ final class Contorno_Migration {
 				continue;
 			}
 
-			$existing = get_page_by_path( $slug );
+			/*
+			 * IDEMPOTENCIA: paginas filhas precisam ser buscadas pelo CAMINHO
+			 * COMPLETO. Buscar so por "confirmacao" nao encontra
+			 * matricula/confirmacao, e a importacao criava "confirmacao-2" a
+			 * cada execucao.
+			 */
+			$path     = ! empty( $page['parent'] )
+				? trim( (string) $page['parent'], '/' ) . '/' . $slug
+				: $slug;
+			$existing = get_page_by_path( $path );
 			$post_id  = $existing instanceof WP_Post ? (int) $existing->ID : 0;
 
 			// Conteudo do builder com os caminhos de asset trocados por IDs,
@@ -423,6 +559,19 @@ final class Contorno_Migration {
 				'post_status' => 'publish',
 			);
 
+			// Hierarquia: /matricula/confirmacao precisa da pagina pai.
+			if ( ! empty( $page['parent'] ) ) {
+				$parent = get_page_by_path( (string) $page['parent'] );
+
+				if ( ! $parent instanceof WP_Post ) {
+					$this->report->warn(
+						sprintf( 'Pagina pai "%s" nao encontrada para /%s — importe as paginas na ordem do dataset.', (string) $page['parent'], $slug )
+					);
+				} else {
+					$postarr['post_parent'] = $parent->ID;
+				}
+			}
+
 			if ( ! $keep_content ) {
 				$postarr['post_content'] = $content;
 			}
@@ -450,8 +599,33 @@ final class Contorno_Migration {
 				update_post_meta( $post_id, '_wp_page_template', (string) $page['template'] );
 			}
 
-			// Abre no editor do WPBakery em vez do editor padrao.
-			update_post_meta( $post_id, '_wpb_vc_js_status', 'true' );
+			/*
+			 * WPBakery so nas paginas editoriais. Documentos de texto corrido
+			 * (termos, politica, regulamentos) abrem no editor nativo, que e
+			 * melhor para manter e revisar texto juridico.
+			 */
+			if ( array_key_exists( 'useBuilder', $page ) && false === $page['useBuilder'] ) {
+				delete_post_meta( $post_id, '_wpb_vc_js_status' );
+			} else {
+				update_post_meta( $post_id, '_wpb_vc_js_status', 'true' );
+			}
+
+			// SEO proprio da pagina.
+			if ( ! empty( $page['seo'] ) && is_array( $page['seo'] ) ) {
+				if ( ! empty( $page['seo']['title'] ) ) {
+					update_post_meta( $post_id, '_contorno_seo_title', sanitize_text_field( (string) $page['seo']['title'] ) );
+				}
+				if ( ! empty( $page['seo']['description'] ) ) {
+					update_post_meta( $post_id, '_contorno_seo_description', sanitize_textarea_field( (string) $page['seo']['description'] ) );
+				}
+			}
+
+			// noindex nas rotas de fluxo (matricula e confirmacao), como no React.
+			if ( ! empty( $page['noIndex'] ) ) {
+				update_post_meta( $post_id, '_contorno_noindex', '1' );
+			} else {
+				delete_post_meta( $post_id, '_contorno_noindex' );
+			}
 
 			if ( ! empty( $page['isFront'] ) ) {
 				update_option( 'show_on_front', 'page' );

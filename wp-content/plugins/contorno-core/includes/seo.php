@@ -16,6 +16,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * SEO proprio de qualquer post (inclusive paginas).
+ *
+ * As Unidades e CTNs tem os campos no esquema; as PAGINAS recebem os mesmos
+ * metas pelo importador. Por isso a leitura aqui e do meta cru, e nao via
+ * contorno_field_text(), que so conhece os post types do esquema.
+ */
+function contorno_seo_meta( string $key, int $post_id = 0 ): string {
+	$post_id = $post_id ?: (int) get_queried_object_id();
+
+	if ( ! $post_id ) {
+		return '';
+	}
+
+	$value = get_post_meta( $post_id, '_contorno_' . $key, true );
+
+	return is_string( $value ) ? trim( $value ) : '';
+}
+
 function contorno_seo_plugin_active(): bool {
 	return defined( 'WPSEO_VERSION' )
 		|| defined( 'RANK_MATH_VERSION' )
@@ -76,6 +95,10 @@ function contorno_meta_description(): string {
 		$post_id = (int) get_queried_object_id();
 
 		$custom = contorno_field_text( 'seo_description', $post_id );
+		if ( '' === $custom ) {
+			// Paginas recebem o meta pelo importador, fora do esquema de campos.
+			$custom = contorno_seo_meta( 'seo_description', $post_id );
+		}
 		if ( '' !== $custom ) {
 			return $custom;
 		}
@@ -109,6 +132,9 @@ add_filter(
 
 		if ( is_singular() ) {
 			$custom = contorno_field_text( 'seo_title', (int) get_queried_object_id() );
+			if ( '' === $custom ) {
+				$custom = contorno_seo_meta( 'seo_title' );
+			}
 			if ( '' !== $custom ) {
 				return $custom;
 			}
@@ -136,7 +162,11 @@ add_action(
 			? (string) get_permalink()
 			: ( is_post_type_archive() ? (string) get_post_type_archive_link( (string) get_query_var( 'post_type' ) ) : home_url( add_query_arg( array() ) ) );
 
-		if ( is_404() || is_search() ) {
+		/*
+		 * noindex nas rotas de fluxo (/matricula e /matricula/confirmacao),
+		 * exatamente como no React — e em 404 e busca interna.
+		 */
+		if ( is_404() || is_search() || ( is_singular() && '' !== contorno_seo_meta( 'noindex' ) ) ) {
 			echo '<meta name="robots" content="noindex, follow" />' . "\n";
 		}
 

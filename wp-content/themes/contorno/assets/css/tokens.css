@@ -61,8 +61,8 @@
 	--text-6xl: 3.75rem;
 
 	--tracking-eyebrow: 0.18em;
-	--tracking-cta: 0.18em;
-	--tracking-tight: -0.015em;
+	--tracking-cta: 0.12em;
+	--tracking-tight: -0.025em;
 
 	/* ---- Espacamento e ritmo ------------------------------------------ */
 	--space-1: 0.25rem;
@@ -79,9 +79,9 @@
 	--space-20: 5rem;
 	--space-28: 7rem;
 
-	--section-py: var(--space-14);
-	--section-py-md: var(--space-20);
-	--section-py-lg: var(--space-28);
+	--section-py: 48px;
+	--section-py-md: 70px;
+	--section-py-lg: 90px;
 
 	/* ---- Containers ---------------------------------------------------- */
 	--container-max: 90rem;

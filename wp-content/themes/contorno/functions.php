@@ -40,7 +40,7 @@ add_action(
 		printf(
 			'<div class="notice notice-error"><p><strong>%s</strong> %s</p></div>',
 			esc_html__( 'Contorno do Corpo:', 'contorno' ),
-			esc_html__( 'o plugin Contorno Core esta inativo. Unidades, CTNs, planos e os elementos do WPBakery nao vao funcionar ate ativa-lo.', 'contorno' )
+			esc_html__( 'o plugin Contorno Core está inativo. Unidades, CTNs, planos e os elementos do WPBakery não vão funcionar até ativá-lo.', 'contorno' )
 		);
 	}
 );

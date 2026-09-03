@@ -68,6 +68,8 @@ function contorno_enqueue_component( string $component ): void {
 		'unit-search'    => 'assets/js/unit-search.js',
 		'lightbox'       => 'assets/js/lightbox.js',
 		'lazy-video'     => 'assets/js/lazy-video.js',
+		'enrollment'     => 'assets/js/enrollment.js',
+		'contact-form'   => 'assets/js/contact-form.js',
 		'reveal'         => 'assets/js/reveal.js',
 	);
 

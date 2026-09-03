@@ -31,7 +31,7 @@ add_action(
 
 function contorno_render_migration_page(): void {
 	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( esc_html__( 'Sem permissao.', 'contorno' ) );
+		wp_die( esc_html__( 'Sem permissão.', 'contorno' ) );
 	}
 
 	$report = null;
@@ -48,12 +48,12 @@ function contorno_render_migration_page(): void {
 	$dataset = Contorno_Migration::read_dataset();
 	?>
 	<div class="wrap">
-		<h1><?php esc_html_e( 'Contorno — Migracao do conteudo', 'contorno' ); ?></h1>
+		<h1><?php esc_html_e( 'Contorno — Migração do conteúdo', 'contorno' ); ?></h1>
 
 		<p>
 			<?php
 			esc_html_e(
-				'Importa unidades, CTNs, imagens e as paginas Home, /unidades e /ctn a partir do dataset exportado do site React. A operacao e idempotente: rodar de novo atualiza, nao duplica.',
+				'Importa unidades, CTNs, imagens e as páginas Home, /unidades e /ctn a partir do dataset exportado do site React. A operação e idempotente: rodar de novo atualiza, não duplica.',
 				'contorno'
 			);
 			?>
@@ -73,7 +73,7 @@ function contorno_render_migration_page(): void {
 							<?php
 							printf(
 								/* translators: 1: version, 2: date, 3: units, 4: ctns, 5: pages, 6: assets */
-								esc_html__( 'v%1$s de %2$s — %3$d unidades, %4$d CTNs, %5$d paginas, %6$d imagens', 'contorno' ),
+								esc_html__( 'v%1$s de %2$s — %3$d unidades, %4$d CTNs, %5$d páginas, %6$d imagens', 'contorno' ),
 								esc_html( (string) ( $dataset['version'] ?? '?' ) ),
 								esc_html( (string) ( $dataset['generatedAt'] ?? '?' ) ),
 								count( (array) ( $dataset['units'] ?? array() ) ),
@@ -99,7 +99,7 @@ function contorno_render_migration_page(): void {
 					</td>
 				</tr>
 				<tr>
-					<th><?php esc_html_e( 'Paginas', 'contorno' ); ?></th>
+					<th><?php esc_html_e( 'Páginas', 'contorno' ); ?></th>
 					<td>
 						<?php
 						foreach ( array( 'home', 'unidades', 'ctn' ) as $slug ) {
@@ -130,7 +130,7 @@ function contorno_render_migration_page(): void {
 					<td><?php echo esc_html( contorno_custom_fields_provider() ); ?></td>
 				</tr>
 				<tr>
-					<th><?php esc_html_e( 'Ultima migracao', 'contorno' ); ?></th>
+					<th><?php esc_html_e( 'Última migração', 'contorno' ); ?></th>
 					<td><?php echo esc_html( (string) get_option( 'contorno_migration_last_run', __( 'nunca', 'contorno' ) ) ); ?></td>
 				</tr>
 			</tbody>
@@ -142,18 +142,18 @@ function contorno_render_migration_page(): void {
 			<p>
 				<label>
 					<input type="checkbox" name="contorno_dry_run" value="1" checked />
-					<?php esc_html_e( 'Simular primeiro (nao grava nada)', 'contorno' ); ?>
+					<?php esc_html_e( 'Simular primeiro (não grava nada)', 'contorno' ); ?>
 				</label>
 			</p>
 			<p>
 				<label>
 					<input type="checkbox" name="contorno_force" value="1" />
-					<?php esc_html_e( 'Sobrescrever paginas que ja foram editadas no painel', 'contorno' ); ?>
+					<?php esc_html_e( 'Sobrescrever páginas que já foram editadas no painel', 'contorno' ); ?>
 				</label>
 			</p>
 			<p>
 				<button type="submit" name="contorno_migrate" value="1" class="button button-primary">
-					<?php esc_html_e( 'Importar conteudo', 'contorno' ); ?>
+					<?php esc_html_e( 'Importar conteúdo', 'contorno' ); ?>
 				</button>
 			</p>
 		</form>

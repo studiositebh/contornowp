@@ -20,11 +20,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function contorno_render_unit_card( int $post_id, array $args = array() ): string {
 	$is_pre_sale = contorno_is_pre_sale( $post_id );
-	$image       = contorno_field_image_url( 'image', $post_id, 'contorno-card' );
 
-	if ( '' === $image ) {
-		$image = (string) get_the_post_thumbnail_url( $post_id, 'contorno-card' );
+	// Imagem responsiva: srcset + sizes vindos do proprio anexo.
+	$image_value = contorno_field( 'image', $post_id, '' );
+	if ( '' === $image_value || array() === $image_value ) {
+		$image_value = get_post_thumbnail_id( $post_id );
 	}
+
+	$image = contorno_image_tag(
+		$image_value,
+		'contorno-card',
+		array( 'sizes' => '(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw' )
+	);
 
 	$price   = contorno_unit_starting_price( $post_id );
 	$badge   = contorno_field_text( 'badge', $post_id );
@@ -44,7 +51,7 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 	<article class="unit-card motion-card<?php echo $is_pre_sale ? ' is-pre-sale' : ''; ?>">
 		<a class="unit-card__media motion-media" href="<?php echo esc_url( (string) get_permalink( $post_id ) ); ?>" tabindex="-1" aria-hidden="true">
 			<?php if ( '' !== $image ) : ?>
-				<img src="<?php echo esc_url( $image ); ?>" alt="" loading="lazy" decoding="async" />
+				<?php echo $image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- montado por contorno_image_tag(). ?>
 			<?php else : ?>
 				<?php /* Sem foto propria: gradiente turquesa da marca (porte de PlaceholderMedia). */ ?>
 				<span class="contorno-placeholder is-variant-<?php echo esc_attr( (string) ( $post_id % 4 ) ); ?>" aria-hidden="true">
@@ -89,7 +96,7 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 
 			<?php
 			$cta_label = ! empty( $args['prescription'] )
-				? __( 'Fazer prescricao', 'contorno' )
+				? __( 'Fazer prescrição', 'contorno' )
 				: __( 'Conhecer unidade', 'contorno' );
 
 			$cta_url = ! empty( $args['prescription'] ) && '' !== contorno_field_text( 'prescricao_url', $post_id )
@@ -199,7 +206,7 @@ contorno_add_shortcode(
 
 					<div class="contorno-units__controls">
 						<button type="button" class="contorno-units__arrow" data-contorno-carousel-prev aria-label="<?php esc_attr_e( 'Unidade anterior', 'contorno' ); ?>">&#8249;</button>
-						<button type="button" class="contorno-units__arrow" data-contorno-carousel-next aria-label="<?php esc_attr_e( 'Proxima unidade', 'contorno' ); ?>">&#8250;</button>
+						<button type="button" class="contorno-units__arrow" data-contorno-carousel-next aria-label="<?php esc_attr_e( 'Próxima unidade', 'contorno' ); ?>">&#8250;</button>
 					</div>
 					<div class="contorno-units__dots" role="tablist" aria-label="<?php esc_attr_e( 'Slides', 'contorno' ); ?>" data-contorno-carousel-dots></div>
 				</div>
@@ -266,6 +273,13 @@ contorno_add_shortcode(
 				autocomplete="off"
 			/>
 			<button type="button" class="contorno-unit-search__clear" data-contorno-unit-search-clear hidden aria-label="<?php esc_attr_e( 'Limpar busca', 'contorno' ); ?>">&times;</button>
+
+			<?php if ( 'hero' === $a['target'] ) : ?>
+				<?php /* No cartão do hero a busca leva para /unidades, então tem botão próprio. */ ?>
+				<button type="button" class="contorno-btn contorno-btn--primary cta-label contorno-unit-search__submit" data-contorno-unit-search-submit>
+					<?php esc_html_e( 'Buscar unidades', 'contorno' ); ?>
+				</button>
+			<?php endif; ?>
 		</div>
 		<?php
 
@@ -353,13 +367,13 @@ contorno_add_shortcode(
 		$rows = array(
 			array(
 				'icon'  => 'map-pin',
-				'label' => __( 'Endereco', 'contorno' ),
+				'label' => __( 'Endereço', 'contorno' ),
 				'value' => trim( implode( ', ', array_filter( array( contorno_field_text( 'address', $post_id ), contorno_field_text( 'postal_code', $post_id ) ) ) ) ),
 				'href'  => contorno_maps_url( $post_id ),
 			),
 			array(
 				'icon'  => 'clock',
-				'label' => __( 'Horario', 'contorno' ),
+				'label' => __( 'Horário', 'contorno' ),
 				'value' => contorno_field_text( 'hours', $post_id ),
 				'href'  => '',
 			),
@@ -516,7 +530,10 @@ contorno_add_shortcode(
 
 		$post_type = '' !== trim( (string) $a['ctn'] ) ? CONTORNO_CPT_CTN : '';
 		$post_id   = contorno_resolve_context_id( (array) $a, $post_type );
-		$images    = $post_id ? contorno_field_image_urls( (string) $a['field'], $post_id, 'contorno-gallery' ) : array();
+
+		// Valores crus (IDs de anexo quando ja migrados) para gerar srcset.
+		$items  = $post_id ? contorno_field_list( (string) $a['field'], $post_id ) : array();
+		$images = $post_id ? contorno_field_image_urls( (string) $a['field'], $post_id, 'contorno-gallery' ) : array();
 
 		if ( array() === $images ) {
 			return '';
@@ -538,7 +555,14 @@ contorno_add_shortcode(
 					data-index="<?php echo esc_attr( (string) $index ); ?>"
 					aria-label="<?php echo esc_attr( sprintf( /* translators: %d: image number */ __( 'Ampliar imagem %d', 'contorno' ), (int) $index + 1 ) ); ?>"
 				>
-					<img src="<?php echo esc_url( $src ); ?>" alt="" loading="lazy" decoding="async" />
+					<?php
+					// Miniatura responsiva; o lightbox abre o original via data-src.
+					echo contorno_image_tag( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						$items[ $index ] ?? $src,
+						'contorno-gallery',
+						array( 'sizes' => '(min-width: 768px) 25vw, 50vw' )
+					);
+					?>
 				</button>
 			<?php endforeach; ?>
 		</div>
@@ -641,7 +665,7 @@ contorno_add_shortcode(
 							<li><?php echo esc_html( sprintf( /* translators: %s: price */ __( 'Meses seguintes: %s', 'contorno' ), contorno_format_price( $recurring ) ) ); ?></li>
 						<?php endif; ?>
 						<?php if ( $fee > 0 ) : ?>
-							<li><?php echo esc_html( sprintf( /* translators: %s: price */ __( 'Matricula: %s', 'contorno' ), contorno_format_price( $fee ) ) ); ?></li>
+							<li><?php echo esc_html( sprintf( /* translators: %s: price */ __( 'Matrícula: %s', 'contorno' ), contorno_format_price( $fee ) ) ); ?></li>
 						<?php endif; ?>
 						<?php if ( ! empty( $plan['fidelity'] ) ) : ?>
 							<li><?php echo esc_html( (string) $plan['fidelity'] ); ?></li>
@@ -659,7 +683,16 @@ contorno_add_shortcode(
 						</ul>
 					<?php endif; ?>
 
-					<?php echo contorno_button( $cta_label, contorno_plan_checkout_url( $plan, $post_id ), $featured ? 'primary' : 'outline', array( 'class' => 'unit-plan-btn cta-label', 'external' => true ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php
+					// Unidade -> /matricula; CTN -> checkout direto da EVO.
+					$target = contorno_plan_cta_target( $plan, $post_id );
+					echo contorno_button( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						$cta_label,
+						$target['url'],
+						$featured ? 'primary' : 'outline',
+						array( 'class' => 'unit-plan-btn cta-label', 'external' => $target['external'] )
+					);
+					?>
 				</article>
 			<?php endforeach; ?>
 		</div>
@@ -840,13 +873,18 @@ contorno_add_shortcode(
 
 		$title = '' !== trim( (string) $a['title'] )
 			? (string) $a['title']
-			: contorno_field_text( 'classes_title', $post_id, __( 'Aulas Coletivas - Horarios', 'contorno' ) );
+			: contorno_field_text( 'classes_title', $post_id, __( 'Aulas Coletivas - Horários', 'contorno' ) );
 
 		$eyebrow = '' !== trim( (string) $a['eyebrow'] ) ? (string) $a['eyebrow'] : (string) get_the_title( $post_id );
-		$banner  = contorno_attr_image( $a['banner'], 'contorno-hero' );
+
+		// Banner padrão da seção — mesma fotografia usada no React (BANNER_SRC).
+		$banner = contorno_attr_image( $a['banner'], 'contorno-hero' );
+		if ( '' === $banner ) {
+			$banner = contorno_resolve_media( '/units/gallery/aulas.jpg', 'contorno-hero' );
+		}
 		$text    = '' !== trim( (string) $a['text'] )
 			? (string) $a['text']
-			: __( 'Grade semanal oficial desta unidade — horarios, filtros e aulas vem do sistema EVO da Contorno do Corpo.', 'contorno' );
+			: __( 'Grade semanal oficial desta unidade — horários, filtros e aulas vêm do sistema EVO da Contorno do Corpo.', 'contorno' );
 
 		contorno_enqueue_component( 'lazy-video' );
 

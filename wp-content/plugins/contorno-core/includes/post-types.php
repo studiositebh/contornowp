@@ -49,9 +49,23 @@ function contorno_register_post_types(): void {
 					'slug'       => 'unidades',
 					'with_front' => false,
 				),
+				/*
+				 * query_var DESLIGADO de proposito.
+				 *
+				 * Ligado, o WordPress aceita ?unidade={slug} como consulta do
+				 * CPT — e o fluxo de matricula usa exatamente esse parametro
+				 * (/matricula/?unidade=alfenas&plano=top, herdado do React).
+				 * Com o query_var ativo, a URL era resolvida como o post da
+				 * unidade e a pagina de matricula nunca aparecia.
+				 *
+				 * As URLs bonitas /unidades/{slug} continuam funcionando: elas
+				 * vem da regra de rewrite, nao do query_var.
+				 */
+				'query_var'           => false,
+				'publicly_queryable'  => true,
 				'menu_icon'           => 'dashicons-location-alt',
 				'menu_position'       => 21,
-				'supports'            => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'page-attributes', 'custom-fields' ),
+				'supports'            => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'page-attributes' ),
 				'show_in_rest'        => true,
 				'rest_base'           => 'unidades',
 				'hierarchical'        => false,
@@ -76,9 +90,12 @@ function contorno_register_post_types(): void {
 					'slug'       => 'ctn',
 					'with_front' => false,
 				),
+				// Mesma razão da unidade: livra ?ctn= para uso próprio.
+				'query_var'          => false,
+				'publicly_queryable' => true,
 				'menu_icon'     => 'dashicons-superhero',
 				'menu_position' => 22,
-				'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'custom-fields' ),
+				'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions' ),
 				'show_in_rest'  => true,
 				'rest_base'     => 'ctn',
 				'hierarchical'  => false,
@@ -135,7 +152,7 @@ add_action(
 		}
 
 		$kinds = array(
-			'standard'  => __( 'Padrao', 'contorno' ),
+			'standard'  => __( 'Padrão', 'contorno' ),
 			'prime'     => __( 'Prime', 'contorno' ),
 			'ctn-prime' => __( 'CTN / Centro de Treinamento', 'contorno' ),
 		);
@@ -147,6 +164,39 @@ add_action(
 		}
 	},
 	20
+);
+
+/**
+ * Base das categorias do blog: /categoria/{slug}.
+ *
+ * E a URL do React (src/routes/categoria/$slug.tsx). Trocar a base nativa do
+ * WordPress ("category") preserva a URL sem precisar de redirect.
+ *
+ * Os posts continuam em /{slug}, como no React — a estrutura de permalink
+ * /%postname%/ ja entrega isso, e paginas tem precedencia em caso de colisao.
+ */
+add_action(
+	'init',
+	static function (): void {
+		if ( 'categoria' === get_option( 'category_base' ) ) {
+			return;
+		}
+
+		global $wp_rewrite;
+
+		if ( ! $wp_rewrite instanceof WP_Rewrite ) {
+			return;
+		}
+
+		/*
+		 * update_option() sozinho nao basta: o WP_Rewrite ja leu a base neste
+		 * request, e as regras gravadas continuariam com "category".
+		 * set_category_base() + flush_rules(true) e o caminho correto.
+		 */
+		$wp_rewrite->set_category_base( 'categoria' );
+		$wp_rewrite->flush_rules( true );
+	},
+	15
 );
 
 /**
@@ -188,7 +238,7 @@ add_action(
 			esc_html(
 				sprintf(
 					/* translators: %s: list of missing pages */
-					__( 'as paginas de listagem ainda nao existem: %s.', 'contorno' ),
+					__( 'as páginas de listagem ainda não existem: %s.', 'contorno' ),
 					implode( ', ', $missing )
 				)
 			),

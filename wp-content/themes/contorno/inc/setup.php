@@ -84,13 +84,21 @@ add_action(
 		register_nav_menus(
 			array(
 				'primary'      => __( 'Menu principal (header institucional)', 'contorno' ),
-				'footer_units' => __( 'Rodape - coluna Unidades', 'contorno' ),
-				'footer_inst'  => __( 'Rodape - coluna Institucional', 'contorno' ),
-				'footer_legal' => __( 'Rodape - links legais', 'contorno' ),
+				'footer_units' => __( 'Rodapé - coluna Unidades', 'contorno' ),
+				'footer_inst'  => __( 'Rodapé - coluna Institucional', 'contorno' ),
+				'footer_legal' => __( 'Rodapé - links legais', 'contorno' ),
 			)
 		);
 
-		// Tamanhos usados pelos cards/galerias reproduzidos do React.
+		/*
+		 * Tamanhos usados pelos cards/galerias reproduzidos do React.
+		 *
+		 * contorno-card-sm existe para o srcset ter um degrau abaixo de 720px:
+		 * num card de 350px no celular, o navegador pegava a versao de 720w
+		 * (513 KB) por falta de opcao menor. Com 480w a mesma tela baixa
+		 * cerca de um terco disso.
+		 */
+		add_image_size( 'contorno-card-sm', 480, 320, true );
 		add_image_size( 'contorno-card', 720, 480, true );
 		add_image_size( 'contorno-hero', 1920, 1080, true );
 		add_image_size( 'contorno-gallery', 1200, 800, true );

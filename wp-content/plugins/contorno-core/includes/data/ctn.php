@@ -23,7 +23,7 @@ const CONTORNO_CTN_TAGLINE = 'YOUR ONLY LIMIT IS YOU';
 function contorno_ctn_hub_value_proposition(): array {
 	$default = array(
 		'image' => '/ctn/institucional/leg-press-realleader.jpg',
-		'alt'   => 'Leg Press Realleader dourado — equipamento de alto nivel dos Centros de Treinamento Contorno',
+		'alt'   => 'Leg Press Realleader dourado — equipamento de alto nível dos Centros de Treinamento Contorno',
 	);
 
 	return (array) apply_filters( 'contorno_ctn_hub_value_proposition', $default );
@@ -38,7 +38,7 @@ function contorno_ctn_hub_value_proposition(): array {
 function contorno_ctn_institutional_equipment(): array {
 	$default = array(
 		'image' => '/ctn/institucional/panatta-gluteo-4-apoios.jpg',
-		'alt'   => 'Maquina de Gluteo 4 apoios da Panatta — equipamento premium dos Centros de Treinamento Contorno',
+		'alt'   => 'Máquina de Glúteo 4 apoios da Panatta — equipamento premium dos Centros de Treinamento Contorno',
 	);
 
 	return (array) apply_filters( 'contorno_ctn_institutional_equipment', $default );
@@ -77,9 +77,9 @@ function contorno_ctn_default_brands(): array {
  */
 function contorno_ctn_default_hours(): array {
 	return array(
-		array( 'label' => '2a a 5a feira', 'hours' => '04:00 as 00:00' ),
-		array( 'label' => '6a feira', 'hours' => '04:00 as 23:00' ),
-		array( 'label' => 'Sabado, Domingo e feriados', 'hours' => '07:00 as 19:00' ),
+		array( 'label' => '2ª a 5ª feira', 'hours' => '04:00 às 00:00' ),
+		array( 'label' => '6ª feira', 'hours' => '04:00 às 23:00' ),
+		array( 'label' => 'Sábado, Domingo e feriados', 'hours' => '07:00 às 19:00' ),
 	);
 }
 

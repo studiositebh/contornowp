@@ -21,7 +21,7 @@ declare( strict_types = 1 );
 <body <?php body_class( contorno_is_ctn_context() ? 'contorno-ctn-context' : '' ); ?>>
 <?php wp_body_open(); ?>
 
-<a class="contorno-skip-link screen-reader-text" href="#contorno-main"><?php esc_html_e( 'Ir para o conteudo', 'contorno' ); ?></a>
+<a class="contorno-skip-link screen-reader-text" href="#contorno-main"><?php esc_html_e( 'Ir para o conteúdo', 'contorno' ); ?></a>
 
 <?php if ( contorno_show_site_header() ) : ?>
 	<header class="site-header" data-contorno-header>
@@ -47,7 +47,7 @@ declare( strict_types = 1 );
 			</nav>
 
 			<div class="site-header__actions">
-				<?php echo contorno_button( __( 'Matricule-se', 'contorno' ), contorno_enrollment_url(), 'primary', array( 'class' => 'cta-label site-header__cta' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo contorno_button( __( 'Encontre sua unidade', 'contorno' ), get_post_type_archive_link( CONTORNO_CPT_UNIT ) ?: home_url( '/unidades/' ), 'primary', array( 'class' => 'cta-label site-header__cta' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 				<button
 					type="button"

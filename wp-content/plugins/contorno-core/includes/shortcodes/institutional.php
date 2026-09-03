@@ -30,6 +30,9 @@ contorno_add_shortcode(
 				'subtitle'    => '',
 				'image'       => '',
 				'overlay'     => '65',
+				'focal'       => 'center',
+				'scrim'       => 'side',
+				'search_card' => '',
 				'cta_label'   => '',
 				'cta_url'     => '',
 				'cta2_label'  => '',
@@ -44,18 +47,34 @@ contorno_add_shortcode(
 
 		$image = contorno_attr_image( $a['image'], 'contorno-hero' );
 
-		// O trecho destacado recebe a cor da marca sem exigir HTML do editor.
 		$title = esc_html( (string) $a['title'] );
+
+		// O trecho destacado recebe a cor da marca sem exigir HTML do editor.
 		if ( '' !== trim( (string) $a['highlight'] ) ) {
 			$needle = esc_html( (string) $a['highlight'] );
 			$title  = str_replace( $needle, '<em class="contorno-hero__highlight">' . $needle . '</em>', $title );
 		}
 
+		/*
+		 * Quebra de linha controlada pelo editor com "|".
+		 * O hero aprovado quebra o titulo em tres linhas fixas; deixar o
+		 * navegador quebrar sozinho mudava o desenho a cada largura.
+		 */
+		$title = str_replace( '|', '<br />', $title );
+
 		ob_start();
 		?>
-		<section class="contorno-hero is-height-<?php echo esc_attr( sanitize_html_class( (string) $a['height'] ) ); ?> is-tone-<?php echo esc_attr( sanitize_html_class( (string) $a['tone'] ) ); ?>">
+		<section class="contorno-hero is-height-<?php echo esc_attr( sanitize_html_class( (string) $a['height'] ) ); ?> is-tone-<?php echo esc_attr( sanitize_html_class( (string) $a['tone'] ) ); ?> is-scrim-<?php echo esc_attr( sanitize_html_class( (string) $a['scrim'] ) ); ?>">
 			<?php if ( '' !== $image ) : ?>
-				<img class="contorno-hero__media motion-hero-media" src="<?php echo esc_url( $image ); ?>" alt="" fetchpriority="high" decoding="async" />
+				<?php /* O enquadramento da foto e ajustavel: o hero aprovado usa 62% 18%. */ ?>
+				<img
+					class="contorno-hero__media motion-hero-media"
+					src="<?php echo esc_url( $image ); ?>"
+					alt=""
+					style="object-position:<?php echo esc_attr( (string) $a['focal'] ); ?>"
+					fetchpriority="high"
+					decoding="async"
+				/>
 				<span class="contorno-hero__scrim" style="--contorno-overlay:<?php echo esc_attr( (string) ( (int) $a['overlay'] / 100 ) ); ?>" aria-hidden="true"></span>
 			<?php endif; ?>
 
@@ -74,8 +93,9 @@ contorno_add_shortcode(
 					<?php endif; ?>
 
 					<?php
-					$buttons = contorno_button( (string) $a['cta_label'], (string) $a['cta_url'], 'primary' )
-						. contorno_button( (string) $a['cta2_label'], (string) $a['cta2_url'], 'ghost' );
+					// O hero aprovado usa CTA em caixa alta com tracking (.cta-label).
+					$buttons = contorno_button( (string) $a['cta_label'], (string) $a['cta_url'], 'primary', array( 'class' => 'cta-label' ) )
+						. contorno_button( (string) $a['cta2_label'], (string) $a['cta2_url'], 'ghost', array( 'class' => 'cta-label' ) );
 
 					if ( '' !== $buttons ) :
 						?>
@@ -84,13 +104,29 @@ contorno_add_shortcode(
 					endif;
 					?>
 
-					<?php if ( 'yes' === $a['show_search'] ) : ?>
-						<div class="contorno-hero__search motion-hero-search">
-							<?php echo do_shortcode( '[contorno_units_search target="hero"]' ); ?>
-						</div>
-					<?php endif; ?>
 				</div>
 			</div>
+
+			<?php if ( 'yes' === $a['show_search'] ) : ?>
+				<?php
+				/*
+				 * Cartão de busca sobreposto à base do hero, como no React:
+				 * fundo branco, título próprio e sombra alta, transbordando
+				 * metade da altura para a seção seguinte.
+				 */
+				$search_card_title = '' !== trim( (string) $a['search_card'] )
+					? (string) $a['search_card']
+					: __( 'Encontre a unidade ideal para você', 'contorno' );
+				?>
+				<div class="contorno-hero__search-outer motion-hero-search">
+					<div class="site-container">
+						<div class="contorno-hero__search-card" role="search">
+							<p class="contorno-hero__search-title"><?php echo esc_html( $search_card_title ); ?></p>
+							<?php echo do_shortcode( '[contorno_units_search target="hero"]' ); ?>
+						</div>
+					</div>
+				</div>
+			<?php endif; ?>
 		</section>
 		<?php
 

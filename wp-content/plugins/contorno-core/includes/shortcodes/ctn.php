@@ -74,7 +74,9 @@ contorno_add_shortcode(
 		$title    = '' !== trim( (string) $a['title'] ) ? (string) $a['title'] : contorno_field_text( 'hero_title', $post_id, (string) get_the_title( $post_id ) );
 		$headline = '' !== trim( (string) $a['headline'] ) ? (string) $a['headline'] : contorno_field_text( 'hero_headline', $post_id );
 		$subtitle = '' !== trim( (string) $a['subtitle'] ) ? (string) $a['subtitle'] : contorno_field_text( 'hero_subtitle', $post_id );
-		$tagline  = '' !== trim( (string) $a['tagline'] ) ? (string) $a['tagline'] : contorno_field_text( 'tagline', $post_id, CONTORNO_CTN_TAGLINE );
+		// O hero aprovado nao mostra a tagline; ela aparece na PUV.
+		// O atributo continua aceito para nao quebrar paginas que ja o usem.
+		unset( $a['tagline'] );
 
 		$image = contorno_attr_image( $a['image'], 'contorno-hero' );
 		if ( '' === $image ) {
@@ -88,42 +90,81 @@ contorno_add_shortcode(
 
 		ob_start();
 		?>
+		<?php
+		/*
+		 * Hierarquia fiel ao CTNHero do React:
+		 *   eyebrow  -> linha turquesa pequena
+		 *   title    -> linha branca pequena em caixa alta ("CTN CASTELO")
+		 *   headline -> H1 grande ("O MELHOR EM ALTA PERFORMANCE ESTA AQUI")
+		 * Inverter isso deixava o nome da CTN gigante e a promessa miuda.
+		 */
+		$cta_label  = '' !== trim( (string) $a['cta_label'] ) ? (string) $a['cta_label'] : __( 'Matricule-se agora', 'contorno' );
+		$cta_url    = '' !== trim( (string) $a['cta_url'] ) ? (string) $a['cta_url'] : '#planos';
+		$cta2_label = '' !== trim( (string) $a['cta2_label'] ) ? (string) $a['cta2_label'] : __( 'Conheça a estrutura', 'contorno' );
+		$cta2_url   = '' !== trim( (string) $a['cta2_url'] ) ? (string) $a['cta2_url'] : '#estrutura';
+
+		// Faixa de informações: bairro • cidade • primeiro número da CTN.
+		$stats = contorno_field_list( 'stats', $post_id );
+		$facts = array_values(
+			array_filter(
+				array(
+					contorno_field_text( 'neighborhood', $post_id ),
+					contorno_field_text( 'city', $post_id ),
+					isset( $stats[0]['value'] ) ? (string) $stats[0]['value'] : '',
+				),
+				static fn ( string $fact ): bool => '' !== trim( $fact )
+			)
+		);
+		?>
 		<section class="ctn-hero">
 			<?php if ( '' !== $image ) : ?>
 				<img class="ctn-hero__media motion-hero-media" src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( $alt ); ?>" fetchpriority="high" decoding="async" />
 			<?php endif; ?>
 			<span class="ctn-hero__scrim" aria-hidden="true"></span>
+			<span class="ctn-hero__scrim-v" aria-hidden="true"></span>
 
 			<div class="site-container ctn-hero__inner">
 				<?php if ( 'yes' === $a['show_logo'] ) : ?>
 					<div class="ctn-hero__logo"><?php echo contorno_ctn_logo( 'ctn-hero__logo-img' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
 				<?php endif; ?>
 
-				<div class="ctn-hero__copy motion-hero-copy">
-					<?php if ( '' !== $eyebrow ) : ?>
-						<p class="eyebrow"><?php echo esc_html( $eyebrow ); ?></p>
-					<?php endif; ?>
+				<div class="ctn-hero__body">
+					<div class="ctn-hero__copy motion-hero-copy">
+						<?php if ( '' !== $eyebrow ) : ?>
+							<p class="eyebrow"><?php echo esc_html( $eyebrow ); ?></p>
+						<?php endif; ?>
 
-					<?php if ( '' !== $title ) : ?>
-						<h1 class="ctn-hero__title"><?php echo esc_html( $title ); ?></h1>
-					<?php endif; ?>
+						<?php if ( '' !== $title ) : ?>
+							<p class="ctn-hero__kicker"><?php echo esc_html( $title ); ?></p>
+						<?php endif; ?>
 
-					<?php if ( '' !== $headline ) : ?>
-						<p class="ctn-hero__headline"><?php echo esc_html( $headline ); ?></p>
-					<?php endif; ?>
+						<?php if ( '' !== $headline ) : ?>
+							<h1 class="ctn-hero__title"><?php echo esc_html( $headline ); ?></h1>
+						<?php elseif ( '' !== $title ) : ?>
+							<h1 class="ctn-hero__title"><?php echo esc_html( $title ); ?></h1>
+						<?php endif; ?>
 
-					<?php if ( '' !== $subtitle ) : ?>
-						<p class="ctn-hero__subtitle"><?php echo esc_html( $subtitle ); ?></p>
-					<?php endif; ?>
+						<?php if ( '' !== $subtitle ) : ?>
+							<p class="ctn-hero__subtitle"><?php echo esc_html( $subtitle ); ?></p>
+						<?php endif; ?>
 
-					<div class="ctn-hero__actions motion-hero-actions">
-						<?php echo contorno_button( (string) $a['cta_label'], (string) $a['cta_url'], 'primary', array( 'class' => 'ctn-prime-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-						<?php echo contorno_button( (string) $a['cta2_label'], (string) $a['cta2_url'], 'ghost-dark' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<div class="ctn-hero__actions motion-hero-actions">
+							<?php echo contorno_button( $cta_label, $cta_url, 'primary', array( 'class' => 'cta-label ctn-prime-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<?php echo contorno_button( $cta2_label, $cta2_url, 'ghost-dark', array( 'class' => 'cta-label' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						</div>
+
+						<?php if ( array() !== $facts ) : ?>
+							<ul class="ctn-hero__facts">
+								<?php foreach ( $facts as $index => $fact ) : ?>
+									<?php if ( $index > 0 ) : ?>
+										<li class="ctn-hero__facts-sep" aria-hidden="true">&bull;</li>
+									<?php endif; ?>
+									<li><?php echo esc_html( $fact ); ?></li>
+								<?php endforeach; ?>
+							</ul>
+						<?php endif; ?>
+
 					</div>
-
-					<?php if ( '' !== $tagline ) : ?>
-						<p class="ctn-hero__tagline"><?php echo esc_html( $tagline ); ?></p>
-					<?php endif; ?>
 				</div>
 			</div>
 		</section>
@@ -398,17 +439,21 @@ contorno_add_shortcode(
 	static function ( array|string $atts ): string {
 		$a = shortcode_atts(
 			array(
-				'ctn'     => '',
-				'eyebrow' => '',
-				'title'   => '',
-				'text'    => '',
+				'ctn'        => '',
+				'eyebrow'    => '',
+				'title'      => '',
+				'text'       => '',
+				// Padrao TEXTO PURO, como no React: a landing aprovada nao
+				// embute os videos de equipamento. Ligar so por escolha do editor.
+				'show_media' => 'no',
 			),
 			(array) $atts,
 			'ctn_equipment'
 		);
 
-		$post_id = contorno_resolve_context_id( (array) $a, CONTORNO_CPT_CTN );
-		$items   = contorno_field_list( 'equipment', $post_id );
+		$post_id    = contorno_resolve_context_id( (array) $a, CONTORNO_CPT_CTN );
+		$items      = contorno_field_list( 'equipment', $post_id );
+		$show_media = 'yes' === $a['show_media'];
 
 		if ( array() === $items ) {
 			return '';
@@ -438,9 +483,9 @@ contorno_add_shortcode(
 							<?php endforeach; ?>
 						</div>
 
-						<?php if ( '' !== $video ) : ?>
+						<?php if ( $show_media && '' !== $video ) : ?>
 							<div class="ctn-equipment__media"><?php echo contorno_youtube_lazy_embed( $video, (string) ( $item['title'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
-						<?php elseif ( '' !== $image ) : ?>
+						<?php elseif ( $show_media && '' !== $image ) : ?>
 							<figure class="ctn-equipment__media motion-ctn motion-ctn-media">
 								<img src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( (string) ( $item['title'] ?? '' ) ); ?>" loading="lazy" decoding="async" />
 							</figure>

@@ -63,7 +63,7 @@ get_header();
 				array(
 					'mid_size'  => 1,
 					'prev_text' => esc_html__( 'Anterior', 'contorno' ),
-					'next_text' => esc_html__( 'Proxima', 'contorno' ),
+					'next_text' => esc_html__( 'Próxima', 'contorno' ),
 				)
 			);
 			?>
