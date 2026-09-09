@@ -11,18 +11,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Logo do site. Usa o logo customizado do WordPress quando definido,
- * caindo no asset oficial da marca.
+ * caindo no asset oficial da marca. Uma URL explicita permite selecionar
+ * a versao branca do header sem alterar o logo de outros contextos.
  */
-function contorno_render_logo( string $variant = 'default' ): void {
-	if ( 'default' === $variant && has_custom_logo() ) {
+function contorno_render_logo( string $variant = 'default', string $src = '' ): void {
+	if ( '' === $src && 'default' === $variant && has_custom_logo() ) {
 		$logo_id = (int) get_theme_mod( 'custom_logo' );
 		echo wp_get_attachment_image( $logo_id, 'full', false, array( 'class' => 'site-logo' ) );
 
 		return;
 	}
 
-	$key = 'light' === $variant ? 'logo_light' : 'logo';
-	$src = function_exists( 'contorno_asset_url' ) ? contorno_asset_url( contorno_brand_get( $key ) ) : '';
+	if ( '' === $src ) {
+		$key = 'light' === $variant ? 'logo_light' : 'logo';
+		$src = function_exists( 'contorno_asset_url' ) ? contorno_asset_url( contorno_brand_get( $key ) ) : '';
+	}
 
 	if ( '' === $src ) {
 		printf( '<span class="site-logo site-logo--text">%s</span>', esc_html( get_bloginfo( 'name' ) ) );

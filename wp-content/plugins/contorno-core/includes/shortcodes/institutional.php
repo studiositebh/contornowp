@@ -122,7 +122,7 @@ contorno_add_shortcode(
 					<div class="site-container">
 						<div class="contorno-hero__search-card" role="search">
 							<p class="contorno-hero__search-title"><?php echo esc_html( $search_card_title ); ?></p>
-							<?php echo do_shortcode( '[contorno_units_search target="hero"]' ); ?>
+							<?php echo do_shortcode( '[contorno_units_search target="hero" placeholder="Digite o CEP, bairro ou cidade"]' ); ?>
 						</div>
 					</div>
 				</div>
