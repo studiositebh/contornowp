@@ -24,10 +24,10 @@ declare( strict_types = 1 );
 <a class="contorno-skip-link screen-reader-text" href="#contorno-main"><?php esc_html_e( 'Ir para o conteúdo', 'contorno' ); ?></a>
 
 <?php if ( contorno_show_site_header() ) : ?>
-	<header class="site-header" data-contorno-header>
+	<header class="site-header<?php echo is_front_page() ? ' site-header--overlay' : ''; ?>" data-contorno-header>
 		<div class="site-container site-header__inner">
 			<a class="site-header__brand" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
-				<?php contorno_render_logo(); ?>
+				<?php contorno_render_logo( 'light', wp_get_upload_dir()['baseurl'] . '/2026/09/logo-light.png' ); ?>
 			</a>
 
 			<nav class="site-header__nav" aria-label="<?php esc_attr_e( 'Menu principal', 'contorno' ); ?>">

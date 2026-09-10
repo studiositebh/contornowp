@@ -288,18 +288,33 @@ ol {
 
 .site-header {
 	position: sticky;
-	top: 0;
+	top: var(--contorno-admin-offset, 0px);
 	z-index: 50;
-	background-color: rgb(255 255 255 / 0.92);
-	backdrop-filter: blur(10px);
-	border-bottom: 1px solid var(--border);
+	background-color: var(--brand);
+	color: #fff;
 	transition:
 		background-color 320ms var(--motion-ease),
 		box-shadow 320ms var(--motion-ease);
 }
 
+/* Na home o hero aparece por tras do header, sem uma faixa branca acima. */
+.site-header--overlay {
+	position: fixed;
+	inset-inline: 0;
+	background-color: transparent;
+}
+
 .site-header.is-scrolled {
+	background-color: var(--brand);
 	box-shadow: var(--shadow-card);
+}
+
+.site-header.is-scrolled .site-header__cta {
+	border-color: rgb(255 255 255 / 0.65);
+}
+
+.site-header .site-logo--text {
+	color: #fff;
 }
 
 .site-header__inner {
@@ -333,7 +348,7 @@ ol {
 }
 
 .site-header__menu a {
-	color: var(--foreground);
+	color: #fff;
 	font-size: var(--text-sm);
 	font-weight: 500;
 }
@@ -350,7 +365,7 @@ ol {
 	right: 0;
 	bottom: -7px;
 	height: 1px;
-	background: var(--brand);
+	background: currentColor;
 	transform: scaleX(0);
 	transform-origin: left center;
 	transition: transform 200ms var(--motion-ease);
@@ -358,7 +373,7 @@ ol {
 
 .site-header__menu a:hover .site-nav-link,
 .site-nav-link:hover {
-	color: var(--brand);
+	color: #fff;
 }
 
 .site-header__menu a:hover .site-nav-link::after {
@@ -377,7 +392,7 @@ ol {
 	justify-content: center;
 	width: 2.75rem;
 	height: 2.75rem;
-	border: 1px solid var(--border);
+	border: 1px solid rgb(255 255 255 / 0.45);
 	border-radius: var(--radius-md);
 	background: transparent;
 	cursor: pointer;
@@ -389,7 +404,7 @@ ol {
 	display: block;
 	width: 1.15rem;
 	height: 2px;
-	background: var(--foreground);
+	background: #fff;
 	border-radius: 2px;
 }
 
@@ -413,8 +428,10 @@ ol {
 }
 
 .site-header__mobile {
-	border-top: 1px solid var(--border);
-	background: var(--background);
+	border-top: 1px solid rgb(255 255 255 / 0.25);
+	background: var(--brand);
+	max-height: calc(100dvh - 4.5rem - var(--contorno-admin-offset, 0px));
+	overflow-y: auto;
 	padding-block: var(--space-5);
 }
 
@@ -426,8 +443,37 @@ ol {
 }
 
 .site-header__mobile-menu a {
-	color: var(--foreground);
+	color: #fff;
 	font-weight: 500;
+}
+
+@media (max-width: 639px) {
+	.site-header__cta {
+		display: none;
+	}
+}
+
+/* Gradiente e malha da secao de diferenciais do HTML de referencia. */
+.home .contorno-section--highlights.is-tone-dark {
+	overflow: hidden;
+	background:
+		radial-gradient(88% 82% at 100% 100%, rgb(215 35 100 / 0.48) 0%, rgb(215 35 100 / 0.26) 42%, transparent 78%),
+		radial-gradient(70% 90% at 6% 88%, rgb(1 128 117 / 0.5) 0%, transparent 48%),
+		linear-gradient(90deg, #032824 0%, var(--brand-deep) 100%);
+}
+
+.home .contorno-section--highlights.is-tone-dark::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 1;
+	background-image:
+		radial-gradient(80% 74% at 100% 100%, rgb(215 35 100 / 0.12) 0%, transparent 76%),
+		linear-gradient(90deg, rgb(3 40 36 / 0.52) 0%, rgb(0 65 69 / 0.22) 100%),
+		linear-gradient(90deg, rgb(255 255 255 / 0.07) 1px, transparent 1px),
+		linear-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px);
+	background-size: auto, auto, 44px 44px, 44px 44px;
 }
 
 @media (min-width: 1024px) {
@@ -463,6 +509,7 @@ ol {
  */
 .contorno-hero:has(.contorno-hero__search-outer) {
 	overflow: visible;
+	z-index: 2;
 }
 
 /*
@@ -626,6 +673,9 @@ ol {
 }
 
 .contorno-hero__search-card {
+	--card: #fff;
+	--foreground: #111;
+	--border: #e6e8ea;
 	background: #fff;
 	color: var(--foreground);
 	border-radius: var(--radius-2xl);
@@ -654,9 +704,123 @@ ol {
 }
 
 /* O cartão transborda: a seção seguinte precisa de folga para não colidir. */
-.contorno-hero__search-outer ~ * ,
-.contorno-hero:has(.contorno-hero__search-outer) + .contorno-section {
-	padding-top: calc(var(--section-py) + 5rem);
+.home .contorno-section--units {
+	padding-top: calc(var(--section-py) + 6rem);
+}
+
+@media (min-width: 768px) {
+	.home .contorno-section--units { padding-top: calc(var(--section-py-md) + 5rem); }
+}
+@media (min-width: 1024px) {
+	.home .contorno-section--units { padding-top: calc(var(--section-py-lg) + 5rem); }
+}
+
+/* Campo e botao separados, com fundo branco mesmo dentro do hero escuro. */
+.contorno-hero__search-card .contorno-unit-search[data-target="hero"] {
+	display: grid;
+	grid-template-columns: 2.5rem minmax(0, 1fr) auto auto;
+	gap: 0;
+	padding: 0;
+	border: 0;
+	background: #fff;
+	box-shadow: none;
+	border-radius: 0;
+}
+.contorno-hero__search-card .contorno-unit-search__icon {
+	grid-column: 1;
+	grid-row: 1;
+	justify-self: center;
+	color: #949398;
+	z-index: 1;
+}
+.contorno-hero__search-card .contorno-unit-search__field {
+	grid-column: 1 / 4;
+	grid-row: 1;
+	width: 100%;
+	min-width: 0;
+	min-height: 56px;
+	padding: 0.875rem 2.5rem;
+	background: #fff;
+	color: #111;
+	border: 1px solid #e6e8ea;
+	border-radius: 0.75rem;
+}
+.contorno-hero__search-card .contorno-unit-search__field::placeholder { color: #949398; opacity: 1; }
+.contorno-hero__search-card .contorno-unit-search__field:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.contorno-hero__search-card .contorno-unit-search__clear { grid-column: 3; grid-row: 1; z-index: 1; color: #111; }
+.contorno-hero__search-card .contorno-unit-search__submit { grid-column: 4; grid-row: 1; min-height: 56px; margin-left: 0.75rem; }
+@media (max-width: 639px) {
+	.contorno-hero__search-card .contorno-unit-search[data-target="hero"] { grid-template-columns: 2.5rem minmax(0, 1fr) auto; }
+	.contorno-hero__search-card .contorno-unit-search__submit { grid-column: 1 / -1; grid-row: 2; margin: 0.75rem 0 0; width: 100%; }
+}
+
+/* CTN Prime: cartao com imagem integrada e margens institucionais. */
+.contorno-home-prime { background: #fff; color: #fff; }
+.contorno-home-prime__card { background: #000; border-radius: 1.5rem; overflow: hidden; }
+.contorno-home-prime__copy { padding: 2.5rem 1.5rem; }
+.contorno-home-prime h2 { font-size: 2.25rem; color: #fff; margin-bottom: 0.5rem; }
+.contorno-home-prime h2 span { color: var(--brand); }
+.contorno-home-prime__subtitle { font-size: 1rem; font-weight: 600; color: #fff; }
+.contorno-home-prime__text { font-size: 0.9375rem; line-height: 1.625; color: rgb(255 255 255 / 0.75); max-width: 28rem; }
+.contorno-home-prime__features { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 2rem 1rem; list-style: none; padding: 0; margin: 2.5rem 0 2rem; }
+.contorno-home-prime__features li { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; text-align: center; font-size: 0.9375rem; line-height: 1.35; }
+.contorno-home-prime__features svg { width: 2.25rem; height: 2.25rem; color: var(--brand); }
+.contorno-home-prime__media { position: relative; min-height: 240px; }
+.contorno-home-prime__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.contorno-home-prime__media::after { content: ""; pointer-events: none; position: absolute; inset: 0 0 auto; height: 4rem; background: linear-gradient(to bottom,rgb(0 0 0 / 0.6),transparent); }
+.contorno-home-prime .contorno-btn { min-height: 36px; }
+@media (min-width: 640px) {
+	.contorno-home-prime__copy { padding: 3rem 2.5rem; }
+	.contorno-home-prime__features { grid-template-columns: repeat(4,minmax(0,1fr)); }
+	.contorno-home-prime__media { min-height: 320px; }
+}
+@media (min-width: 768px) {
+	.contorno-home-prime h2 { font-size: 3rem; }
+	.contorno-home-prime__subtitle { font-size: 1.125rem; }
+}
+@media (min-width: 1024px) {
+	.contorno-home-prime__card { display: grid; grid-template-columns: minmax(0,0.46fr) minmax(0,0.54fr); }
+	.contorno-home-prime__copy { padding: 3.5rem 3rem; }
+	.contorno-home-prime__media::after { inset: 0 auto 0 0; height: auto; width: 7rem; background: linear-gradient(to right,#000,transparent); }
+}
+@media (min-width: 1280px) {
+	.contorno-home-prime__copy { padding: 4rem 3.5rem; }
+	.contorno-home-prime__media::after { width: 9rem; }
+}
+
+/* App: assets locais do modelo, sem depender do servidor da referencia. */
+.contorno-home-app { background: #f0f5f9; color: #000; }
+.contorno-home-app__card { display: grid; align-items: center; gap: 1.5rem; background: #fff; border-radius: 1.5rem; padding: 1.5rem 1.25rem; box-shadow: 0 18px 50px -28px rgb(17 17 17 / 0.28); }
+.contorno-home-app__phones { min-width: 0; padding: 0.5rem; }
+.contorno-home-app__phones img { width: min(100%,24rem); margin-inline: auto; }
+.contorno-home-app__copy { min-width: 0; }
+.contorno-home-app h2 { font-size: 1.65rem; max-width: 20rem; }
+.contorno-home-app__text { color: #949398; font-size: 0.9375rem; line-height: 1.625; max-width: 28rem; }
+.contorno-home-app__benefits { display: grid; gap: 0.75rem; padding: 0; list-style: none; margin: 1.5rem 0 0; font-size: 0.9375rem; }
+.contorno-home-app__benefits li { display: flex; align-items: center; gap: 0.75rem; }
+.contorno-home-app__benefits li > span { display: grid; place-items: center; flex: 0 0 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--brand); color: #fff; }
+.contorno-home-app__download { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; min-width: 0; border-top: 1px solid #e6e8ea; padding-top: 1.5rem; color: var(--brand); font-size: 0.875rem; font-weight: 600; line-height: 1.4; }
+.contorno-home-app__qr { width: 9rem; height: 9rem; object-fit: contain; }
+.contorno-home-app__download-title { text-transform: uppercase; font-weight: 700; letter-spacing: 0.14em; }
+.contorno-home-app__stores { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.contorno-home-app__badge { display: block; width: 120px; height: 40px; }
+.contorno-home-app__badge img { display: block; width: 100%; height: 100%; object-fit: contain; }
+@media (min-width: 640px) {
+	.contorno-home-app__card { padding-inline: 2rem; }
+	.contorno-home-app h2 { font-size: 1.875rem; }
+	.contorno-home-app__qr { width: 11rem; height: 11rem; }
+}
+@media (min-width: 1024px) {
+	.contorno-home-app__card { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 2rem; }
+	.contorno-home-app__phones { grid-row: span 2; }
+}
+@media (min-width: 1440px) {
+	.contorno-home-app__card { grid-template-columns: minmax(0,1.1fr) minmax(0,1.4fr) auto; }
+	.contorno-home-app__phones { grid-row: auto; padding: 1rem 1.25rem; }
+	.contorno-home-app__phones img { width: 90%; }
+	.contorno-home-app h2 { font-size: 2.05rem; }
+	.contorno-home-app__download { flex-wrap: nowrap; border-top: 0; border-left: 1px solid #e6e8ea; padding: 0 0 0 2rem; }
+	.contorno-home-app__qr { width: 12rem; height: 12rem; }
 }
 
 /* ====================================================================
@@ -859,7 +1023,13 @@ ol {
 }
 
 .motion-hero-search {
-	animation: contorno-hero-copy 700ms var(--motion-ease) 160ms both;
+	animation: contorno-search-enter 700ms var(--motion-ease) 160ms both;
+}
+
+/* translate anima a entrada sem substituir o transform de sobreposicao. */
+@keyframes contorno-search-enter {
+	from { opacity: 0; translate: 0 18px; }
+	to { opacity: 1; translate: 0; }
 }
 
 @keyframes contorno-hero-media {
@@ -1120,7 +1290,6 @@ ol {
 	.motion-hero-media,
 	.motion-hero-copy,
 	.motion-hero-actions,
-	.motion-hero-search,
 	.animate-whatsapp-pulse {
 		opacity: 1 !important;
 		transform: none !important;
@@ -1130,4 +1299,5 @@ ol {
 		animation: none !important;
 		transition: none !important;
 	}
+	.motion-hero-search { animation: none !important; opacity: 1 !important; translate: none !important; }
 }

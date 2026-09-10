@@ -1,5 +1,5 @@
 /**
- * Comportamento do tema: sombra do header no scroll e menu mobile.
+ * Comportamento do tema: fundo do header no scroll e menu mobile.
  */
 (function () {
 	'use strict';
@@ -11,11 +11,18 @@
 			return;
 		}
 
+		var adminBar = document.getElementById('wpadminbar');
+
 		function sync() {
 			header.classList.toggle('is-scrolled', window.scrollY > 8);
+			if (adminBar) {
+				header.style.setProperty('--contorno-admin-offset', Math.max(0, adminBar.getBoundingClientRect().bottom) + 'px');
+			}
 		}
 
 		window.addEventListener('scroll', sync, { passive: true });
+		window.addEventListener('resize', sync, { passive: true });
+		window.addEventListener('pageshow', sync);
 		sync();
 	}
 
