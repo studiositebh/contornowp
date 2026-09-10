@@ -1,0 +1,28 @@
+/* Identidade dos elementos Contorno dentro do seletor do WPBakery. */
+
+.vc_element-name:has(.vc_element-icon.contorno-vc-icon),
+.wpb-content-layouts .contorno-vc-icon {
+	--contorno-vc: #10b8b1;
+}
+
+.vc_element-icon.contorno-vc-icon {
+	background-color: #10b8b1 !important;
+	border-radius: 4px;
+}
+
+/* Destaca visualmente os componentes CONTROLADOS, cujo HTML interno o editor
+   nao deve tentar manipular. */
+.vc_ui-panel-window[data-vc-shortcode="contorno_units"] .vc_ui-panel-header-header::after,
+.vc_ui-panel-window[data-vc-shortcode="contorno_plans"] .vc_ui-panel-header-header::after,
+.vc_ui-panel-window[data-vc-shortcode="contorno_classes"] .vc_ui-panel-header-header::after {
+	content: "COMPONENTE CONTROLADO — configure as propriedades; a estrutura interna e mantida pelo sistema.";
+	display: block;
+	margin-top: 6px;
+	padding: 6px 10px;
+	background: rgb(16 184 177 / 0.12);
+	border-left: 3px solid #10b8b1;
+	color: #04524e;
+	font-size: 11px;
+	line-height: 1.4;
+	letter-spacing: 0.02em;
+}
