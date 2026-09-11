@@ -201,6 +201,51 @@ ol {
 	font-size: var(--text-base);
 }
 
+.contorno-simple-page {
+	background: #fff;
+	padding-block: 6rem;
+}
+
+.contorno-simple-page__inner {
+	max-width: 48rem;
+}
+
+.contorno-simple-page__title {
+	margin-top: 0.75rem;
+	margin-bottom: 0;
+	font-size: 2.25rem;
+	font-weight: 600;
+	line-height: 1.08;
+	letter-spacing: 0;
+	color: var(--foreground);
+}
+
+.contorno-simple-page__text {
+	margin-top: 2rem;
+	font-size: var(--text-base);
+	line-height: 1.75;
+	color: var(--muted-foreground);
+}
+
+.contorno-simple-page__text p {
+	margin-bottom: 1.25rem;
+}
+
+.contorno-simple-page__button {
+	margin-top: 2rem;
+	border-radius: var(--radius-full);
+}
+
+@media (min-width: 768px) {
+	.contorno-simple-page {
+		padding-block: 7rem;
+	}
+
+	.contorno-simple-page__title {
+		font-size: 3rem;
+	}
+}
+
 /* ====================================================================
  * Botoes
  * ================================================================== */

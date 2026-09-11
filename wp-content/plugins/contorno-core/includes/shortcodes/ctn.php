@@ -45,6 +45,142 @@ function contorno_ctn_logo( string $classes = 'ctn-logo' ): string {
  * CTN — Hero.
  */
 contorno_add_shortcode(
+	'ctn_hub',
+	static function ( array|string $atts ): string {
+		$a = shortcode_atts(
+			array(
+				'eyebrow'          => 'Centros de Treinamento Contorno',
+				'title'            => 'Alta performance tem endereço.',
+				'subtitle'         => 'YOUR ONLY LIMIT IS YOU. O maior e mais completo CT de BH espera por você.',
+				'image'            => '/ctn/hub-hero.jpg',
+				'cta_label'        => 'Encontre sua CTN',
+				'puv_eyebrow'      => 'Proposta de valor',
+				'puv_title'        => 'YOUR ONLY LIMIT IS YOU',
+				'puv_text'         => 'YOUR ONLY LIMIT IS YOU. Equipamentos de marcas líderes em um ambiente premium.',
+				'puv_image'        => '/ctn/institucional/leg-press-realleader.jpg',
+				'puv_image_alt'    => 'Leg Press Realleader dourado — equipamento de alto nível dos Centros de Treinamento Contorno',
+				'search_label'     => 'Encontre uma CTN',
+				'search_placeholder' => 'Busque por bairro, cidade ou CEP',
+			),
+			(array) $atts,
+			'ctn_hub'
+		);
+
+		$hero_image = contorno_attr_image( $a['image'], 'contorno-hero' );
+		$puv_image  = contorno_attr_image( $a['puv_image'], 'contorno-hero' );
+		$ctns       = contorno_get_ctns();
+
+		ob_start();
+		?>
+		<div class="ctn-hub" data-ctn-hub>
+			<section class="ctn-hub-hero">
+				<?php if ( '' !== $hero_image ) : ?>
+					<img class="ctn-hub-hero__media" src="<?php echo esc_url( $hero_image ); ?>" alt="" fetchpriority="high" decoding="async" />
+				<?php endif; ?>
+				<span class="ctn-hub-hero__scrim" aria-hidden="true"></span>
+				<div class="site-container ctn-hub-hero__inner">
+					<div class="ctn-hub-hero__logo"><?php echo contorno_ctn_logo( 'ctn-hub-hero__logo-img' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+					<div class="ctn-hub-hero__copy motion-reveal" data-contorno-reveal>
+						<p class="ctn-hub__eyebrow"><?php echo esc_html( (string) $a['eyebrow'] ); ?></p>
+						<h1 class="ctn-hub-hero__title"><?php echo esc_html( (string) $a['title'] ); ?></h1>
+						<p class="ctn-hub-hero__subtitle"><?php echo esc_html( (string) $a['subtitle'] ); ?></p>
+						<button class="contorno-btn contorno-btn--primary cta-label ctn-hub-hero__button" type="button" data-ctn-scroll><?php echo esc_html( (string) $a['cta_label'] ); ?></button>
+					</div>
+				</div>
+			</section>
+
+			<section class="ctn-hub-puv">
+				<div class="site-container ctn-hub-puv__grid">
+					<div class="motion-reveal" data-contorno-reveal>
+						<p class="ctn-hub__eyebrow"><?php echo esc_html( (string) $a['puv_eyebrow'] ); ?></p>
+						<h2 class="ctn-hub-puv__title"><?php echo esc_html( (string) $a['puv_title'] ); ?></h2>
+						<p class="ctn-hub-puv__text"><?php echo esc_html( (string) $a['puv_text'] ); ?></p>
+					</div>
+					<?php if ( '' !== $puv_image ) : ?>
+						<figure class="ctn-hub-puv__media motion-reveal" data-contorno-reveal>
+							<img src="<?php echo esc_url( $puv_image ); ?>" alt="<?php echo esc_attr( (string) $a['puv_image_alt'] ); ?>" loading="lazy" decoding="async" />
+						</figure>
+					<?php endif; ?>
+				</div>
+			</section>
+
+			<section class="ctn-hub-search" id="ctn-busca">
+				<div class="site-container">
+					<div class="ctn-hub-search__field">
+						<label for="ctn-search"><?php echo esc_html( (string) $a['search_label'] ); ?></label>
+						<input id="ctn-search" type="search" placeholder="<?php echo esc_attr( (string) $a['search_placeholder'] ); ?>" data-ctn-filter />
+					</div>
+					<div class="ctn-hub-grid" data-ctn-grid>
+						<?php foreach ( $ctns as $ctn ) : ?>
+							<?php
+							$image = contorno_field_image_url( 'hero_image', $ctn->ID, 'contorno-card' );
+							$terms = implode(
+								' ',
+								array_filter(
+									array(
+										get_the_title( $ctn->ID ),
+										contorno_field_text( 'short_name', $ctn->ID ),
+										contorno_field_text( 'neighborhood', $ctn->ID ),
+										contorno_field_text( 'city', $ctn->ID ),
+										contorno_field_text( 'postal_code', $ctn->ID ),
+									)
+								)
+							);
+							$highlights = array_slice( array_map( 'strval', contorno_field_list( 'highlights', $ctn->ID ) ), 0, 3 );
+							?>
+							<article class="ctn-hub-card" data-ctn-card data-search="<?php echo esc_attr( remove_accents( strtolower( $terms ) ) ); ?>">
+								<a class="ctn-hub-card__media" href="<?php echo esc_url( (string) get_permalink( $ctn->ID ) ); ?>">
+									<?php if ( '' !== $image ) : ?>
+										<img src="<?php echo esc_url( $image ); ?>" alt="" loading="lazy" decoding="async" />
+									<?php endif; ?>
+									<span>CTN</span>
+								</a>
+								<div class="ctn-hub-card__body">
+									<h3><?php echo esc_html( contorno_field_text( 'short_name', $ctn->ID, (string) get_the_title( $ctn->ID ) ) ); ?></h3>
+									<p class="ctn-hub-card__location"><?php echo contorno_icon( 'map-pin' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( trim( contorno_field_text( 'neighborhood', $ctn->ID ) . ' • ' . contorno_field_text( 'city', $ctn->ID ), ' •' ) ); ?></span></p>
+									<?php if ( array() !== $highlights ) : ?>
+										<ul>
+											<?php foreach ( $highlights as $highlight ) : ?>
+												<li><?php echo esc_html( $highlight ); ?></li>
+											<?php endforeach; ?>
+										</ul>
+									<?php endif; ?>
+									<?php echo contorno_button( __( 'Conhecer CTN', 'contorno' ), (string) get_permalink( $ctn->ID ), 'primary', array( 'class' => 'cta-label ctn-hub-card__button' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								</div>
+							</article>
+						<?php endforeach; ?>
+					</div>
+					<p class="ctn-hub-search__empty" data-ctn-empty hidden>Nenhuma CTN encontrada. Tente outro bairro ou cidade.</p>
+				</div>
+			</section>
+		</div>
+		<script>
+		(() => {
+			const root = document.currentScript.previousElementSibling;
+			if (!root || !root.matches('[data-ctn-hub]')) return;
+			const input = root.querySelector('[data-ctn-filter]');
+			const cards = [...root.querySelectorAll('[data-ctn-card]')];
+			const empty = root.querySelector('[data-ctn-empty]');
+			root.querySelector('[data-ctn-scroll]')?.addEventListener('click', () => root.querySelector('#ctn-busca')?.scrollIntoView({ behavior: 'smooth' }));
+			input?.addEventListener('input', () => {
+				const term = input.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+				let visible = 0;
+				cards.forEach((card) => {
+					const show = !term || card.dataset.search.includes(term);
+					card.hidden = !show;
+					if (show) visible += 1;
+				});
+				if (empty) empty.hidden = visible > 0;
+			});
+		})();
+		</script>
+		<?php
+
+		return (string) ob_get_clean();
+	}
+);
+
+contorno_add_shortcode(
 	'ctn_hero',
 	static function ( array|string $atts ): string {
 		$a = shortcode_atts(

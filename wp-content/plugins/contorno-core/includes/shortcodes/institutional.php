@@ -20,6 +20,46 @@ if ( ! defined( 'ABSPATH' ) ) {
  * imagem de fundo, ate dois CTAs e busca opcional de unidades.
  */
 contorno_add_shortcode(
+	'contorno_simple_page',
+	static function ( array|string $atts ): string {
+		$a = shortcode_atts(
+			array(
+				'eyebrow'   => '',
+				'title'     => '',
+				'text'      => '',
+				'cta_label' => '',
+				'cta_url'   => '',
+			),
+			(array) $atts,
+			'contorno_simple_page'
+		);
+
+		ob_start();
+		?>
+		<section class="contorno-simple-page">
+			<div class="site-container contorno-simple-page__inner">
+				<?php if ( '' !== trim( (string) $a['eyebrow'] ) ) : ?>
+					<p class="eyebrow"><?php echo esc_html( (string) $a['eyebrow'] ); ?></p>
+				<?php endif; ?>
+
+				<?php if ( '' !== trim( (string) $a['title'] ) ) : ?>
+					<h1 class="contorno-simple-page__title"><?php echo esc_html( (string) $a['title'] ); ?></h1>
+				<?php endif; ?>
+
+				<?php if ( '' !== trim( (string) $a['text'] ) ) : ?>
+					<div class="contorno-simple-page__text prose-institutional"><?php echo wp_kses_post( wpautop( (string) $a['text'] ) ); ?></div>
+				<?php endif; ?>
+
+				<?php echo contorno_button( (string) $a['cta_label'], (string) $a['cta_url'], 'primary', array( 'class' => 'contorno-simple-page__button cta-label' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</div>
+		</section>
+		<?php
+
+		return (string) ob_get_clean();
+	}
+);
+
+contorno_add_shortcode(
 	'contorno_hero',
 	static function ( array|string $atts ): string {
 		$a = shortcode_atts(

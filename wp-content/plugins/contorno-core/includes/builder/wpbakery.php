@@ -212,6 +212,25 @@ add_action(
 		$cta_group = __( 'CTA', 'contorno' );
 
 		/* ---------------------------------------------------------------
+		 * CONTORNO — Pagina simples
+		 * ------------------------------------------------------------- */
+		vc_map(
+			array(
+				'name'        => __( 'CONTORNO — Pagina simples', 'contorno' ),
+				'base'        => 'contorno_simple_page',
+				'category'    => CONTORNO_VC_CATEGORY,
+				'description' => __( 'Secao editorial centralizada, igual as paginas simples do template HTML.', 'contorno' ),
+				'params'      => array(
+					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Titulo', 'contorno' ), $editorial ),
+					contorno_vc_textarea( 'text', __( 'Texto', 'contorno' ), $editorial ),
+					contorno_vc_text( 'cta_label', __( 'CTA — texto', 'contorno' ), $cta_group ),
+					contorno_vc_url( 'cta_url', __( 'CTA — link', 'contorno' ), $cta_group ),
+				),
+			)
+		);
+
+		/* ---------------------------------------------------------------
 		 * CONTORNO — Hero
 		 * ------------------------------------------------------------- */
 		vc_map(
@@ -618,6 +637,29 @@ add_action(
 		/* ---------------------------------------------------------------
 		 * CTN
 		 * ------------------------------------------------------------- */
+		vc_map(
+			array(
+				'name'        => __( 'CTN — Hub', 'contorno' ),
+				'base'        => 'ctn_hub',
+				'category'    => CONTORNO_VC_CATEGORY_CTN,
+				'description' => __( 'Pagina /ctn completa: hero dark, PUV, busca e cards de CTNs.', 'contorno' ),
+				'params'      => array(
+					contorno_vc_text( 'eyebrow', __( 'Hero — eyebrow', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Hero — titulo', 'contorno' ), $editorial ),
+					contorno_vc_textarea( 'subtitle', __( 'Hero — subtitulo', 'contorno' ), $editorial ),
+					contorno_vc_image( 'image', __( 'Hero — imagem', 'contorno' ), $editorial ),
+					contorno_vc_text( 'cta_label', __( 'Hero — botao', 'contorno' ), $cta_group ),
+					contorno_vc_text( 'puv_eyebrow', __( 'PUV — eyebrow', 'contorno' ), __( 'PUV', 'contorno' ) ),
+					contorno_vc_text( 'puv_title', __( 'PUV — titulo', 'contorno' ), __( 'PUV', 'contorno' ) ),
+					contorno_vc_textarea( 'puv_text', __( 'PUV — texto', 'contorno' ), __( 'PUV', 'contorno' ) ),
+					contorno_vc_image( 'puv_image', __( 'PUV — imagem', 'contorno' ), __( 'PUV', 'contorno' ) ),
+					contorno_vc_text( 'puv_image_alt', __( 'PUV — texto alternativo', 'contorno' ), __( 'PUV', 'contorno' ) ),
+					contorno_vc_text( 'search_label', __( 'Busca — rotulo', 'contorno' ), __( 'Busca', 'contorno' ) ),
+					contorno_vc_text( 'search_placeholder', __( 'Busca — placeholder', 'contorno' ), __( 'Busca', 'contorno' ) ),
+				),
+			)
+		);
+
 		vc_map(
 			array(
 				'name'        => __( 'CTN — Hero', 'contorno' ),

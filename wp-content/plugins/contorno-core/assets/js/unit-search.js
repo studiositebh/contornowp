@@ -68,7 +68,7 @@
 		}
 
 		var container = root.closest('[data-contorno-units]');
-		var isRemote = root.dataset.target === 'hero' || !container;
+		var isRemote = root.dataset.target === 'hero' || root.dataset.target === 'catalog' || !container;
 
 		function run() {
 			if (clear) {
@@ -106,6 +106,14 @@
 				input.value = '';
 				run();
 				input.focus();
+
+				if (root.dataset.target === 'catalog') {
+					var archive = input.dataset.archive || '/unidades/';
+					var url = new URL(window.location.href);
+					url.searchParams.delete('q');
+					url.searchParams.delete('unidades_page');
+					window.location.href = url.pathname + (url.search ? url.search : '') || archive;
+				}
 			});
 		}
 
@@ -123,7 +131,7 @@
 		}
 
 		// Termo vindo da URL (?q=) aplicado na chegada.
-		if (!isRemote && window.URLSearchParams) {
+		if (window.URLSearchParams) {
 			var initial = new URLSearchParams(window.location.search).get('q');
 			if (initial) {
 				input.value = initial;

@@ -56,7 +56,7 @@
       "slug": "ctn",
       "title": "CTN",
       "template": "templates/page-ctn.php",
-      "content": "[vc_row][vc_column][ctn_hero eyebrow=\"Centros de Treinamento Contorno\" title=\"CTN\" headline=\"Centro de Treinamento Contorno\" subtitle=\"YOUR ONLY LIMIT IS YOU. Equipamentos de alto nivel e estrutura premium.\" image=\"/ctn/hub-hero.jpg\" image_alt=\"Centro de Treinamento Contorno\" cta_label=\"Ver as CTNs\" cta_url=\"#ctns\" show_logo=\"yes\"][/vc_column][/vc_row][vc_row][vc_column][ctn_puv eyebrow=\"Equipamentos\" title=\"Maquinas de alto nivel, do primeiro ao ultimo treino\" text=\"Linha completa Panatta, Hammer, Realleader, Supreme e Shua.\nCada equipamento escolhido para entregar amplitude, biomecanica correta e resultado real.\" image=\"/ctn/institucional/leg-press-realleader.jpg\" image_alt=\"Leg Press Realleader dourado — equipamento de alto nivel dos Centros de Treinamento Contorno\" show_stats=\"no\"][/vc_column][/vc_row][vc_row][vc_column][ctn_brands eyebrow=\"Marcas\" title=\"Equipamentos premium\"][/vc_column][/vc_row][vc_row][vc_column][ctn_list eyebrow=\"Unidades CTN\" title=\"Escolha o seu Centro de Treinamento\" columns=\"2\"][/vc_column][/vc_row]"
+      "content": "[vc_row][vc_column][ctn_hub][/vc_column][/vc_row]"
     },
     {
       "slug": "planos",
@@ -66,7 +66,7 @@
         "title": "Planos | Contorno do Corpo",
         "description": "Escolha a unidade para ver planos, valores e matrícula."
       },
-      "content": "[vc_row][vc_column][contorno_puv eyebrow=\"Planos\" title=\"Planos por unidade\" text=\"Os planos e valores variam de acordo com a unidade. Escolha a Contorno mais perto de você para ver as opções e seguir para a matrícula.\" cta_label=\"Encontre sua unidade\" cta_url=\"/unidades/\" tone=\"light\"][/vc_column][/vc_row][vc_row][vc_column][contorno_units eyebrow=\"Unidades\" title=\"Escolha sua unidade\" columns=\"3\" limit=\"-1\" show_search=\"yes\"][/vc_column][/vc_row]"
+      "content": "[vc_row][vc_column][contorno_simple_page eyebrow=\"Planos\" title=\"Planos por unidade\" text=\"Os planos e valores variam de acordo com a unidade. Escolha a Contorno mais perto de você para ver as opções e seguir para a matrícula.\" cta_label=\"Encontre sua unidade\" cta_url=\"/unidades/\"][/vc_column][/vc_row]"
     },
     {
       "slug": "matricula",
@@ -99,7 +99,7 @@
         "title": "Sobre | Contorno do Corpo",
         "description": "A Academia Contorno do Corpo está no mercado há 25 anos, proporcionando saúde e bem-estar aos seus alunos."
       },
-      "content": "[vc_row][vc_column][contorno_puv eyebrow=\"Sobre\" title=\"A Contorno\" text=\"A Academia Contorno do Corpo está no mercado há 25 anos, proporcionando saúde e bem-estar aos seus alunos. Inauguramos nossa primeira unidade no ano 2000 na Av. do Contorno, no bairro São Lucas, e foi daí que surgiu o nosso nome.\n\nTodos esses anos de mercado nos proporcionaram a possibilidade de melhorar a cada dia, agregando experiência, evolução e transformação. Seguimos buscando preparação e evolução constante para atender o nosso público.\" image=\"/brand/hero-home.jpg\" image_alt=\"Estrutura da Academia Contorno do Corpo\" layout=\"image-right\"][/vc_column][/vc_row][vc_row][vc_column][contorno_highlights eyebrow=\"Nossos diferenciais\" title=\"Muito mais que uma academia\" columns=\"3\" tone=\"dark\" items=\"JTVCJTdCJTIybGFiZWwlMjIlM0ElMjJFc3RydXR1cmElMjBQcmVtaXVtJTIyJTJDJTIydGV4dCUyMiUzQSUyMkFtYmllbnRlcyUyMHBlbnNhZG9zJTIwcGFyYSUyMHRyZWluYXIlMjBjb20lMjBjb25mb3J0byUyQyUyMGFtcGxpdHVkZSUyMGUlMjBwYWRyJUMzJUEzbyUyMENvbnRvcm5vLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkVxdWlwYW1lbnRvcyUyME1vZGVybm9zJTIyJTJDJTIydGV4dCUyMiUzQSUyMkxpbmhhJTIwY29tcGxldGElMjBwYXJhJTIwbXVzY3VsYSVDMyVBNyVDMyVBM28lMkMlMjBjYXJkaW8lMjBlJTIwdHJlaW5vcyUyMGRlJTIwYWx0YSUyMHBlcmZvcm1hbmNlLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkFwcCUyMEV4Y2x1c2l2byUyMiUyQyUyMnRleHQlMjIlM0ElMjJUcmVpbm9zJTJDJTIwaG9yJUMzJUExcmlvcyUyMGUlMjBhJTIwYWNhZGVtaWElMjBuYSUyMHBhbG1hJTIwZGElMjBtJUMzJUEzbyUyQyUyMG5vJTIwc2V1JTIwcml0bW8uJTIyJTJDJTIyaWNvbiUyMiUzQSUyMiUyMiU3RCUyQyU3QiUyMmxhYmVsJTIyJTNBJTIyQXVsYXMlMjBwYXJhJTIwVG9kb3MlMjIlMkMlMjJ0ZXh0JTIyJTNBJTIyTW9kYWxpZGFkZXMlMjBwYXJhJTIwZGlmZXJlbnRlcyUyMG9iamV0aXZvcyUyQyUyMG4lQzMlQUR2ZWlzJTIwZSUyMG1vbWVudG9zJTIwZGElMjBzZW1hbmEuJTIyJTJDJTIyaWNvbiUyMiUzQSUyMiUyMiU3RCUyQyU3QiUyMmxhYmVsJTIyJTNBJTIyQ29uZm9ydG8lMjAlMjYlMjBFeHBlcmklQzMlQUFuY2lhJTIyJTJDJTIydGV4dCUyMiUzQSUyMkNsaW1hdGl6YSVDMyVBNyVDMyVBM28lMkMlMjBjaXJjdWxhJUMzJUE3JUMzJUEzbyUyMGUlMjBhdGVuZGltZW50byUyMHByJUMzJUIzeGltb3MlMjBkbyUyMGFsdW5vLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlMkMlN0IlMjJsYWJlbCUyMiUzQSUyMkNvbXVuaWRhZGUlMjBDb250b3JubyUyMiUyQyUyMnRleHQlMjIlM0ElMjJVbWElMjByZWRlJTIwZGUlMjB1bmlkYWRlcyUyMGVtJTIwTWluYXMlMjBlJTIwdW1hJTIwY29tdW5pZGFkZSUyMHF1ZSUyMHRyZWluYSUyMGp1bnRvLiUyMiUyQyUyMmljb24lMjIlM0ElMjIlMjIlN0QlNUQ=\"][/vc_column][/vc_row][vc_row][vc_column][contorno_units eyebrow=\"Rede Contorno\" title=\"Encontre a unidade mais perto de você\" columns=\"3\" limit=\"6\" featured=\"yes\" show_search=\"no\"][/vc_column][/vc_row][vc_row][vc_column][contorno_cta headline=\"O momento de mudar é agora.\" text=\"Matricule-se e transforme sua vida!\" cta_label=\"Quero me matricular\" cta_url=\"/matricula/\" image=\"/brand/cta-gym.jpg\"][/vc_column][/vc_row]"
+      "content": "[vc_row][vc_column][contorno_simple_page eyebrow=\"Sobre\" title=\"A Contorno\" text=\"A Academia Contorno do Corpo está no mercado há 25 anos, proporcionando saúde e bem-estar aos seus alunos. Inauguramos nossa primeira unidade no ano 2000 na Av. do Contorno, no bairro São Lucas, e foi daí que surgiu o nosso nome.\n\nTodos esses anos de mercado nos proporcionaram a possibilidade de melhorar a cada dia, agregando experiência, evolução e transformação. Seguimos buscando preparação e evolução constante para atender o nosso público.\"][/vc_column][/vc_row]"
     },
     {
       "slug": "fale-conosco",
@@ -129,7 +129,7 @@
         "title": "Clube Contorno | Contorno do Corpo",
         "description": "Parcerias e negócios locais com a rede Contorno do Corpo."
       },
-      "content": "[vc_row][vc_column][contorno_puv title=\"Clube Contorno\" text=\"Abrimos espaço para negócios locais, influenciadores e marcas trabalharem conosco. Envie sua proposta para o time comercial.\" cta_label=\"Fale conosco\" cta_url=\"/fale-conosco/\"][/vc_column][/vc_row]"
+      "content": "[vc_row][vc_column][contorno_simple_page title=\"Clube Contorno\" text=\"Abrimos espaço para negócios locais, influenciadores e marcas trabalharem conosco. Envie sua proposta para o time comercial.\" cta_label=\"Fale conosco\" cta_url=\"/fale-conosco/\"][/vc_column][/vc_row]"
     },
     {
       "slug": "blog",
@@ -144,12 +144,13 @@
     {
       "slug": "regulamentos",
       "title": "Regulamentos",
-      "useBuilder": false,
+      "template": "templates/page-blank.php",
+      "useBuilder": true,
       "seo": {
         "title": "Regulamentos | Contorno do Corpo",
         "description": "Regulamentos e políticas da Academia Contorno do Corpo."
       },
-      "content": "<p>Os documentos oficiais de regulamento, termos e políticas serão publicados nesta página.</p>"
+      "content": "[vc_row][vc_column][contorno_simple_page title=\"Regulamentos\" text=\"Os documentos oficiais de regulamento, termos e políticas serão publicados nesta página.\"][/vc_column][/vc_row]"
     },
     {
       "slug": "termos-de-uso",

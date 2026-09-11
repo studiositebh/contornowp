@@ -28,7 +28,11 @@ while ( have_posts() ) :
 			</header>
 		<?php endif; ?>
 
-		<?php if ( is_page( 'fale-conosco' ) ) : ?>
+		<?php
+		$request_path    = isset( $_SERVER['REQUEST_URI'] ) ? trim( (string) wp_parse_url( wp_unslash( (string) $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ), '/' ) : '';
+		$is_contact_page = is_page( 'fale-conosco' ) || 'fale-conosco' === basename( $request_path );
+		?>
+		<?php if ( $is_contact_page ) : ?>
 			<div class="contorno-page__content contorno-contact-page">
 				<div class="contorno-contact-page__grid">
 					<?php the_content(); ?>

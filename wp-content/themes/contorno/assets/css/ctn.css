@@ -669,3 +669,363 @@
 		transition: none !important;
 	}
 }
+/* Hub /ctn — porte fiel do template HTML. */
+.ctn-hub {
+	background: #000;
+	color: #fff;
+}
+
+.ctn-hub__eyebrow {
+	margin: 0;
+	font-size: 0.6875rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.22em;
+	color: var(--brand);
+}
+
+.ctn-hub-hero {
+	position: relative;
+	isolation: isolate;
+	min-height: 72svh;
+	overflow: hidden;
+	border-bottom: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.ctn-hub-hero__media,
+.ctn-hub-hero__scrim {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.ctn-hub-hero__media {
+	object-fit: cover;
+	opacity: 0.45;
+}
+
+.ctn-hub-hero__scrim {
+	background: linear-gradient(to bottom, rgb(0 0 0 / 0.75), rgb(0 0 0 / 0.8) 48%, #000);
+	z-index: -1;
+}
+
+.ctn-hub-hero__inner {
+	position: relative;
+	display: flex;
+	min-height: 72svh;
+	flex-direction: column;
+	padding-top: 1.75rem;
+	padding-bottom: 4rem;
+}
+
+.ctn-hub-hero__logo {
+	position: relative;
+	z-index: 1;
+	flex: none;
+}
+
+.ctn-hub-hero__logo-img {
+	width: 140px;
+	height: auto;
+	object-fit: contain;
+	object-position: left;
+}
+
+.ctn-hub-hero__copy {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	max-width: 48rem;
+	flex: 1 1 auto;
+	flex-direction: column;
+	justify-content: center;
+	padding-top: 3rem;
+}
+
+.ctn-hub-hero__title {
+	margin: 1.25rem 0 0;
+	font-size: 2.25rem;
+	font-weight: 700;
+	line-height: 1.04;
+	letter-spacing: 0;
+	color: #fff;
+}
+
+.ctn-hub-hero__subtitle {
+	max-width: 42rem;
+	margin: 1.25rem 0 0;
+	font-size: 1rem;
+	line-height: 1.65;
+	color: rgb(255 255 255 / 0.75);
+}
+
+.ctn-hub-hero__button {
+	width: max-content;
+	height: 3rem;
+	margin-top: 2rem;
+	padding-inline: 1.75rem;
+	border-radius: var(--radius-md);
+}
+
+.ctn-hub-puv {
+	border-bottom: 1px solid rgb(255 255 255 / 0.1);
+	background: #0a0a0a;
+	padding-block: 4rem;
+}
+
+.ctn-hub-puv__grid {
+	display: grid;
+	align-items: center;
+	gap: 2.5rem;
+}
+
+.ctn-hub-puv__title {
+	margin: 1rem 0 0;
+	font-size: 1.875rem;
+	font-weight: 700;
+	line-height: 1.1;
+	letter-spacing: 0;
+	color: #fff;
+}
+
+.ctn-hub-puv__text {
+	max-width: 36rem;
+	margin: 1.25rem 0 0;
+	font-size: 1rem;
+	line-height: 1.75;
+	color: rgb(255 255 255 / 0.7);
+}
+
+.ctn-hub-puv__media {
+	position: relative;
+	margin: 0;
+	overflow: hidden;
+	border: 1px solid rgb(255 255 255 / 0.1);
+	border-radius: var(--radius-2xl);
+	background: #000;
+}
+
+.ctn-hub-puv__media img {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	object-position: center;
+}
+
+.ctn-hub-search {
+	padding-block: 3.5rem 5rem;
+}
+
+.ctn-hub-search__field {
+	max-width: 36rem;
+	margin-inline: auto;
+}
+
+.ctn-hub-search__field label {
+	display: block;
+	font-size: var(--text-sm);
+	font-weight: 500;
+	color: #fff;
+}
+
+.ctn-hub-search__field input {
+	width: 100%;
+	height: 3rem;
+	margin-top: 0.75rem;
+	padding: 0 1rem;
+	border: 1px solid rgb(255 255 255 / 0.15);
+	border-radius: var(--radius-xl);
+	background: rgb(255 255 255 / 0.04);
+	color: #fff;
+	font: inherit;
+}
+
+.ctn-hub-search__field input::placeholder {
+	color: rgb(255 255 255 / 0.4);
+}
+
+.ctn-hub-search__field input:focus-visible {
+	outline: 2px solid var(--brand);
+	outline-offset: 2px;
+}
+
+.ctn-hub-grid {
+	display: grid;
+	gap: 1.25rem;
+	margin-top: 2.5rem;
+}
+
+.ctn-hub-card {
+	display: flex;
+	height: 100%;
+	flex-direction: column;
+	overflow: hidden;
+	border: 1px solid rgb(255 255 255 / 0.1);
+	border-radius: var(--radius-xl);
+	background: #141414;
+	transition: transform 300ms var(--motion-ease), border-color 300ms var(--motion-ease), box-shadow 300ms var(--motion-ease);
+}
+
+.ctn-hub-card:hover {
+	transform: translateY(-2px);
+	border-color: rgb(16 184 177 / 0.7);
+	box-shadow: 0 20px 50px -28px rgb(16 184 177 / 0.55);
+}
+
+.ctn-hub-card__media {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	background: #0a0a0a;
+}
+
+.ctn-hub-card__media img {
+	width: 100%;
+	aspect-ratio: 16 / 11;
+	object-fit: cover;
+	transition: transform 300ms var(--motion-ease);
+}
+
+.ctn-hub-card:hover .ctn-hub-card__media img {
+	transform: scale(1.04);
+}
+
+.ctn-hub-card__media span {
+	position: absolute;
+	left: 0.75rem;
+	top: 0.75rem;
+	border-radius: var(--radius-sm);
+	background: var(--brand);
+	padding: 0.25rem 0.625rem;
+	font-size: 0.625rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+	color: #fff;
+}
+
+.ctn-hub-card__body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	padding: 1.25rem;
+}
+
+.ctn-hub-card h3 {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: #fff;
+}
+
+.ctn-hub-card__location {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.375rem;
+	margin: 0.5rem 0 0;
+	font-size: var(--text-sm);
+	color: rgb(255 255 255 / 0.65);
+}
+
+.ctn-hub-card__location svg {
+	width: 1rem;
+	height: 1rem;
+	flex: none;
+	margin-top: 0.125rem;
+	color: var(--brand);
+}
+
+.ctn-hub-card ul {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 1rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ctn-hub-card li {
+	border: 1px solid rgb(255 255 255 / 0.1);
+	border-radius: var(--radius-sm);
+	background: rgb(255 255 255 / 0.03);
+	padding: 0.25rem 0.625rem;
+	font-size: var(--text-xs);
+	color: rgb(255 255 255 / 0.75);
+}
+
+.ctn-hub-card__button {
+	width: 100%;
+	height: 2.75rem;
+	margin-top: auto;
+	border-radius: var(--radius-md);
+}
+
+.ctn-hub-search__empty {
+	padding-block: 4rem;
+	text-align: center;
+	color: rgb(255 255 255 / 0.65);
+}
+
+@media (min-width: 640px) {
+	.ctn-hub-hero__logo-img {
+		width: 168px;
+	}
+
+	.ctn-hub-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 768px) {
+	.ctn-hub-hero,
+	.ctn-hub-hero__inner {
+		min-height: 78svh;
+	}
+
+	.ctn-hub-hero__inner {
+		padding-top: 2.25rem;
+		padding-bottom: 6rem;
+	}
+
+	.ctn-hub-hero__logo-img {
+		width: 196px;
+	}
+
+	.ctn-hub-hero__title {
+		font-size: 3.75rem;
+	}
+
+	.ctn-hub-hero__subtitle {
+		font-size: 1.125rem;
+	}
+
+	.ctn-hub-puv {
+		padding-block: 6rem;
+	}
+
+	.ctn-hub-puv__title {
+		font-size: 3rem;
+	}
+
+	.ctn-hub-puv__media img {
+		aspect-ratio: 5 / 4;
+	}
+}
+
+@media (min-width: 1024px) {
+	.ctn-hub-puv__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 3.5rem;
+	}
+}
+
+@media (min-width: 1280px) {
+	.ctn-hub-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.ctn-hub-hero__title {
+		font-size: 4.5rem;
+	}
+}
