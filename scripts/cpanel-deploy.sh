@@ -9,6 +9,8 @@ if [[ -n "${DEPLOYPATH:-}" ]]; then
 fi
 candidates+=(
 	"/home/voceconecta/contornowp.voceconecta.com.br"
+	"/home/voceconecta/domains/contornowp.voceconecta.com.br/public_html"
+	"/home/voceconecta/public_html/contornowp.voceconecta.com.br"
 	"/home/voceconecta/public_html"
 )
 
@@ -25,9 +27,22 @@ if [[ -z "$target" ]]; then
 	exit 1
 fi
 
-mkdir -p "$target/wp-content/plugins/contorno-core" "$target/wp-content/themes/contorno"
-rsync -a --delete "$ROOT/wp-content/plugins/contorno-core/" "$target/wp-content/plugins/contorno-core/"
-rsync -a --delete "$ROOT/wp-content/themes/contorno/" "$target/wp-content/themes/contorno/"
+sync_dir() {
+	local source_dir="$1"
+	local target_dir="$2"
+
+	mkdir -p "$target_dir"
+	if command -v rsync >/dev/null 2>&1; then
+		rsync -a --delete "$source_dir/" "$target_dir/"
+		return
+	fi
+
+	find "$target_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+	cp -a "$source_dir/." "$target_dir/"
+}
+
+sync_dir "$ROOT/wp-content/plugins/contorno-core" "$target/wp-content/plugins/contorno-core"
+sync_dir "$ROOT/wp-content/themes/contorno" "$target/wp-content/themes/contorno"
 
 if command -v wp >/dev/null 2>&1 && [[ -f "$target/wp-load.php" ]]; then
 	wp --path="$target" cache flush || true
