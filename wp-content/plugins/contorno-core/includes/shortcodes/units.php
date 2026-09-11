@@ -154,7 +154,7 @@ contorno_add_shortcode(
 
 		$is_paginated_list = (int) $a['limit'] < 0 && 'no' !== $a['show_search'];
 		$allowed_per_page  = array( 9, 15, 45, 60 );
-		$requested_page    = isset( $_GET['unidades_page'] ) ? absint( wp_unslash( (string) $_GET['unidades_page'] ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$requested_page    = isset( $_GET['unidades_page'] ) ? absint( wp_unslash( (string) $_GET['unidades_page'] ) ) : absint( (string) get_query_var( 'paged', 1 ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$current_page      = max( 1, $requested_page );
 		$requested_per     = isset( $_GET['per_page'] ) ? absint( wp_unslash( (string) $_GET['per_page'] ) ) : (int) $a['per_page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$per_page          = in_array( $requested_per, $allowed_per_page, true ) ? $requested_per : 15;
@@ -224,15 +224,11 @@ contorno_add_shortcode(
 			: __( 'Nenhuma unidade encontrada para essa busca.', 'contorno' );
 
 		ob_start();
-		echo contorno_section_open( 'units', array( 'tone' => (string) $a['tone'], 'class' => 'units-section featured-units' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_open( 'units', array( 'tone' => (string) $a['tone'], 'class' => 'units-section featured-units' . ( $is_paginated_list ? ' units-section--archive' : '' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], (string) $a['align'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 
 		<div class="contorno-units" data-contorno-units data-empty-text="<?php echo esc_attr( $empty_text ); ?>">
-			<?php if ( 'yes' === $a['show_search'] ) : ?>
-				<?php echo do_shortcode( '[contorno_units_search]' ); ?>
-			<?php endif; ?>
-
 			<?php if ( $is_paginated_list ) : ?>
 				<div class="contorno-units__toolbar">
 					<p class="contorno-units__count">
@@ -260,6 +256,10 @@ contorno_add_shortcode(
 						</select>
 					</form>
 				</div>
+			<?php endif; ?>
+
+			<?php if ( 'yes' === $a['show_search'] ) : ?>
+				<?php echo do_shortcode( '[contorno_units_search]' ); ?>
 			<?php endif; ?>
 
 			<?php if ( array() === $units ) : ?>
@@ -309,7 +309,7 @@ contorno_add_shortcode(
 						echo wp_kses_post(
 							paginate_links(
 								array(
-									'base'      => esc_url_raw( add_query_arg( 'unidades_page', '%#%' ) ),
+									'base'      => str_replace( 999999999, '%#%', esc_url_raw( add_query_arg( 'unidades_page', 999999999, remove_query_arg( 'paged' ) ) ) ),
 									'format'    => '',
 									'current'   => $current_page,
 									'total'     => $total_pages,

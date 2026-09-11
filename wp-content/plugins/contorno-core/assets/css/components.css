@@ -107,6 +107,11 @@
 	gap: var(--space-6, 1.5rem);
 }
 
+.units-section--archive .contorno-units__grid {
+	display: grid;
+	grid-template-columns: 1fr;
+}
+
 .contorno-units__cell {
 	height: 100%;
 }
@@ -114,6 +119,10 @@
 /* Mobile: UMA unidade por vez, com swipe e snapping. */
 .contorno-units__carousel {
 	position: relative;
+}
+
+.units-section--archive .contorno-units__carousel {
+	display: none;
 }
 
 .contorno-units__track {
@@ -194,6 +203,10 @@
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+
+	.units-section--archive .contorno-units__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }
 
 @media (min-width: 1024px) {
@@ -201,8 +214,18 @@
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 
+	.units-section--archive .contorno-units__grid.is-columns-3,
+	.units-section--archive .contorno-units__grid.is-columns-4 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
 	.contorno-units__grid.is-columns-4 {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	.units-section--archive .contorno-units__grid.is-columns-3,
+	.units-section--archive .contorno-units__grid.is-columns-4 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }
 
@@ -2220,6 +2243,12 @@
 /* ====================================================================
  * Fale Conosco
  * ================================================================== */
+
+.contorno-contact,
+.contorno-channels {
+	width: 100%;
+	max-width: 100%;
+}
 
 .contorno-contact__form {
 	display: grid;
