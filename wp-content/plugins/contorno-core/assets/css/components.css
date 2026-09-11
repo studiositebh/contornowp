@@ -394,6 +394,10 @@
 	font-size: 0.72rem;
 }
 
+.unit-card__actions .contorno-btn:only-child {
+	grid-column: 1 / -1;
+}
+
 .unit-card-cta {
 	width: 100%;
 }

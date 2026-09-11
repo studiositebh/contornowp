@@ -147,12 +147,22 @@ contorno_add_shortcode(
 				'align'        => 'left',
 				'empty_text'   => '',
 				'per_page'     => '15',
+				'catalog_mode' => 'auto',
+				'show_count'   => 'yes',
+				'show_per_page' => 'yes',
+				'pagination'   => 'yes',
+				'dual_cta'     => 'auto',
 			),
 			(array) $atts,
 			'contorno_units'
 		);
 
-		$is_paginated_list = (int) $a['limit'] < 0 && 'no' !== $a['show_search'];
+		$is_units_page     = is_page( 'unidades' );
+		$is_catalog_mode   = 'yes' === $a['catalog_mode'] || ( 'auto' === $a['catalog_mode'] && $is_units_page );
+		$has_count         = $is_catalog_mode && 'no' !== $a['show_count'];
+		$has_per_page      = $is_catalog_mode && 'no' !== $a['show_per_page'];
+		$is_paginated_list = $is_catalog_mode && 'no' !== $a['pagination'];
+		$has_dual_cta      = 'yes' === $a['dual_cta'] || ( 'auto' === $a['dual_cta'] && $is_catalog_mode );
 		$allowed_per_page  = array( 9, 15, 45, 60 );
 		$requested_page    = isset( $_GET['unidades_page'] ) ? absint( wp_unslash( (string) $_GET['unidades_page'] ) ) : absint( (string) get_query_var( 'paged', 1 ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$current_page      = max( 1, $requested_page );
@@ -184,7 +194,7 @@ contorno_add_shortcode(
 
 		$units = contorno_get_units( $query_args );
 
-		if ( $is_paginated_list && '' !== trim( $search_query ) ) {
+		if ( $is_catalog_mode && '' !== trim( $search_query ) ) {
 			$needle = contorno_normalize_search( $search_query );
 			$digits = preg_replace( '/\D/', '', $needle );
 			$digits = is_string( $digits ) ? $digits : '';
@@ -224,37 +234,41 @@ contorno_add_shortcode(
 			: __( 'Nenhuma unidade encontrada para essa busca.', 'contorno' );
 
 		ob_start();
-		echo contorno_section_open( 'units', array( 'tone' => (string) $a['tone'], 'class' => 'units-section featured-units' . ( $is_paginated_list ? ' units-section--archive' : '' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_open( 'units', array( 'tone' => (string) $a['tone'], 'class' => 'units-section featured-units' . ( $is_catalog_mode ? ' units-section--archive' : '' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], (string) $a['align'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 
 		<div class="contorno-units" data-contorno-units data-empty-text="<?php echo esc_attr( $empty_text ); ?>">
-			<?php if ( $is_paginated_list ) : ?>
+			<?php if ( $is_catalog_mode && ( $has_count || $has_per_page ) ) : ?>
 				<div class="contorno-units__toolbar">
-					<p class="contorno-units__count">
-						<?php
-						echo esc_html(
-							sprintf(
-								/* translators: %d: units count */
-								_n( '%d unidade encontrada', '%d unidades encontradas', $total_units, 'contorno' ),
-								$total_units
-							)
-						);
-						?>
-					</p>
-					<form class="contorno-units__per-page" method="get">
-						<?php if ( '' !== $search_query ) : ?>
-							<input type="hidden" name="q" value="<?php echo esc_attr( $search_query ); ?>" />
-						<?php endif; ?>
-						<label for="contorno-units-per-page"><?php esc_html_e( 'Exibir', 'contorno' ); ?></label>
-						<select id="contorno-units-per-page" name="per_page" onchange="this.form.submit()">
-							<?php foreach ( $allowed_per_page as $option ) : ?>
-								<option value="<?php echo esc_attr( (string) $option ); ?>" <?php selected( $per_page, $option ); ?>>
-									<?php echo esc_html( sprintf( /* translators: %d: items per page */ __( '%d por página', 'contorno' ), $option ) ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-					</form>
+					<?php if ( $has_count ) : ?>
+						<p class="contorno-units__count">
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: %d: units count */
+									_n( '%d unidade encontrada', '%d unidades encontradas', $total_units, 'contorno' ),
+									$total_units
+								)
+							);
+							?>
+						</p>
+					<?php endif; ?>
+					<?php if ( $has_per_page ) : ?>
+						<form class="contorno-units__per-page" method="get">
+							<?php if ( '' !== $search_query ) : ?>
+								<input type="hidden" name="q" value="<?php echo esc_attr( $search_query ); ?>" />
+							<?php endif; ?>
+							<label for="contorno-units-per-page"><?php esc_html_e( 'Exibir', 'contorno' ); ?></label>
+							<select id="contorno-units-per-page" name="per_page" onchange="this.form.submit()">
+								<?php foreach ( $allowed_per_page as $option ) : ?>
+									<option value="<?php echo esc_attr( (string) $option ); ?>" <?php selected( $per_page, $option ); ?>>
+										<?php echo esc_html( sprintf( /* translators: %d: items per page */ __( '%d por página', 'contorno' ), $option ) ); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+						</form>
+					<?php endif; ?>
 				</div>
 			<?php endif; ?>
 
@@ -277,7 +291,7 @@ contorno_add_shortcode(
 								data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 								data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
 							>
-								<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $is_paginated_list ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</div>
 						<?php endforeach; ?>
 					</div>
@@ -298,7 +312,7 @@ contorno_add_shortcode(
 							data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 							data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
 						>
-							<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $is_paginated_list ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						</div>
 					<?php endforeach; ?>
 				</div>

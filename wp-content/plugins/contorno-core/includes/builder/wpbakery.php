@@ -427,6 +427,35 @@ add_action(
 					contorno_vc_toggle( 'featured', __( 'Somente unidades em destaque', 'contorno' ), false, __( 'Fonte de dados', 'contorno' ) ),
 					contorno_vc_text( 'city', __( 'Filtrar por cidade (slug, separado por vírgula)', 'contorno' ), __( 'Fonte de dados', 'contorno' ) ),
 					contorno_vc_toggle( 'show_search', __( 'Exibir campo de busca', 'contorno' ), true, $look ),
+					contorno_vc_select(
+						'catalog_mode',
+						__( 'Modo catálogo (/unidades)', 'contorno' ),
+						array(
+							__( 'Automático na página /unidades', 'contorno' ) => 'auto',
+							__( 'Ativar', 'contorno' )                         => 'yes',
+							__( 'Desativar', 'contorno' )                      => 'no',
+						),
+						$look
+					),
+					contorno_vc_toggle( 'show_count', __( 'Exibir quantidade encontrada', 'contorno' ), true, $look ),
+					contorno_vc_toggle( 'show_per_page', __( 'Exibir seletor por página', 'contorno' ), true, $look ),
+					contorno_vc_select(
+						'per_page',
+						__( 'Itens por página', 'contorno' ),
+						array( '15' => '15', '9' => '9', '45' => '45', '60' => '60' ),
+						$look
+					),
+					contorno_vc_toggle( 'pagination', __( 'Exibir paginação', 'contorno' ), true, $look ),
+					contorno_vc_select(
+						'dual_cta',
+						__( 'Botões nos cards', 'contorno' ),
+						array(
+							__( 'Automático no modo catálogo', 'contorno' ) => 'auto',
+							__( 'Dois botões', 'contorno' )                 => 'yes',
+							__( 'Um botão', 'contorno' )                    => 'no',
+						),
+						$cta_group
+					),
 					contorno_vc_toggle( 'prescription', __( 'CTA de prescrição de treino', 'contorno' ), false, $cta_group ),
 					contorno_vc_text( 'empty_text', __( 'Texto quando nada é encontrado', 'contorno' ), $editorial ),
 					contorno_vc_tone(),
