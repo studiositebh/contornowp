@@ -102,8 +102,19 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 			$cta_url = ! empty( $args['prescription'] ) && '' !== contorno_field_text( 'prescricao_url', $post_id )
 				? contorno_field_text( 'prescricao_url', $post_id )
 				: (string) get_permalink( $post_id );
+
+			$enrollment_page = get_page_by_path( 'matricula' );
+			$enrollment_base = $enrollment_page instanceof WP_Post ? (string) get_permalink( $enrollment_page ) : home_url( '/matricula/' );
+			$enrollment_url  = '' !== contorno_field_text( 'checkout_url', $post_id )
+				? contorno_field_text( 'checkout_url', $post_id )
+				: add_query_arg( 'unidade', (string) get_post_field( 'post_name', $post_id ), $enrollment_base );
 			?>
-			<?php echo contorno_button( $cta_label, $cta_url, 'primary', array( 'class' => 'unit-know-btn unit-card-cta cta-label' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<div class="unit-card__actions">
+				<?php echo contorno_button( $cta_label, $cta_url, ! empty( $args['dual_cta'] ) ? 'outline' : 'primary', array( 'class' => 'unit-know-btn unit-card-cta cta-label' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php if ( ! empty( $args['dual_cta'] ) ) : ?>
+					<?php echo contorno_button( $is_pre_sale ? __( 'Ver planos', 'contorno' ) : __( 'Matricule-se', 'contorno' ), $enrollment_url, 'primary', array( 'class' => 'unit-enroll-btn unit-card-cta cta-label' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php endif; ?>
+			</div>
 		</div>
 	</article>
 	<?php
@@ -135,13 +146,22 @@ contorno_add_shortcode(
 				'tone'         => 'light',
 				'align'        => 'left',
 				'empty_text'   => '',
+				'per_page'     => '15',
 			),
 			(array) $atts,
 			'contorno_units'
 		);
 
+		$is_paginated_list = (int) $a['limit'] < 0 && 'no' !== $a['show_search'];
+		$allowed_per_page  = array( 9, 15, 45, 60 );
+		$requested_page    = isset( $_GET['unidades_page'] ) ? absint( wp_unslash( (string) $_GET['unidades_page'] ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$current_page      = max( 1, $requested_page );
+		$requested_per     = isset( $_GET['per_page'] ) ? absint( wp_unslash( (string) $_GET['per_page'] ) ) : (int) $a['per_page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$per_page          = in_array( $requested_per, $allowed_per_page, true ) ? $requested_per : 15;
+		$search_query      = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
 		$query_args = array(
-			'posts_per_page' => (int) $a['limit'],
+			'posts_per_page' => -1,
 		);
 
 		if ( 'yes' === $a['featured'] ) {
@@ -164,6 +184,35 @@ contorno_add_shortcode(
 
 		$units = contorno_get_units( $query_args );
 
+		if ( $is_paginated_list && '' !== trim( $search_query ) ) {
+			$needle = contorno_normalize_search( $search_query );
+			$digits = preg_replace( '/\D/', '', $needle );
+			$digits = is_string( $digits ) ? $digits : '';
+			$units  = array_values(
+				array_filter(
+					$units,
+					static function ( WP_Post $unit ) use ( $needle, $digits ): bool {
+						$haystack = contorno_unit_search_haystack( $unit->ID );
+						$postal   = contorno_unit_postal_digits( $unit->ID );
+
+						return '' === $needle
+							|| false !== strpos( $haystack, $needle )
+							|| ( strlen( $digits ) >= 5 && '' !== $postal && false !== strpos( $postal, $digits ) );
+					}
+				)
+			);
+		}
+
+		$total_units = count( $units );
+		$total_pages = $is_paginated_list ? max( 1, (int) ceil( $total_units / $per_page ) ) : 1;
+		$current_page = min( $current_page, $total_pages );
+
+		if ( $is_paginated_list ) {
+			$units = array_slice( $units, ( $current_page - 1 ) * $per_page, $per_page );
+		} elseif ( (int) $a['limit'] > 0 ) {
+			$units = array_slice( $units, 0, (int) $a['limit'] );
+		}
+
 		contorno_enqueue_component( 'units-carousel' );
 
 		if ( 'yes' === $a['show_search'] ) {
@@ -184,6 +233,35 @@ contorno_add_shortcode(
 				<?php echo do_shortcode( '[contorno_units_search]' ); ?>
 			<?php endif; ?>
 
+			<?php if ( $is_paginated_list ) : ?>
+				<div class="contorno-units__toolbar">
+					<p class="contorno-units__count">
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: %d: units count */
+								_n( '%d unidade encontrada', '%d unidades encontradas', $total_units, 'contorno' ),
+								$total_units
+							)
+						);
+						?>
+					</p>
+					<form class="contorno-units__per-page" method="get">
+						<?php if ( '' !== $search_query ) : ?>
+							<input type="hidden" name="q" value="<?php echo esc_attr( $search_query ); ?>" />
+						<?php endif; ?>
+						<label for="contorno-units-per-page"><?php esc_html_e( 'Exibir', 'contorno' ); ?></label>
+						<select id="contorno-units-per-page" name="per_page" onchange="this.form.submit()">
+							<?php foreach ( $allowed_per_page as $option ) : ?>
+								<option value="<?php echo esc_attr( (string) $option ); ?>" <?php selected( $per_page, $option ); ?>>
+									<?php echo esc_html( sprintf( /* translators: %d: items per page */ __( '%d por página', 'contorno' ), $option ) ); ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+					</form>
+				</div>
+			<?php endif; ?>
+
 			<?php if ( array() === $units ) : ?>
 				<p class="contorno-units__empty"><?php echo esc_html( $empty_text ); ?></p>
 			<?php else : ?>
@@ -199,7 +277,7 @@ contorno_add_shortcode(
 								data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 								data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
 							>
-								<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $is_paginated_list ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</div>
 						<?php endforeach; ?>
 					</div>
@@ -220,10 +298,37 @@ contorno_add_shortcode(
 							data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 							data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
 						>
-							<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $is_paginated_list ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						</div>
 					<?php endforeach; ?>
 				</div>
+
+				<?php if ( $is_paginated_list && $total_pages > 1 ) : ?>
+					<nav class="contorno-units__pagination" aria-label="<?php esc_attr_e( 'Paginação de unidades', 'contorno' ); ?>">
+						<?php
+						echo wp_kses_post(
+							paginate_links(
+								array(
+									'base'      => esc_url_raw( add_query_arg( 'unidades_page', '%#%' ) ),
+									'format'    => '',
+									'current'   => $current_page,
+									'total'     => $total_pages,
+									'type'      => 'list',
+									'prev_text' => __( 'Anterior', 'contorno' ),
+									'next_text' => __( 'Próxima', 'contorno' ),
+									'add_args'  => array_filter(
+										array(
+											'per_page' => $per_page,
+											'q'        => $search_query,
+										),
+										static fn ( $value ): bool => '' !== $value && null !== $value
+									),
+								)
+							)
+						);
+						?>
+					</nav>
+				<?php endif; ?>
 			<?php endif; ?>
 		</div>
 		<?php
@@ -307,42 +412,71 @@ contorno_add_shortcode(
 
 		$is_pre_sale = contorno_is_pre_sale( $post_id );
 		$info        = contorno_pre_sale_info_line( $post_id );
-		$whatsapp    = contorno_whatsapp_link( contorno_field_text( 'whatsapp', $post_id ) );
-		$maps        = contorno_maps_url( $post_id );
+		$gallery     = contorno_field_image_urls( 'gallery', $post_id, 'contorno-card' );
+		$features    = array_slice( contorno_field_list( 'facilities', $post_id ), 0, 4 );
+		$location    = trim( implode( ' - ', array_filter( array( contorno_field_text( 'neighborhood', $post_id ), trim( contorno_field_text( 'city', $post_id ) . ( '' !== contorno_field_text( 'state', $post_id ) ? ', ' . contorno_field_text( 'state', $post_id ) : '' ) ) ) ) ) );
+		$enroll_page = get_page_by_path( 'matricula' );
+		$enroll_base = $enroll_page instanceof WP_Post ? (string) get_permalink( $enroll_page ) : home_url( '/matricula/' );
+		$enroll_url  = '' !== contorno_field_text( 'checkout_url', $post_id )
+			? contorno_field_text( 'checkout_url', $post_id )
+			: add_query_arg( 'unidade', (string) get_post_field( 'post_name', $post_id ), $enroll_base );
 
 		ob_start();
 		?>
 		<section class="unit-hero<?php echo $is_pre_sale ? ' is-pre-sale' : ''; ?>">
-			<?php if ( '' !== $image ) : ?>
-				<img class="unit-hero__media motion-hero-media" src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( contorno_field_text( 'image_alt', $post_id ) ); ?>" fetchpriority="high" decoding="async" />
-				<span class="unit-hero__scrim" aria-hidden="true"></span>
-			<?php endif; ?>
-
 			<div class="site-container unit-hero__inner motion-hero-copy">
-				<?php if ( $is_pre_sale ) : ?>
-					<p class="unit-hero__presale-pill"><?php echo esc_html( contorno_pre_sale_label( $post_id ) ); ?></p>
-				<?php endif; ?>
+				<div class="unit-hero__copy">
+					<nav class="unit-hero__breadcrumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'contorno' ); ?>">
+						<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Início', 'contorno' ); ?></a>
+						<span aria-hidden="true">›</span>
+						<a href="<?php echo esc_url( home_url( '/unidades/' ) ); ?>"><?php esc_html_e( 'Unidades', 'contorno' ); ?></a>
+						<span aria-hidden="true">›</span>
+						<span><?php echo esc_html( (string) get_the_title( $post_id ) ); ?></span>
+					</nav>
 
-				<p class="eyebrow"><?php echo esc_html( trim( contorno_field_text( 'neighborhood', $post_id ) . ' • ' . contorno_field_text( 'city', $post_id ), ' •' ) ); ?></p>
-				<h1 class="unit-hero__title"><?php echo esc_html( (string) get_the_title( $post_id ) ); ?></h1>
+					<p class="eyebrow"><?php echo esc_html( $is_pre_sale ? contorno_pre_sale_label( $post_id ) : __( 'Unidade Premium', 'contorno' ) ); ?></p>
+					<h1 class="unit-hero__title"><?php echo esc_html( (string) get_the_title( $post_id ) ); ?></h1>
 
-				<?php if ( $is_pre_sale ) : ?>
-					<p class="unit-hero__presale-band"><?php echo esc_html( CONTORNO_PRE_SALE_STATUS_LABEL ); ?></p>
-					<?php if ( '' !== $info ) : ?>
+					<?php if ( '' !== $location ) : ?>
+						<p class="unit-hero__location"><?php echo contorno_icon( 'map-pin', 'unit-hero__location-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( $location ); ?></span></p>
+					<?php endif; ?>
+
+					<?php if ( $is_pre_sale && '' !== $info ) : ?>
 						<p class="unit-hero__presale-info"><?php echo esc_html( $info ); ?></p>
 					<?php endif; ?>
-				<?php endif; ?>
 
-				<?php $short = contorno_field_text( 'short_description', $post_id ); ?>
-				<?php if ( '' !== $short ) : ?>
-					<p class="unit-hero__text"><?php echo esc_html( $short ); ?></p>
-				<?php endif; ?>
+					<?php $short = contorno_field_text( 'short_description', $post_id ); ?>
+					<?php if ( '' !== $short ) : ?>
+						<p class="unit-hero__text"><?php echo esc_html( $short ); ?></p>
+					<?php endif; ?>
 
-				<div class="unit-hero__actions motion-hero-actions">
-					<?php echo contorno_button( __( 'Matricule-se', 'contorno' ), contorno_field_text( 'checkout_url', $post_id ), 'primary', array( 'class' => 'unit-page-btn unit-cta-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<?php echo contorno_button( __( 'Falar no WhatsApp', 'contorno' ), $whatsapp, 'ghost', array( 'class' => 'unit-page-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<?php echo contorno_button( __( 'Ver no mapa', 'contorno' ), $maps, 'ghost', array( 'class' => 'unit-page-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php if ( array() !== $features ) : ?>
+						<ul class="unit-hero__features">
+							<?php foreach ( $features as $feature ) : ?>
+								<?php $label = is_array( $feature ) ? (string) ( $feature['label'] ?? '' ) : (string) $feature; ?>
+								<?php if ( '' === trim( $label ) ) : continue; endif; ?>
+								<li><?php echo contorno_icon( contorno_icon_for_label( $label ), 'unit-hero__feature-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( $label ); ?></span></li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
+
+					<div class="unit-hero__actions motion-hero-actions">
+						<?php echo contorno_button( __( 'Matricule-se agora', 'contorno' ), $enroll_url, 'primary', array( 'class' => 'unit-page-btn unit-cta-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php echo contorno_button( __( 'Ver planos e preços', 'contorno' ), '#planos', 'outline', array( 'class' => 'unit-page-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</div>
 				</div>
+
+				<?php if ( '' !== $image ) : ?>
+					<div class="unit-hero__gallery motion-hero-media">
+						<img class="unit-hero__gallery-main" src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( contorno_field_text( 'image_alt', $post_id ) ); ?>" fetchpriority="high" decoding="async" />
+						<?php foreach ( array_slice( $gallery, 0, 3 ) as $gallery_image ) : ?>
+							<img src="<?php echo esc_url( $gallery_image ); ?>" alt="" loading="lazy" decoding="async" />
+						<?php endforeach; ?>
+						<?php if ( count( $gallery ) > 3 ) : ?>
+							<a class="unit-hero__all-photos" href="#galeria"><?php echo esc_html( sprintf( '+%d', count( $gallery ) ) ); ?><span><?php esc_html_e( 'Ver todas as fotos', 'contorno' ); ?></span></a>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
 			</div>
 		</section>
 		<?php
@@ -542,7 +676,7 @@ contorno_add_shortcode(
 		contorno_enqueue_component( 'lightbox' );
 
 		ob_start();
-		echo contorno_section_open( 'gallery', array( 'tone' => (string) $a['tone'], 'class' => 'unit-gallery-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_open( 'gallery', array( 'tone' => (string) $a['tone'], 'id' => 'galeria', 'class' => 'unit-gallery-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<div class="contorno-gallery is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-lightbox data-contorno-reveal>
