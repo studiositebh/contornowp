@@ -3,7 +3,7 @@
  * Plugin Name:       Contorno Core
  * Plugin URI:        https://contornodocorpo.com.br
  * Description:       Infraestrutura funcional da Academia Contorno do Corpo: CPTs Unidade e CTN, campos estruturados, planos, pre-venda, integracao de aulas coletivas (EVO/W12), SEO, shortcodes e elementos personalizados do WPBakery Page Builder. Independe do tema ativo.
- * Version:           0.1.0
+ * Version:           0.1.1
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Conecta Digital
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CONTORNO_CORE_VERSION', '0.1.0' );
+define( 'CONTORNO_CORE_VERSION', '0.1.1' );
 define( 'CONTORNO_CORE_FILE', __FILE__ );
 define( 'CONTORNO_CORE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CONTORNO_CORE_URL', plugin_dir_url( __FILE__ ) );
