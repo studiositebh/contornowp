@@ -28,9 +28,17 @@ while ( have_posts() ) :
 			</header>
 		<?php endif; ?>
 
-		<div class="contorno-page__content">
-			<?php the_content(); ?>
-		</div>
+		<?php if ( is_page( 'fale-conosco' ) ) : ?>
+			<div class="contorno-page__content contorno-contact-page">
+				<div class="contorno-contact-page__grid">
+					<?php the_content(); ?>
+				</div>
+			</div>
+		<?php else : ?>
+			<div class="contorno-page__content">
+				<?php the_content(); ?>
+			</div>
+		<?php endif; ?>
 	</article>
 	<?php
 endwhile;
