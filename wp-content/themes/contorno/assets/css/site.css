@@ -158,6 +158,14 @@ ol {
 	position: relative;
 }
 
+.site-main {
+	padding-top: 4.5rem;
+}
+
+.home .site-main {
+	padding-top: 0;
+}
+
 .eyebrow {
 	font-family: var(--font-sans);
 	text-transform: uppercase;
@@ -291,7 +299,7 @@ ol {
 	top: var(--contorno-admin-offset, 0px);
 	inset-inline: 0;
 	z-index: 50;
-	background-color: transparent;
+	background-color: var(--brand);
 	color: #fff;
 	transition:
 		background-color 320ms var(--motion-ease),
@@ -898,6 +906,20 @@ ol {
 .contorno-page .vc_row:has([class*="contorno-"]) > .wpb_column > .vc_column-inner,
 .contorno-page .vc_row:has([class*="ctn-"]) > .wpb_column > .vc_column-inner {
 	padding-inline: 0;
+}
+
+.contorno-page .vc_row:has(.contorno-contact),
+.contorno-page .vc_row:has(.contorno-channels) {
+	max-width: var(--container-max);
+	margin-inline: auto;
+	padding: var(--space-14) var(--container-px) var(--space-12);
+}
+
+@media (min-width: 1024px) {
+	.contorno-page .vc_row:has(.contorno-contact),
+	.contorno-page .vc_row:has(.contorno-channels) {
+		padding-inline: var(--container-px-lg);
+	}
 }
 
 /* Nunca deixar o conteúdo do builder empurrar a página para os lados. */
