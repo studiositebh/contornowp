@@ -61,6 +61,7 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 
 			<?php if ( $is_pre_sale ) : ?>
 				<span class="unit-card__presale-pill"><?php echo esc_html( contorno_pre_sale_label( $post_id ) ); ?></span>
+				<span class="unit-card__presale-band"><?php echo esc_html( CONTORNO_PRE_SALE_STATUS_LABEL ); ?></span>
 			<?php elseif ( '' !== $badge ) : ?>
 				<span class="unit-card__badge"><?php echo esc_html( $badge ); ?></span>
 			<?php endif; ?>
@@ -77,7 +78,6 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 
 			<?php if ( $is_pre_sale ) : ?>
 				<?php $info = contorno_pre_sale_info_line( $post_id ); ?>
-				<p class="unit-card__presale-band"><?php echo esc_html( CONTORNO_PRE_SALE_STATUS_LABEL ); ?></p>
 				<?php if ( '' !== $info ) : ?>
 					<p class="unit-card__presale-info"><?php echo esc_html( $info ); ?></p>
 				<?php endif; ?>

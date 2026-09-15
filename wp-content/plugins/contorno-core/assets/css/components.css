@@ -254,6 +254,7 @@
 	display: block;
 	aspect-ratio: 16 / 10.5;
 	background: var(--secondary, #f0f5f9);
+	overflow: hidden;
 }
 
 .unit-card__media img {
@@ -349,16 +350,22 @@
 
 /* Faixa PRE-VENDA — some sozinha quando o status volta para "Aberta". */
 .unit-card__presale-band {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
 	margin: 0;
-	padding: 0.4rem 0.7rem;
-	background: var(--brand-pink, #d72364);
+	width: 100%;
+	padding: 0.65rem 1rem;
+	background: linear-gradient(90deg, #018075 0%, #10b8b1 50%, #018075 100%);
 	color: #fff;
-	border-radius: var(--radius-sm, 0.5rem);
-	font-size: 0.72rem;
+	border-radius: 0;
+	font-size: 0.75rem;
 	font-weight: 700;
 	letter-spacing: 0.2em;
 	text-transform: uppercase;
 	text-align: center;
+	z-index: 2;
 }
 
 .unit-card__presale-info {
