@@ -45,8 +45,11 @@ sync_dir "$ROOT/wp-content/plugins/contorno-core" "$target/wp-content/plugins/co
 sync_dir "$ROOT/wp-content/themes/contorno" "$target/wp-content/themes/contorno"
 
 if command -v wp >/dev/null 2>&1 && [[ -f "$target/wp-load.php" ]]; then
+	wp --path="$target" plugin activate contorno-core || true
+	wp --path="$target" theme activate contorno || true
+	wp --path="$target" contorno migrate --force || true
 	wp --path="$target" cache flush || true
 	wp --path="$target" transient delete --all || true
 fi
 
-echo "Deployed Contorno theme and core plugin to $target"
+echo "Deployed Contorno theme, core plugin and dataset migration to $target"

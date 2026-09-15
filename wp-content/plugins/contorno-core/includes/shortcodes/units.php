@@ -170,7 +170,7 @@ contorno_add_shortcode(
 		$has_count         = $is_catalog_mode && 'no' !== $a['show_count'];
 		$has_per_page      = $is_catalog_mode && 'no' !== $a['show_per_page'];
 		$is_paginated_list = $is_catalog_mode && 'no' !== $a['pagination'];
-		$has_dual_cta      = 'yes' === $a['dual_cta'] || ( 'auto' === $a['dual_cta'] && $is_catalog_mode );
+		$has_dual_cta      = 'yes' === $a['dual_cta'] || ( 'auto' === $a['dual_cta'] && ( $is_catalog_mode || is_front_page() ) );
 		$allowed_per_page  = array( 9, 15, 45, 60 );
 		$requested_page    = isset( $_GET['unidades_page'] ) ? absint( wp_unslash( (string) $_GET['unidades_page'] ) ) : absint( (string) get_query_var( 'paged', 1 ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$current_page      = max( 1, $requested_page );
@@ -331,7 +331,7 @@ contorno_add_shortcode(
 						echo wp_kses_post(
 							paginate_links(
 								array(
-									'base'      => str_replace( 999999999, '%#%', esc_url_raw( add_query_arg( 'unidades_page', 999999999, remove_query_arg( 'paged' ) ) ) ),
+									'base'      => str_replace( '999999999', '%#%', esc_url_raw( add_query_arg( 'unidades_page', '999999999', remove_query_arg( 'paged' ) ) ) ),
 									'format'    => '',
 									'current'   => $current_page,
 									'total'     => $total_pages,
@@ -629,8 +629,8 @@ contorno_add_shortcode(
 		$title = '' !== trim( (string) $a['title'] ) ? (string) $a['title'] : __( 'Destaques Contorno', 'contorno' );
 
 		ob_start();
-		echo contorno_section_open( 'unit-highlights', array( 'tone' => (string) $a['tone'], 'class' => 'unit-differentials-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo contorno_section_header( (string) $a['eyebrow'], $title, '', 'center' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_open( 'unit-highlights', array( 'tone' => (string) $a['tone'], 'class' => 'unit-highlights-band' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_header( (string) $a['eyebrow'], $title, '', 'left' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<div class="contorno-highlights is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-reveal>
 			<?php foreach ( $items as $item ) : ?>
@@ -661,7 +661,7 @@ contorno_add_shortcode(
 				'eyebrow' => '',
 				'title'   => '',
 				'text'    => '',
-				'tone'    => 'dark',
+				'tone'    => 'light',
 			),
 			(array) $atts,
 			'contorno_unit_differentials'
@@ -675,8 +675,8 @@ contorno_add_shortcode(
 		}
 
 		ob_start();
-		echo contorno_section_open( 'unit-differentials', array( 'tone' => (string) $a['tone'], 'class' => 'differentials-section differentials-fx' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_open( 'unit-differentials', array( 'tone' => (string) $a['tone'], 'class' => 'unit-results-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], 'center' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<ul class="contorno-differentials motion-stagger" data-contorno-reveal>
 			<?php foreach ( $items as $item ) : ?>
@@ -805,7 +805,7 @@ contorno_add_shortcode(
 
 		ob_start();
 		echo contorno_section_open( 'plans', array( 'tone' => $skin, 'id' => 'planos', 'class' => 'unit-plans-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], 'center' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], 'left' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<div class="contorno-plans is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-reveal>
 			<?php foreach ( $plans as $plan ) : ?>
@@ -925,7 +925,7 @@ contorno_add_shortcode(
 		$hours = CONTORNO_CPT_CTN === get_post_type( $post_id ) ? contorno_ctn_hours( $post_id ) : array();
 
 		ob_start();
-		echo contorno_section_open( 'location', array( 'tone' => (string) $a['tone'], 'id' => 'localizacao', 'class' => 'unit-location-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_open( 'location', array( 'tone' => (string) $a['tone'], 'id' => 'localizacao', 'class' => 'unit-location-section unit-location-model' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<div class="contorno-location">
@@ -960,7 +960,10 @@ contorno_add_shortcode(
 					<?php endif; ?>
 				<?php endif; ?>
 
-				<?php echo contorno_button( __( 'Abrir no Google Maps', 'contorno' ), $maps, 'primary', array( 'external' => true ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<div class="contorno-location__actions">
+					<?php echo contorno_button( __( 'Ver no mapa', 'contorno' ), $maps, 'outline', array( 'external' => true, 'icon' => 'arrow-right' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php echo contorno_button( __( 'Enviar mensagem', 'contorno' ), contorno_whatsapp_link(), 'primary', array( 'external' => true, 'icon' => 'phone' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				</div>
 			</div>
 
 			<?php if ( '' !== $embed ) : ?>
@@ -983,7 +986,7 @@ contorno_add_shortcode(
 );
 
 /**
- * CONTORNO — Video da Unidade.
+ * CONTORNO — Tour em Reels da Unidade.
  */
 contorno_add_shortcode(
 	'contorno_unit_video',
@@ -1002,16 +1005,79 @@ contorno_add_shortcode(
 
 		$post_id = contorno_resolve_context_id( (array) $a );
 		$video   = $post_id ? contorno_field_text( 'video_url', $post_id ) : '';
-		$embed   = '' !== $video ? contorno_youtube_lazy_embed( $video, (string) get_the_title( $post_id ) ) : '';
+		$embed   = '' !== $video ? contorno_youtube_lazy_embed( $video, (string) get_the_title( $post_id ), '9/16' ) : '';
 
 		if ( '' === $embed ) {
 			return '';
 		}
 
+		$title = '' !== trim( (string) $a['title'] ) ? (string) $a['title'] : __( 'A unidade por dentro, no seu ritmo', 'contorno' );
+		$text  = '' !== trim( (string) $a['text'] ) ? (string) $a['text'] : __( 'Um Reels curto para você sentir a estrutura, equipamentos e clima de quem treina aqui. Sem tour guiado. Só o espaço, como ele é.', 'contorno' );
+
 		ob_start();
-		echo contorno_section_open( 'unit-video', array( 'tone' => (string) $a['tone'], 'class' => 'unit-video-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo '<div class="contorno-unit-video unit-reels-player motion-reveal" data-contorno-reveal>' . $embed . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_open( 'unit-video', array( 'tone' => (string) $a['tone'], 'class' => 'unit-reels-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		?>
+		<div class="unit-reels-section__grid">
+			<div class="unit-reels-section__copy motion-reveal" data-contorno-reveal>
+				<?php echo contorno_section_header( (string) $a['eyebrow'], $title, $text ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<a class="unit-reels-section__link" href="#planos"><?php esc_html_e( 'Quero treinar aqui', 'contorno' ); ?> <?php echo contorno_icon( 'arrow-right', 'unit-reels-section__link-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a>
+			</div>
+			<div class="contorno-unit-video unit-reels-player motion-reveal" data-contorno-reveal><?php echo $embed; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+		</div>
+		<?php
+		echo contorno_section_close(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+		return (string) ob_get_clean();
+	}
+);
+
+/**
+ * CONTORNO — App Contorno do Corpo.
+ */
+contorno_add_shortcode(
+	'contorno_unit_app',
+	static function ( array|string $atts ): string {
+		$a = shortcode_atts(
+			array(
+				'eyebrow' => __( 'App Contorno do Corpo', 'contorno' ),
+				'title'   => __( 'Sua academia no seu ritmo', 'contorno' ),
+				'text'    => __( 'O app Contorno do Corpo é o seu aliado para treinar melhor, acompanhar resultados e ficar por dentro de tudo.', 'contorno' ),
+				'tone'    => 'light',
+			),
+			(array) $atts,
+			'contorno_unit_app'
+		);
+
+		$image = contorno_resolve_media( '/brand/app-phones.png', 'contorno-gallery' );
+		ob_start();
+		echo contorno_section_open( 'unit-app', array( 'tone' => (string) $a['tone'], 'class' => 'unit-app-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		?>
+		<div class="unit-app-card motion-reveal" data-contorno-reveal>
+			<?php if ( '' !== $image ) : ?>
+				<figure class="unit-app-card__media"><img src="<?php echo esc_url( $image ); ?>" alt="" loading="lazy" decoding="async" /></figure>
+			<?php endif; ?>
+			<div class="unit-app-card__copy">
+				<?php echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<ul class="unit-app-card__benefits">
+					<li><?php echo contorno_icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php esc_html_e( 'Acesse seus treinos e evolução', 'contorno' ); ?></span></li>
+					<li><?php echo contorno_icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php esc_html_e( 'Horários de aulas em tempo real', 'contorno' ); ?></span></li>
+					<li><?php echo contorno_icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php esc_html_e( 'Check-in rápido nas unidades', 'contorno' ); ?></span></li>
+					<li><?php echo contorno_icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php esc_html_e( 'Desafios, recompensas e muito mais', 'contorno' ); ?></span></li>
+				</ul>
+			</div>
+			<div class="unit-app-card__download">
+				<div class="unit-app-card__qr" aria-hidden="true"></div>
+				<div>
+					<p class="unit-app-card__download-title"><?php esc_html_e( 'Baixe agora!', 'contorno' ); ?></p>
+					<p><?php esc_html_e( 'Escaneie o QR Code e baixe nosso app.', 'contorno' ); ?></p>
+					<div class="unit-app-card__stores">
+						<span>Google Play</span>
+						<span>App Store</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
 		echo contorno_section_close(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		return (string) ob_get_clean();
@@ -1022,10 +1088,9 @@ contorno_add_shortcode(
  * CONTORNO — Aulas Coletivas.
  *
  * COMPONENTE FUNCIONAL. A grade semanal (horarios nas linhas, dias nas
- * colunas, navegacao de semana, Todos/Manha/Tarde/Noite, botao Filtrar,
- * drawer lateral, vaga disponivel, aula experimental, atividade, professor,
- * local, limpar, filtrar resultados) e renderizada pelo widget oficial EVO
- * dentro do iframe. O editor configura apenas titulo, banner e a filial.
+ * A grade vem de uma URL publica (Google Agenda, EVO/W12 ou outro embed)
+ * configurada no cadastro da unidade. O editor configura apenas titulo,
+ * banner e URL/filial.
  *
  * Esta secao deve ser a ULTIMA de conteudo antes do footer.
  */
@@ -1061,7 +1126,7 @@ contorno_add_shortcode(
 
 		$title = '' !== trim( (string) $a['title'] )
 			? (string) $a['title']
-			: contorno_field_text( 'classes_title', $post_id, __( 'Aulas Coletivas - Horários', 'contorno' ) );
+			: contorno_field_text( 'classes_title', $post_id, __( 'Aulas Coletivas – Horários', 'contorno' ) );
 
 		$eyebrow = '' !== trim( (string) $a['eyebrow'] ) ? (string) $a['eyebrow'] : (string) get_the_title( $post_id );
 
@@ -1072,7 +1137,7 @@ contorno_add_shortcode(
 		}
 		$text    = '' !== trim( (string) $a['text'] )
 			? (string) $a['text']
-			: __( 'Grade semanal oficial desta unidade — horários, filtros e aulas vêm do sistema EVO da Contorno do Corpo.', 'contorno' );
+			: __( 'Confira a grade semanal oficial desta unidade.', 'contorno' );
 
 		contorno_enqueue_component( 'lazy-video' );
 
@@ -1112,7 +1177,7 @@ contorno_add_shortcode(
 
 				<p class="unit-collective-classes__footnote">
 					<span class="unit-collective-classes__hint-mobile"><?php esc_html_e( 'Deslize a grade para o lado para ver todos os dias.', 'contorno' ); ?></span>
-					<span class="unit-collective-classes__hint-desktop"><?php esc_html_e( 'Quadro oficial EVO em grade semanal.', 'contorno' ); ?></span>
+					<span class="unit-collective-classes__hint-desktop"><?php esc_html_e( 'Quadro oficial da unidade em grade semanal.', 'contorno' ); ?></span>
 					<a href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener noreferrer">
 						<?php esc_html_e( 'Abrir em nova aba', 'contorno' ); ?>
 						<?php echo contorno_icon( 'external', 'unit-collective-classes__external' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

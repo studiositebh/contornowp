@@ -211,12 +211,12 @@ function contorno_field_schema(): array {
 				),
 			),
 			'aulas' => array(
-				'label'  => __( 'Aulas coletivas (EVO / W12)', 'contorno' ),
-				'help'   => __( 'A grade de horários vem pronta do sistema EVO da Contorno. Aqui você só liga a seção e diz qual é a filial — horário, professor e vaga são administrados no próprio EVO, nunca neste painel.', 'contorno' ),
+				'label'  => __( 'Aulas coletivas - horários', 'contorno' ),
+				'help'   => __( 'Informe a URL pública da agenda da unidade, como Google Agenda ou EVO/W12. Quando a URL estiver preenchida, a seção aparece automaticamente na single da unidade.', 'contorno' ),
 				'fields' => array(
-					'classes_enabled' => array( 'type' => 'checkbox', 'label' => __( 'Exibir grade de aulas coletivas', 'contorno' ) ),
+					'classes_enabled' => array( 'type' => 'checkbox', 'label' => __( 'Exibir grade por ID da filial EVO', 'contorno' ) ),
 					'evo_branch_id'   => array( 'type' => 'text', 'label' => __( 'ID da filial no EVO', 'contorno' ), 'help' => __( 'Se preenchido, a URL da agenda é derivada automaticamente.', 'contorno' ) ),
-					'classes_url'     => array( 'type' => 'url', 'label' => __( 'URL da agenda (sobrepõe o ID)', 'contorno' ) ),
+					'classes_url'     => array( 'type' => 'url', 'label' => __( 'URL da agenda (Google Agenda ou EVO)', 'contorno' ), 'help' => __( 'Cole aqui o link público/embutível da agenda. Este campo tem prioridade sobre o ID da filial.', 'contorno' ) ),
 					'classes_title'   => array( 'type' => 'text', 'label' => __( 'Título da seção', 'contorno' ), 'placeholder' => 'Aulas Coletivas - Horarios' ),
 				),
 			),
@@ -455,12 +455,12 @@ function contorno_field_schema(): array {
 				),
 			),
 			'aulas' => array(
-				'label'  => __( 'Aulas coletivas (EVO / W12)', 'contorno' ),
-				'help'   => __( 'A grade de horários vem pronta do sistema EVO da Contorno. Aqui você só liga a seção e diz qual é a filial — horário, professor e vaga são administrados no próprio EVO, nunca neste painel.', 'contorno' ),
+				'label'  => __( 'Aulas coletivas - horários', 'contorno' ),
+				'help'   => __( 'Informe a URL pública da agenda da unidade, como Google Agenda ou EVO/W12. Quando a URL estiver preenchida, a seção aparece automaticamente na single.', 'contorno' ),
 				'fields' => array(
-					'classes_enabled' => array( 'type' => 'checkbox', 'label' => __( 'Exibir grade de aulas coletivas', 'contorno' ) ),
+					'classes_enabled' => array( 'type' => 'checkbox', 'label' => __( 'Exibir grade por ID da filial EVO', 'contorno' ) ),
 					'evo_branch_id'   => array( 'type' => 'text', 'label' => __( 'ID da filial no EVO', 'contorno' ) ),
-					'classes_url'     => array( 'type' => 'url', 'label' => __( 'URL da agenda', 'contorno' ) ),
+					'classes_url'     => array( 'type' => 'url', 'label' => __( 'URL da agenda (Google Agenda ou EVO)', 'contorno' ) ),
 					'classes_title'   => array( 'type' => 'text', 'label' => __( 'Título da seção', 'contorno' ) ),
 				),
 			),

@@ -87,6 +87,11 @@ contorno_add_shortcode(
 
 		$image = contorno_attr_image( $a['image'], 'contorno-hero' );
 
+		if ( is_front_page() && '' !== trim( (string) $a['cta_label'] ) && '' === trim( (string) $a['cta2_label'] ) ) {
+			$a['cta2_label'] = __( 'Assista ao vídeo', 'contorno' );
+			$a['cta2_url']   = '#video';
+		}
+
 		$title = esc_html( (string) $a['title'] );
 
 		// O trecho destacado recebe a cor da marca sem exigir HTML do editor.
@@ -134,8 +139,8 @@ contorno_add_shortcode(
 
 					<?php
 					// O hero aprovado usa CTA em caixa alta com tracking (.cta-label).
-					$buttons = contorno_button( (string) $a['cta_label'], (string) $a['cta_url'], 'primary', array( 'class' => 'cta-label' ) )
-						. contorno_button( (string) $a['cta2_label'], (string) $a['cta2_url'], 'ghost', array( 'class' => 'cta-label' ) );
+					$buttons = contorno_button( (string) $a['cta_label'], (string) $a['cta_url'], 'primary', array( 'class' => 'cta-label', 'icon' => 'map-pin' ) )
+						. contorno_button( (string) $a['cta2_label'], (string) $a['cta2_url'], 'ghost', array( 'class' => 'cta-label contorno-hero__video-btn', 'icon' => 'play' ) );
 
 					if ( '' !== $buttons ) :
 						?>
@@ -307,6 +312,16 @@ contorno_add_shortcode(
 			(array) $atts,
 			'contorno_cta'
 		);
+
+		if ( is_front_page() ) {
+			return '';
+		}
+
+		$headline_key = strtolower( remove_accents( trim( (string) $a['headline'] ) ) );
+		$request_path = trim( (string) wp_parse_url( (string) ( $_SERVER['REQUEST_URI'] ?? '' ), PHP_URL_PATH ), '/' );
+		if ( ( is_page( 'unidades' ) || 'unidades' === $request_path ) && 'pronto para comecar?' === $headline_key ) {
+			return '';
+		}
 
 		$image = contorno_attr_image( $a['image'], 'contorno-hero' );
 

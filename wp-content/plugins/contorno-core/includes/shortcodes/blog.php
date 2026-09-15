@@ -83,6 +83,7 @@ function contorno_render_post_card( int $post_id ): string {
 				<a class="motion-title-link" href="<?php echo esc_url( (string) get_permalink( $post_id ) ); ?>"><?php echo esc_html( (string) get_the_title( $post_id ) ); ?></a>
 			</h3>
 			<p class="contorno-post-card__excerpt"><?php echo esc_html( wp_strip_all_tags( (string) get_the_excerpt( $post_id ) ) ); ?></p>
+			<a class="contorno-post-card__more" href="<?php echo esc_url( (string) get_permalink( $post_id ) ); ?>"><?php esc_html_e( 'Leia mais', 'contorno' ); ?></a>
 		</div>
 	</article>
 	<?php
@@ -95,7 +96,7 @@ function contorno_render_post_card( int $post_id ): string {
  *
  * @param array<string,string> $card
  */
-function contorno_render_placeholder_card( array $card, int $index ): string {
+function contorno_render_placeholder_card( array $card, int $index, string $url = '' ): string {
 	$image = contorno_resolve_media( $card['image'], 'contorno-card' );
 
 	ob_start();
@@ -113,6 +114,9 @@ function contorno_render_placeholder_card( array $card, int $index ): string {
 			<p class="contorno-post-card__date"><?php echo esc_html( $card['date'] ); ?></p>
 			<h3 class="contorno-post-card__title"><?php echo esc_html( $card['title'] ); ?></h3>
 			<p class="contorno-post-card__excerpt"><?php echo esc_html( $card['excerpt'] ); ?></p>
+			<?php if ( '' !== $url ) : ?>
+				<a class="contorno-post-card__more" href="<?php echo esc_url( $url ); ?>"><?php esc_html_e( 'Leia mais', 'contorno' ); ?></a>
+			<?php endif; ?>
 		</div>
 	</article>
 	<?php
@@ -155,12 +159,17 @@ contorno_add_shortcode(
 
 		$blog_page = get_page_by_path( 'blog' );
 		$blog_url  = $blog_page instanceof WP_Post ? (string) get_permalink( $blog_page ) : home_url( '/blog/' );
+		$title     = (string) $a['title'];
+
+		if ( is_front_page() && 'Novidades da Contorno' === trim( $title ) ) {
+			$title = __( 'Fique por dentro do universo Contorno', 'contorno' );
+		}
 
 		ob_start();
 		echo contorno_section_open( 'blog', array( 'tone' => (string) $a['tone'], 'class' => 'news-section blog-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<div class="contorno-blog-head">
-			<?php echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php echo contorno_section_header( (string) $a['eyebrow'], $title, (string) $a['text'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php
 			echo contorno_button( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				'' !== trim( (string) $a['cta_label'] ) ? (string) $a['cta_label'] : __( 'Ver o blog', 'contorno' ),
@@ -179,7 +188,7 @@ contorno_add_shortcode(
 				}
 			} else {
 				foreach ( array_slice( contorno_blog_placeholder_cards(), 0, $limit ) as $index => $card ) {
-					echo contorno_render_placeholder_card( $card, (int) $index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo contorno_render_placeholder_card( $card, (int) $index, $blog_url ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
 			}
 			?>

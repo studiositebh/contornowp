@@ -9,9 +9,23 @@ declare( strict_types = 1 );
 
 $contorno_whatsapp = function_exists( 'contorno_whatsapp_link' ) ? contorno_whatsapp_link() : '';
 $contorno_brand    = function_exists( 'contorno_brand' ) ? contorno_brand() : array();
+$contorno_phone    = (string) ( $contorno_brand['phone'] ?? '(31) 4042-0177' );
+$contorno_email    = (string) ( $contorno_brand['email'] ?? 'contato@contornodocorpo.com.br' );
+$contorno_cta_bg   = function_exists( 'contorno_asset_url' ) ? contorno_asset_url( '/brand/cta-gym.jpg' ) : '';
 
 ?>
 </main>
+
+<?php if ( is_front_page() ) : ?>
+	<section class="site-footer-cta" <?php echo '' !== $contorno_cta_bg ? 'style="--footer-cta-bg:url(' . esc_url( $contorno_cta_bg ) . ')"' : ''; ?>>
+		<div class="site-container site-footer-cta__inner">
+			<div class="site-footer-cta__copy">
+				<h2><?php esc_html_e( 'O momento de mudar é agora.', 'contorno' ); ?><br /><?php esc_html_e( 'Matricule-se e transforme sua vida!', 'contorno' ); ?></h2>
+			</div>
+			<?php echo contorno_button( __( 'Matricule-se', 'contorno' ), contorno_enrollment_url(), 'primary', array( 'class' => 'cta-label site-footer-cta__button', 'icon' => 'arrow-right' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</div>
+	</section>
+<?php endif; ?>
 
 <footer class="site-footer">
 	<div class="site-container site-footer__top">
@@ -32,8 +46,8 @@ $contorno_brand    = function_exists( 'contorno_brand' ) ? contorno_brand() : ar
 			<?php endif; ?>
 		</div>
 
-		<nav class="site-footer__col" aria-label="<?php esc_attr_e( 'Unidades', 'contorno' ); ?>">
-			<h2 class="site-footer__title"><?php esc_html_e( 'Unidades', 'contorno' ); ?></h2>
+		<nav class="site-footer__col" aria-label="<?php esc_attr_e( 'Links rápidos', 'contorno' ); ?>">
+			<h2 class="site-footer__title"><?php esc_html_e( 'Links rápidos', 'contorno' ); ?></h2>
 			<?php
 			wp_nav_menu(
 				array(
@@ -41,7 +55,20 @@ $contorno_brand    = function_exists( 'contorno_brand' ) ? contorno_brand() : ar
 					'container'      => false,
 					'menu_class'     => 'site-footer__menu',
 					'depth'          => 1,
-					'fallback_cb'    => false,
+					'fallback_cb'    => static function (): void {
+						echo '<ul class="site-footer__menu">';
+						foreach (
+							array(
+								'/unidades/'      => __( 'Unidades', 'contorno' ),
+								'/ctn/'           => __( 'CTN Prime', 'contorno' ),
+								'/planos/'        => __( 'Planos', 'contorno' ),
+								'/matricula/'     => __( 'Matricule-se', 'contorno' ),
+							) as $url => $label
+						) {
+							printf( '<li><a href="%s">%s</a></li>', esc_url( home_url( $url ) ), esc_html( $label ) );
+						}
+						echo '</ul>';
+					},
 				)
 			);
 			?>
@@ -56,20 +83,45 @@ $contorno_brand    = function_exists( 'contorno_brand' ) ? contorno_brand() : ar
 					'container'      => false,
 					'menu_class'     => 'site-footer__menu',
 					'depth'          => 1,
-					'fallback_cb'    => false,
+					'fallback_cb'    => static function (): void {
+						echo '<ul class="site-footer__menu">';
+						foreach (
+							array(
+								'/sobre/'         => __( 'Sobre', 'contorno' ),
+								'/blog/'          => __( 'Blog', 'contorno' ),
+								'/fale-conosco/'  => __( 'Fale Conosco', 'contorno' ),
+								'/politica-de-privacidade/' => __( 'Política de privacidade', 'contorno' ),
+							) as $url => $label
+						) {
+							printf( '<li><a href="%s">%s</a></li>', esc_url( home_url( $url ) ), esc_html( $label ) );
+						}
+						echo '</ul>';
+					},
 				)
 			);
 			?>
 		</nav>
 
 		<div class="site-footer__col">
-			<h2 class="site-footer__title"><?php esc_html_e( 'Contato', 'contorno' ); ?></h2>
-			<ul class="site-footer__menu">
-				<?php if ( ! empty( $contorno_brand['email'] ) ) : ?>
-					<li><a href="mailto:<?php echo esc_attr( (string) $contorno_brand['email'] ); ?>"><?php echo esc_html( (string) $contorno_brand['email'] ); ?></a></li>
+			<h2 class="site-footer__title"><?php esc_html_e( 'Atendimento', 'contorno' ); ?></h2>
+			<ul class="site-footer__contact">
+				<?php if ( '' !== $contorno_phone ) : ?>
+					<li>
+						<?php echo contorno_icon( 'phone', 'site-footer__contact-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<a href="tel:<?php echo esc_attr( preg_replace( '/\D+/', '', $contorno_phone ) ?: $contorno_phone ); ?>"><?php echo esc_html( $contorno_phone ); ?></a>
+					</li>
 				<?php endif; ?>
 				<?php if ( '' !== $contorno_whatsapp ) : ?>
-					<li><a href="<?php echo esc_url( $contorno_whatsapp ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Falar no WhatsApp', 'contorno' ); ?></a></li>
+					<li>
+						<?php echo contorno_icon( 'phone', 'site-footer__contact-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<a href="<?php echo esc_url( $contorno_whatsapp ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Falar no WhatsApp', 'contorno' ); ?></a>
+					</li>
+				<?php endif; ?>
+				<?php if ( '' !== $contorno_email ) : ?>
+					<li>
+						<?php echo contorno_icon( 'external', 'site-footer__contact-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<a href="mailto:<?php echo esc_attr( $contorno_email ); ?>"><?php echo esc_html( $contorno_email ); ?></a>
+					</li>
 				<?php endif; ?>
 			</ul>
 		</div>

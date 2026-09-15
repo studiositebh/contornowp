@@ -24,6 +24,11 @@ while ( have_posts() ) :
 	the_post();
 
 	$contorno_unit_id = (int) get_the_ID();
+	$contorno_unit_enrollment_url = add_query_arg(
+		'unidade',
+		(string) get_post_field( 'post_name', $contorno_unit_id ),
+		contorno_enrollment_url()
+	);
 	?>
 	<div class="unit-page" id="post-<?php the_ID(); ?>">
 		<?php
@@ -35,17 +40,18 @@ while ( have_posts() ) :
 		contorno_component(
 			'contorno_unit_highlights',
 			array(
-				'title'   => __( 'Destaques Contorno', 'contorno' ),
+				'eyebrow' => __( 'Destaques Contorno', 'contorno' ),
 				'columns' => 4,
+				'tone'    => 'dark',
 			)
 		);
 
 		contorno_component(
 			'contorno_unit_differentials',
 			array(
-				'eyebrow' => __( 'Por que a Contorno', 'contorno' ),
-				'title'   => __( 'Diferenciais desta unidade', 'contorno' ),
-				'tone'    => 'dark',
+				'eyebrow' => __( 'Diferenciais da unidade', 'contorno' ),
+				'title'   => __( 'Estrutura completa para seus resultados', 'contorno' ),
+				'tone'    => 'light',
 			)
 		);
 
@@ -54,9 +60,10 @@ while ( have_posts() ) :
 		contorno_component(
 			'contorno_plans',
 			array(
-				'eyebrow'   => __( 'Planos', 'contorno' ),
-				'title'     => __( 'Escolha o seu plano', 'contorno' ),
+				'eyebrow'   => __( 'Planos disponíveis', 'contorno' ),
+				'title'     => __( 'Escolha o plano ideal para você', 'contorno' ),
 				'skin'      => 'light',
+				'columns'   => 4,
 				'cta_label' => __( 'Matricule-se', 'contorno' ),
 				'note'      => __( 'Pagamento seguro pelo sistema oficial da Contorno.', 'contorno' ),
 			)
@@ -66,7 +73,22 @@ while ( have_posts() ) :
 
 		contorno_component(
 			'contorno_unit_video',
-			array( 'title' => __( 'Conheça a unidade', 'contorno' ) )
+			array(
+				'eyebrow' => __( 'Tour em Reels', 'contorno' ),
+				'title'   => __( 'A unidade por dentro, no seu ritmo', 'contorno' ),
+				'tone'    => 'dark',
+			)
+		);
+
+		contorno_component( 'contorno_unit_app' );
+
+		contorno_component(
+			'contorno_location',
+			array(
+				'eyebrow' => __( 'Localização', 'contorno' ),
+				'title'   => __( 'Estamos te esperando', 'contorno' ),
+				'tone'    => 'dark',
+			)
 		);
 
 		contorno_component(
@@ -78,22 +100,16 @@ while ( have_posts() ) :
 			)
 		);
 
-		contorno_component(
-			'contorno_location',
-			array(
-				'eyebrow' => __( 'Onde estamos', 'contorno' ),
-				'title'   => __( 'Localização', 'contorno' ),
-			)
-		);
-
 		contorno_editorial_slot( 'before_footer', $contorno_unit_id );
 
 		contorno_component(
 			'contorno_cta',
 			array(
-				'headline'  => sprintf( /* translators: %s: unit name */ __( 'Comece hoje na %s', 'contorno' ), get_the_title() ),
+				'headline'  => __( 'Pronto para começar?', 'contorno' ),
+				'text'      => __( 'Matricule-se e transforme sua vida!', 'contorno' ),
 				'cta_label' => __( 'Matricule-se', 'contorno' ),
-				'cta_url'   => contorno_enrollment_url(),
+				'cta_url'   => $contorno_unit_enrollment_url,
+				'image'     => '/brand/cta-gym.jpg',
 			)
 		);
 

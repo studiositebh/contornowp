@@ -118,13 +118,13 @@ function contorno_schedule_url( ?int $post_id = null ): string {
 		return '';
 	}
 
-	if ( ! contorno_field( 'classes_enabled', $post_id ) ) {
-		return '';
-	}
-
 	$explicit = contorno_field_text( 'classes_url', $post_id );
 	if ( '' !== $explicit ) {
 		return $explicit;
+	}
+
+	if ( ! contorno_field( 'classes_enabled', $post_id ) ) {
+		return '';
 	}
 
 	$branch = contorno_field_text( 'evo_branch_id', $post_id );
