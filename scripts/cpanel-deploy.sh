@@ -89,31 +89,46 @@ fi
 
 [[ -f "$target/wp-config.php" ]] || die "wp-config.php not found in target. Aborting without creating WordPress."
 [[ -f "$target/wp-load.php" ]] || die "wp-load.php not found in target."
-command -v wp >/dev/null 2>&1 || die "WP-CLI not found in PATH."
 
-wp --path="$target" core is-installed
+PHP_BIN="${CONTORNO_DEPLOY_PHP_BIN:-/opt/cpanel/ea-php83/root/usr/bin/php}"
+[[ -x "$PHP_BIN" ]] || die "PHP binary not found or not executable: $PHP_BIN"
+
+WP_CLI_BIN="$(command -v wp || true)"
+[[ -n "$WP_CLI_BIN" ]] || die "WP-CLI not found in PATH."
+
+wp_cmd() {
+	"$PHP_BIN" "$WP_CLI_BIN" --path="$target" "$@"
+}
+
+php_version="$("$PHP_BIN" -r 'echo PHP_VERSION;' 2>/dev/null || true)"
+[[ -n "$php_version" ]] || die "Unable to read PHP version from: $PHP_BIN"
+
+log "PHP: $php_version"
+log "WP-CLI: $WP_CLI_BIN"
+
+wp_cmd core is-installed
 log "WordPress OK"
 
-wp --path="$target" plugin is-installed contorno-core
+wp_cmd plugin is-installed contorno-core
 log "Contorno Core OK"
 
-if ! wp --path="$target" plugin is-active contorno-core >/dev/null 2>&1; then
-	wp --path="$target" plugin activate contorno-core
+if ! wp_cmd plugin is-active contorno-core >/dev/null 2>&1; then
+	wp_cmd plugin activate contorno-core
 fi
 
-wp --path="$target" theme is-installed contorno
-if [[ "$(wp --path="$target" option get stylesheet)" != "contorno" ]]; then
-	wp --path="$target" theme activate contorno
+wp_cmd theme is-installed contorno
+if [[ "$(wp_cmd option get stylesheet)" != "contorno" ]]; then
+	wp_cmd theme activate contorno
 fi
 
-wp --path="$target" contorno migrate
-wp --path="$target" contorno status
+wp_cmd contorno migrate
+wp_cmd contorno status
 log "Migration OK"
 
-wp --path="$target" rewrite flush
+wp_cmd rewrite flush
 log "Rewrite OK"
 
-if wp --path="$target" cache flush; then
+if wp_cmd cache flush; then
 	log "Cache flushed"
 else
 	log "Cache flush skipped/unsupported"
@@ -121,7 +136,7 @@ fi
 
 command -v curl >/dev/null 2>&1 || die "curl not found in PATH."
 
-base_url="${CONTORNO_DEPLOY_SMOKE_BASE_URL:-$(wp --path="$target" option get home)}"
+base_url="${CONTORNO_DEPLOY_SMOKE_BASE_URL:-$(wp_cmd option get home)}"
 base_url="${base_url%/}"
 smoke_paths=(
 	"/"
