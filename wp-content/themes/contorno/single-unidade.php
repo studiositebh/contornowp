@@ -92,11 +92,13 @@ while ( have_posts() ) :
 		);
 
 		contorno_component(
-			'contorno_gallery',
+			'contorno_blog_preview',
 			array(
-				'eyebrow' => __( 'Estrutura', 'contorno' ),
-				'title'   => __( 'Galeria', 'contorno' ),
-				'columns' => 4,
+				'eyebrow'   => __( 'Blog', 'contorno' ),
+				'title'     => __( 'Fique por dentro', 'contorno' ),
+				'limit'     => 3,
+				'cta_label' => __( 'Ver o blog', 'contorno' ),
+				'tone'      => 'light',
 			)
 		);
 

@@ -443,10 +443,24 @@ contorno_add_shortcode(
 		$enroll_url  = '' !== contorno_field_text( 'checkout_url', $post_id )
 			? contorno_field_text( 'checkout_url', $post_id )
 			: add_query_arg( 'unidade', (string) get_post_field( 'post_name', $post_id ), $enroll_base );
+		$hero_gallery = array_values( array_filter( array_merge( array( $image ), $gallery ) ) );
+
+		if ( array() !== $hero_gallery ) {
+			contorno_enqueue_component( 'lightbox' );
+		}
 
 		ob_start();
 		?>
 		<section class="unit-hero<?php echo $is_pre_sale ? ' is-pre-sale' : ''; ?>">
+			<?php if ( $is_pre_sale ) : ?>
+				<div class="site-container">
+					<div class="unit-hero__presale-bar">
+						<span><?php esc_html_e( 'Nova unidade • Pré-venda', 'contorno' ); ?></span>
+						<strong><?php echo esc_html( CONTORNO_PRE_SALE_STATUS_LABEL ); ?></strong>
+					</div>
+				</div>
+			<?php endif; ?>
+
 			<div class="site-container unit-hero__inner motion-hero-copy">
 				<div class="unit-hero__copy">
 					<nav class="unit-hero__breadcrumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'contorno' ); ?>">
@@ -490,13 +504,38 @@ contorno_add_shortcode(
 				</div>
 
 				<?php if ( '' !== $image ) : ?>
-					<div class="unit-hero__gallery motion-hero-media">
-						<img class="unit-hero__gallery-main" src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( contorno_field_text( 'image_alt', $post_id ) ); ?>" fetchpriority="high" decoding="async" />
+					<div class="unit-hero__gallery motion-hero-media" data-contorno-lightbox>
+						<img
+							class="unit-hero__gallery-main"
+							src="<?php echo esc_url( $image ); ?>"
+							alt="<?php echo esc_attr( contorno_field_text( 'image_alt', $post_id ) ); ?>"
+							fetchpriority="high"
+							decoding="async"
+							data-contorno-lightbox-item
+							data-src="<?php echo esc_url( $image ); ?>"
+							tabindex="0"
+						/>
 						<?php foreach ( array_slice( $gallery, 0, 3 ) as $gallery_image ) : ?>
-							<img src="<?php echo esc_url( $gallery_image ); ?>" alt="" loading="lazy" decoding="async" />
+							<img
+								src="<?php echo esc_url( $gallery_image ); ?>"
+								alt=""
+								loading="lazy"
+								decoding="async"
+								data-contorno-lightbox-item
+								data-src="<?php echo esc_url( $gallery_image ); ?>"
+								tabindex="0"
+							/>
 						<?php endforeach; ?>
 						<?php if ( count( $gallery ) > 3 ) : ?>
-							<a class="unit-hero__all-photos" href="#galeria"><?php echo esc_html( sprintf( '+%d', count( $gallery ) ) ); ?><span><?php esc_html_e( 'Ver todas as fotos', 'contorno' ); ?></span></a>
+							<a
+								class="unit-hero__all-photos"
+								href="<?php echo esc_url( $gallery[3] ); ?>"
+								data-contorno-lightbox-item
+								data-src="<?php echo esc_url( $gallery[3] ); ?>"
+							><?php echo esc_html( sprintf( '+%d', count( $gallery ) ) ); ?><span><?php esc_html_e( 'Ver todas as fotos', 'contorno' ); ?></span></a>
+							<?php foreach ( array_slice( $gallery, 4 ) as $gallery_image ) : ?>
+								<span class="screen-reader-text" data-contorno-lightbox-item data-src="<?php echo esc_url( $gallery_image ); ?>"></span>
+							<?php endforeach; ?>
 						<?php endif; ?>
 					</div>
 				<?php endif; ?>

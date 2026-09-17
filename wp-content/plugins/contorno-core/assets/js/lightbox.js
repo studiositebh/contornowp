@@ -134,7 +134,17 @@
 		});
 
 		items.forEach(function (item, position) {
-			item.addEventListener('click', function () {
+			item.addEventListener('click', function (event) {
+				event.preventDefault();
+				show(list, position, item);
+			});
+
+			item.addEventListener('keydown', function (event) {
+				if (event.key !== 'Enter' && event.key !== ' ') {
+					return;
+				}
+
+				event.preventDefault();
 				show(list, position, item);
 			});
 		});
