@@ -84,6 +84,9 @@ if [[ "$ROOT" == "$target" ]]; then
 else
 	sync_dir "$ROOT/wp-content/plugins/contorno-core" "$target/wp-content/plugins/contorno-core"
 	sync_dir "$ROOT/wp-content/themes/contorno" "$target/wp-content/themes/contorno"
+	if [[ -d "$ROOT/wp-content/plugins/contorno-evo-sync" ]]; then
+		sync_dir "$ROOT/wp-content/plugins/contorno-evo-sync" "$target/wp-content/plugins/contorno-evo-sync"
+	fi
 	log "File sync completed"
 fi
 
@@ -114,6 +117,14 @@ log "Contorno Core OK"
 
 if ! wp_cmd plugin is-active contorno-core >/dev/null 2>&1; then
 	wp_cmd plugin activate contorno-core
+fi
+
+# Contorno EVO Sync (opcional): ativa se estiver instalado; nunca derruba o deploy.
+if wp_cmd plugin is-installed contorno-evo-sync >/dev/null 2>&1; then
+	if ! wp_cmd plugin is-active contorno-evo-sync >/dev/null 2>&1; then
+		wp_cmd plugin activate contorno-evo-sync || log "EVO Sync activation skipped"
+	fi
+	log "EVO Sync OK"
 fi
 
 wp_cmd theme is-installed contorno

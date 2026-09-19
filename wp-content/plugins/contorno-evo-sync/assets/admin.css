@@ -1,0 +1,29 @@
+/* Contorno EVO Sync — estética padrão do wp-admin, sem excesso de cards. */
+.contorno-evo .nav-tab-wrapper { margin-bottom: 12px; }
+.contorno-evo__dash { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 24px; }
+.contorno-evo__card { flex: 1 1 180px; max-width: 260px; padding: 12px 14px; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; }
+.contorno-evo__label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #646970; }
+.contorno-evo__value { display: block; margin-top: 4px; font-size: 15px; }
+.contorno-evo__hint { display: block; margin-top: 2px; font-size: 12px; color: #646970; }
+.contorno-evo__dot { display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 50%; background: #c3c4c7; vertical-align: 1px; }
+.contorno-evo__dot.is-on { background: #00a32a; }
+.contorno-evo__dot.is-warn { background: #dba617; }
+.contorno-evo__dot.is-off { background: #d63638; }
+.contorno-evo__test-result { margin-left: 10px; font-weight: 600; }
+.contorno-evo__test-result.is-ok { color: #00a32a; }
+.contorno-evo__test-result.is-error { color: #d63638; }
+.contorno-evo__actions { display: flex; gap: 8px; align-items: center; }
+.contorno-evo__pre { padding: 10px 12px; background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px; max-width: 520px; }
+.contorno-evo__result { margin: 16px 0 24px; padding: 12px 16px; background: #fff; border: 1px solid #c3c4c7; border-left: 4px solid #2271b1; }
+.contorno-evo__summary { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 8px; padding: 0; list-style: none; }
+.contorno-evo__msg { color: #d63638; }
+.contorno-evo__diffs { margin-top: 10px; }
+.contorno-evo__tag { display: inline-block; padding: 1px 7px; border-radius: 3px; background: #f0f0f1; font-size: 11px; }
+.contorno-evo__tag.is-new { background: #edfaef; color: #00612d; }
+.contorno-evo__tag.is-missing { background: #fcf0f1; color: #8a2424; }
+.contorno-evo__tag.is-suggest { background: #fcf9e8; color: #6b5300; }
+.contorno-evo__units input[type="number"] { width: 90px; }
+.contorno-evo__row-actions { white-space: nowrap; }
+.contorno-evo__link-danger { color: #b32d2e; margin-left: 6px; }
+.contorno-evo__log-error td { background: #fcf0f1; }
+.contorno-evo__log-warning td { background: #fcf9e8; }

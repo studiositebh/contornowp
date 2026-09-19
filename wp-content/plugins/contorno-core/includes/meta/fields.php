@@ -125,8 +125,17 @@ function contorno_field_text( string $name, ?int $post_id = null, string $defaul
  */
 function contorno_field_list( string $name, ?int $post_id = null ): array {
 	$value = contorno_field( $name, $post_id, array() );
+	$list  = is_array( $value ) ? array_values( $value ) : array();
 
-	return is_array( $value ) ? array_values( $value ) : array();
+	/**
+	 * Permite que integracoes (ex.: Contorno EVO Sync) sobreponham dados de
+	 * uma lista na leitura, sem gravar por cima do que o editor cadastrou.
+	 *
+	 * @param array<int,mixed> $list
+	 * @param string           $name
+	 * @param int              $post_id
+	 */
+	return (array) apply_filters( 'contorno_field_list', $list, $name, (int) ( $post_id ?: get_the_ID() ) );
 }
 
 /**
