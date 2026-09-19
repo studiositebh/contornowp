@@ -159,6 +159,9 @@ contorno_add_shortcode(
 				'show_per_page' => 'yes',
 				'pagination'   => 'yes',
 				'dual_cta'     => 'auto',
+				'highlight'    => '',
+				'cta_label'    => '',
+				'cta_url'      => '',
 			),
 			(array) $atts,
 			'contorno_units'
@@ -277,12 +280,39 @@ contorno_add_shortcode(
 			? (string) $a['empty_text']
 			: __( 'Nenhuma unidade encontrada para essa busca.', 'contorno' );
 
+		/*
+		 * Titulo como no React: trecho em destaque na cor da marca e, na Home,
+		 * botao "Ver todas as unidades" alinhado a direita do cabecalho. No
+		 * catalogo (/unidades) o titulo e o H1 da pagina.
+		 */
+		$section_title = esc_html( (string) $a['title'] );
+		if ( '' !== trim( (string) $a['highlight'] ) ) {
+			$needle        = esc_html( (string) $a['highlight'] );
+			$section_title = str_replace( $needle, '<span class="contorno-section-header__highlight">' . $needle . '</span>', $section_title );
+		}
+		$section_title = str_replace( '|', '<br />', $section_title );
+
+		$header_html = contorno_section_header( (string) $a['eyebrow'], $section_title, (string) $a['text'], (string) $a['align'] );
+		if ( $is_catalog_mode ) {
+			$header_html = str_replace( array( '<h2 class="contorno-section-header__title">', '</h2>' ), array( '<h1 class="contorno-section-header__title">', '</h1>' ), $header_html );
+		}
+
 		ob_start();
 		echo contorno_section_open( 'units', array( 'tone' => (string) $a['tone'], 'class' => 'units-section featured-units' . ( $is_catalog_mode ? ' units-section--archive' : '' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], (string) $a['align'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+		if ( '' !== trim( (string) $a['cta_label'] ) && '' !== trim( (string) $a['cta_url'] ) ) {
+			echo '<div class="contorno-section-header-row">' . $header_html . contorno_button( (string) $a['cta_label'], (string) $a['cta_url'], 'outline', array( 'class' => 'cta-label contorno-section-header-row__cta' ) ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		} else {
+			echo $header_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
 		?>
 
 		<div class="contorno-units" data-contorno-units data-empty-text="<?php echo esc_attr( $empty_text ); ?>">
+			<?php /* No catalogo a ordem e a do React: titulo, busca, contador/por pagina, grade. */ ?>
+			<?php if ( $is_catalog_mode && 'yes' === $a['show_search'] ) : ?>
+				<?php echo do_shortcode( '[contorno_units_search target="catalog"]' ); ?>
+			<?php endif; ?>
+
 			<?php if ( $is_catalog_mode && ( $has_count || $has_per_page ) ) : ?>
 				<div class="contorno-units__toolbar">
 					<?php if ( $has_count ) : ?>
@@ -331,8 +361,8 @@ contorno_add_shortcode(
 				</div>
 			<?php endif; ?>
 
-			<?php if ( 'yes' === $a['show_search'] ) : ?>
-				<?php echo do_shortcode( '[contorno_units_search target="' . ( $is_catalog_mode ? 'catalog' : '' ) . '"]' ); ?>
+			<?php if ( ! $is_catalog_mode && 'yes' === $a['show_search'] ) : ?>
+				<?php echo do_shortcode( '[contorno_units_search target=""]' ); ?>
 			<?php endif; ?>
 
 			<?php if ( $geo_failed ) : ?>
@@ -468,7 +498,7 @@ contorno_add_shortcode(
 		ob_start();
 		?>
 		<div class="contorno-unit-search motion-search-wrap" data-contorno-unit-search data-target="<?php echo esc_attr( (string) $a['target'] ); ?>">
-			<?php echo contorno_icon( 'map-pin', 'contorno-unit-search__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php echo contorno_icon( 'search', 'contorno-unit-search__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<input
 				type="search"
 				class="contorno-unit-search__field motion-search-field"

@@ -128,13 +128,18 @@ function contorno_button( string $label, string $url, string $variant = 'primary
 
 	$external = ! empty( $args['external'] ) || ! str_contains( $url, (string) wp_parse_url( home_url(), PHP_URL_HOST ) ) && preg_match( '#^https?://#', $url );
 
+	// Como no React: icone ANTES do rotulo; so a seta (arrow-right) vem depois.
+	$icon     = ! empty( $args['icon'] ) ? contorno_icon( (string) $args['icon'], 'contorno-btn__icon' ) : '';
+	$position = (string) ( $args['icon_position'] ?? ( 'arrow-right' === ( $args['icon'] ?? '' ) ? 'right' : 'left' ) );
+
 	return sprintf(
-		'<a class="%s" href="%s"%s>%s%s</a>',
+		'<a class="%s" href="%s"%s>%s%s%s</a>',
 		esc_attr( $classes ),
 		esc_url( $url ),
 		$external ? ' target="_blank" rel="noopener noreferrer"' : '',
+		'left' === $position ? $icon : '',
 		esc_html( $label ),
-		! empty( $args['icon'] ) ? contorno_icon( (string) $args['icon'], 'contorno-btn__icon' ) : ''
+		'right' === $position ? $icon : ''
 	);
 }
 
@@ -153,7 +158,8 @@ function contorno_section_header( string $eyebrow, string $title, string $text =
 	}
 
 	if ( '' !== $title ) {
-		$html .= '<h2 class="contorno-section-header__title">' . wp_kses_post( $title ) . '</h2>';
+		// "|" = quebra de linha controlada pelo editor (mesma convencao do hero).
+		$html .= '<h2 class="contorno-section-header__title">' . wp_kses_post( str_replace( '|', '<br />', $title ) ) . '</h2>';
 	}
 
 	if ( '' !== $text ) {

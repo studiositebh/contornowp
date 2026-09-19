@@ -34,6 +34,10 @@ function contorno_brand(): array {
 		'whatsapp'      => '3140420177',
 		'email'         => 'contato@contornodocorpo.com.br',
 		'instagram'     => 'https://www.instagram.com/contornodocorpo/',
+		// Canais ainda sem URL aparecem esmaecidos no rodape (como no React).
+		'facebook'      => '',
+		'youtube'       => '',
+		'tiktok'        => '',
 		// Imagem social oficial (400x200) — nao substituir por logo generico.
 		'og_image'      => '/brand/Logocompartilhamento.webp',
 		'og_image_w'    => 400,

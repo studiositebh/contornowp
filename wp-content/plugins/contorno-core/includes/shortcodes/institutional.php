@@ -59,6 +59,54 @@ contorno_add_shortcode(
 	}
 );
 
+/**
+ * CONTORNO — Cabecalho de pagina interna (porte de PageHeader.tsx).
+ *
+ * Fundo branco, breadcrumb, eyebrow, H1 e introducao. E o topo padrao das
+ * paginas internas do React — sem foto de fundo (isso e so o hero da Home).
+ */
+contorno_add_shortcode(
+	'contorno_page_header',
+	static function ( array|string $atts ): string {
+		$a = shortcode_atts(
+			array(
+				'eyebrow' => '',
+				'title'   => '',
+				'intro'   => '',
+				'crumb'   => '',
+			),
+			(array) $atts,
+			'contorno_page_header'
+		);
+
+		$title = '' !== trim( (string) $a['title'] ) ? (string) $a['title'] : (string) get_the_title();
+		$crumb = '' !== trim( (string) $a['crumb'] ) ? (string) $a['crumb'] : $title;
+
+		ob_start();
+		?>
+		<section class="contorno-page-header">
+			<div class="site-container contorno-page-header__inner motion-reveal" data-contorno-reveal>
+				<nav class="contorno-breadcrumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'contorno' ); ?>">
+					<ol>
+						<li><a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'contorno' ); ?></a><span class="contorno-breadcrumbs__sep" aria-hidden="true">&rsaquo;</span></li>
+						<li><span aria-current="page"><?php echo esc_html( $crumb ); ?></span></li>
+					</ol>
+				</nav>
+				<?php if ( '' !== trim( (string) $a['eyebrow'] ) ) : ?>
+					<p class="eyebrow contorno-page-header__eyebrow"><?php echo esc_html( (string) $a['eyebrow'] ); ?></p>
+				<?php endif; ?>
+				<h1 class="contorno-page-header__title"><?php echo esc_html( $title ); ?></h1>
+				<?php if ( '' !== trim( (string) $a['intro'] ) ) : ?>
+					<p class="contorno-page-header__intro"><?php echo esc_html( (string) $a['intro'] ); ?></p>
+				<?php endif; ?>
+			</div>
+		</section>
+		<?php
+
+		return (string) ob_get_clean();
+	}
+);
+
 contorno_add_shortcode(
 	'contorno_hero',
 	static function ( array|string $atts ): string {
@@ -333,13 +381,16 @@ contorno_add_shortcode(
 				<span class="contorno-final-cta__scrim" aria-hidden="true"></span>
 			<?php endif; ?>
 			<div class="site-container contorno-final-cta__inner motion-reveal" data-contorno-reveal>
-				<?php if ( '' !== trim( (string) $a['headline'] ) ) : ?>
-					<h2 class="contorno-final-cta__headline"><?php echo esc_html( (string) $a['headline'] ); ?></h2>
-				<?php endif; ?>
-				<?php if ( '' !== trim( (string) $a['text'] ) ) : ?>
-					<p class="contorno-final-cta__text"><?php echo esc_html( (string) $a['text'] ); ?></p>
-				<?php endif; ?>
-				<?php echo contorno_button( (string) $a['cta_label'], (string) $a['cta_url'], 'primary', array( 'icon' => 'arrow-right' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php /* Como o FinalCta do React: texto a esquerda, botao branco a direita. */ ?>
+				<div class="contorno-final-cta__copy">
+					<?php if ( '' !== trim( (string) $a['headline'] ) ) : ?>
+						<h2 class="contorno-final-cta__headline"><?php echo esc_html( (string) $a['headline'] ); ?></h2>
+					<?php endif; ?>
+					<?php if ( '' !== trim( (string) $a['text'] ) ) : ?>
+						<p class="contorno-final-cta__text"><?php echo esc_html( (string) $a['text'] ); ?></p>
+					<?php endif; ?>
+				</div>
+				<?php echo contorno_button( (string) $a['cta_label'], (string) $a['cta_url'], 'primary', array( 'class' => 'cta-label', 'icon' => 'arrow-right' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 		</section>
 		<?php

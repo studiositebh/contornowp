@@ -136,6 +136,35 @@
 	max-width: 34rem;
 }
 
+/* Catalogo (/unidades) como no React: H1 grande, busca larga logo abaixo. */
+.units-section--archive .contorno-section-header {
+	max-width: 42rem;
+	margin-bottom: var(--space-8, 2rem);
+}
+
+.units-section--archive .contorno-section-header__title {
+	font-size: var(--text-4xl, 2.25rem);
+	font-weight: 600;
+}
+
+@media (min-width: 768px) {
+	.units-section--archive .contorno-section-header__title {
+		font-size: var(--text-5xl, 3rem);
+	}
+}
+
+.units-section--archive .contorno-units .contorno-unit-search {
+	max-width: 48rem;
+	margin-bottom: var(--space-8, 2rem);
+	padding: 0.5rem;
+	border-radius: var(--radius-xl, 1rem);
+	box-shadow: 0 18px 50px -28px rgb(17 17 17 / 0.45);
+}
+
+.units-section--archive .contorno-units__toolbar {
+	margin-bottom: var(--space-8, 2rem);
+}
+
 .contorno-units__grid {
 	display: none;
 	gap: var(--space-6, 1.5rem);
@@ -362,7 +391,16 @@
 
 .unit-card__title {
 	font-size: var(--text-lg, 1.125rem);
+	font-weight: 700;
 	margin: 0;
+}
+
+.unit-card__title a {
+	color: var(--foreground, #000);
+}
+
+.unit-card__title a:hover {
+	color: var(--brand, #10b8b1);
 }
 
 /* Busca por CEP: distancia ate o ponto pesquisado. */

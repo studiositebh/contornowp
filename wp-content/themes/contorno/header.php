@@ -24,7 +24,11 @@ declare( strict_types = 1 );
 <a class="contorno-skip-link screen-reader-text" href="#contorno-main"><?php esc_html_e( 'Ir para o conteúdo', 'contorno' ); ?></a>
 
 <?php if ( contorno_show_site_header() ) : ?>
-	<header class="site-header<?php echo is_front_page() ? ' site-header--overlay' : ''; ?>" data-contorno-header>
+	<?php
+	// Fora da home o header tem a textura de marca (header-bg.png), como no React.
+	$contorno_header_bg = ! is_front_page() && function_exists( 'contorno_asset_url' ) ? contorno_asset_url( '/brand/header-bg.png' ) : '';
+	?>
+	<header class="site-header<?php echo is_front_page() ? ' site-header--overlay' : ''; ?>" data-contorno-header<?php echo '' !== $contorno_header_bg ? ' style="background-image:url(' . esc_url( $contorno_header_bg ) . ')"' : ''; ?>>
 		<div class="site-container site-header__inner">
 			<a class="site-header__brand" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
 				<?php contorno_render_logo( 'light', wp_get_upload_dir()['baseurl'] . '/2026/09/logo-light.png' ); ?>
@@ -47,6 +51,8 @@ declare( strict_types = 1 );
 			</nav>
 
 			<div class="site-header__actions">
+				<?php /* Pino rosa ao lado do CTA — assinatura do header no React. */ ?>
+				<?php echo contorno_icon( 'map-pin', 'site-header__pin' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				<?php echo contorno_button( __( 'Encontre sua unidade', 'contorno' ), get_post_type_archive_link( CONTORNO_CPT_UNIT ) ?: home_url( '/unidades/' ), 'primary', array( 'class' => 'cta-label site-header__cta' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 				<button

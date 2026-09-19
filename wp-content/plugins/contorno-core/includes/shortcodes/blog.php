@@ -175,7 +175,7 @@ contorno_add_shortcode(
 				'' !== trim( (string) $a['cta_label'] ) ? (string) $a['cta_label'] : __( 'Ver o blog', 'contorno' ),
 				$blog_url,
 				'outline',
-				array( 'class' => 'cta-label' )
+				array( 'class' => 'cta-label contorno-section-header-row__cta' )
 			);
 			?>
 		</div>

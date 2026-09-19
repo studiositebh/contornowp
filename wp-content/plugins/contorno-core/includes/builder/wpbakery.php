@@ -231,6 +231,25 @@ add_action(
 		);
 
 		/* ---------------------------------------------------------------
+		 * CONTORNO — Cabecalho de pagina interna
+		 * ------------------------------------------------------------- */
+		vc_map(
+			array(
+				'name'        => __( 'CONTORNO — Cabeçalho de página', 'contorno' ),
+				'base'        => 'contorno_page_header',
+				'category'    => CONTORNO_VC_CATEGORY,
+				'icon'        => 'contorno-vc-icon',
+				'description' => __( 'Topo das páginas internas: breadcrumb, eyebrow, título e introdução, fundo branco (sem foto).', 'contorno' ),
+				'params'      => array(
+					contorno_vc_text( 'eyebrow', __( 'Eyebrow', 'contorno' ), $editorial ),
+					contorno_vc_text( 'title', __( 'Título', 'contorno' ), $editorial, __( 'Vazio = título da página.', 'contorno' ) ),
+					contorno_vc_textarea( 'intro', __( 'Introdução', 'contorno' ), $editorial ),
+					contorno_vc_text( 'crumb', __( 'Rótulo no breadcrumb', 'contorno' ), $editorial, __( 'Vazio = mesmo do título.', 'contorno' ) ),
+				),
+			)
+		);
+
+		/* ---------------------------------------------------------------
 		 * CONTORNO — Hero
 		 * ------------------------------------------------------------- */
 		vc_map(
