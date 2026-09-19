@@ -1776,7 +1776,7 @@
               "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
               "Sem taxa de matrícula"
             ],
-            "checkout_url": "https://docs.google.com/forms/d/e/1FAIpQLScLQMWU5buOhhu0G6Mb8A92z0O1vjdASycLGuNA_BtQ04HLJQ/viewform",
+            "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/22/site/landing-page/checkout/5810/0",
             "badge": "",
             "featured": ""
           },
@@ -2125,7 +2125,7 @@
               "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
               "Sem taxa de matícula"
             ],
-            "checkout_url": "https://docs.google.com/forms/d/e/1FAIpQLSfh0_ZVEFhb1a9wjJdUdv0clXAamGjcEqjJBZXvnja6N1Z3dg/viewform",
+            "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/14/site/landing-page/checkout/5802/0",
             "badge": "",
             "featured": ""
           },
@@ -3191,7 +3191,7 @@
               "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
               "Sem taxa de matrícula"
             ],
-            "checkout_url": "https://docs.google.com/forms/d/e/1FAIpQLSe1fNpcF5Lx65gUepzG_V9n3Jo4KR4swWohkgk43lzU_GB7Nw/viewform",
+            "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/16/site/landing-page/checkout/5804/0",
             "badge": "",
             "featured": ""
           }
@@ -3504,7 +3504,7 @@
               "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
               "Sem taxa de matrícula"
             ],
-            "checkout_url": "https://docs.google.com/forms/d/e/1FAIpQLSfOnaOvnhGWig68-POld8QLoFbO1MiBDg9IKJ9cPiW8w7eZlQ/viewform",
+            "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/20/site/landing-page/checkout/5808/0",
             "badge": "",
             "featured": ""
           },
@@ -5351,7 +5351,7 @@
               "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
               "Sem taxa de adesão"
             ],
-            "checkout_url": "https://forms.gle/LPoyuuMfwcw4zZ1q9",
+            "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/35/site/landing-page/checkout/5822/0",
             "badge": "",
             "featured": ""
           }
@@ -9671,7 +9671,7 @@
           "Funcional"
         ],
         "starting_price": 99.9,
-        "checkout_url": "https://forms.gle/gNc1ap6R1pA9Bf4M6",
+        "checkout_url": "",
         "prescricao_url": "",
         "plans": [],
         "status": "open",
@@ -10191,7 +10191,7 @@
           "Funcional"
         ],
         "starting_price": 99.9,
-        "checkout_url": "https://docs.google.com/forms/d/e/1FAIpQLSebpDAOC6ja0MYm-BW1T4kzUZnGjyaMSjCnt_o7nAqm8wNVRA/viewform",
+        "checkout_url": "",
         "prescricao_url": "",
         "plans": [],
         "status": "open",
