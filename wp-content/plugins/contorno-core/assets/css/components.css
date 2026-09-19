@@ -1057,24 +1057,72 @@
  * Planos
  * ================================================================== */
 
+/*
+ * Ate 1023px: carrossel (trilho com swipe e snapping) — 1 plano por tela no
+ * celular, 2 no tablet. A partir de 1024px: grade com no minimo 3 por linha;
+ * `columns="4"` vira 4 por linha a partir de 1280px. Um plano nunca quebra
+ * para uma segunda linha em desktop.
+ */
+.contorno-plans-carousel {
+	position: relative;
+}
+
 .contorno-plans {
-	display: grid;
-	gap: var(--space-5, 1.25rem);
-	grid-template-columns: 1fr;
+	--contorno-plans-gap: var(--space-5, 1.25rem);
+	display: flex;
+	gap: var(--contorno-plans-gap);
 	align-items: stretch;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x mandatory;
+	scrollbar-width: none;
+	-webkit-overflow-scrolling: touch;
+	/* Espaco para a sombra dos cards nao ser cortada pelo overflow. */
+	padding: 0.5rem 0 1.5rem;
+	margin-bottom: -1.5rem;
+}
+
+.contorno-plans::-webkit-scrollbar {
+	display: none;
+}
+
+.contorno-plans > .contorno-plan {
+	flex: 0 0 100%;
+	scroll-snap-align: start;
+}
+
+.contorno-plans-carousel.is-static .contorno-plans__controls,
+.contorno-plans-carousel.is-static .contorno-plans__dots {
+	display: none;
 }
 
 @media (min-width: 640px) {
+	.contorno-plans > .contorno-plan {
+		flex-basis: calc((100% - var(--contorno-plans-gap)) / 2);
+	}
+}
+
+@media (min-width: 1024px) {
 	.contorno-plans {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		overflow: visible;
+		scroll-snap-type: none;
+		padding: 0;
+		margin-bottom: 0;
+	}
+
+	.contorno-plans > .contorno-plan {
+		flex: initial;
+	}
+
+	.contorno-plans__controls,
+	.contorno-plans__dots {
+		display: none;
 	}
 }
 
 @media (min-width: 1280px) {
-	.contorno-plans.is-columns-3 {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
-
 	.contorno-plans.is-columns-4 {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}

@@ -940,7 +940,16 @@ contorno_add_shortcode(
 		echo contorno_section_open( 'plans', array( 'tone' => $skin, 'id' => 'planos', 'class' => 'unit-plans-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], 'left' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
-		<div class="contorno-plans is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-reveal>
+		<?php
+		/*
+		 * Desktop: grade com no minimo 3 planos por linha (nunca quebra em 2).
+		 * Abaixo de 1024px o mesmo trilho vira carrossel com swipe (2 por tela
+		 * no tablet, 1 no celular) — controles em .contorno-plans__controls.
+		 */
+		contorno_enqueue_component( 'units-carousel' );
+		?>
+		<div class="contorno-plans-carousel" data-contorno-carousel>
+		<div class="contorno-plans is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-reveal data-contorno-carousel-track>
 			<?php foreach ( $plans as $plan ) : ?>
 				<?php
 				if ( ! is_array( $plan ) ) {
@@ -954,7 +963,7 @@ contorno_add_shortcode(
 				$benefits  = isset( $plan['benefits'] ) && is_array( $plan['benefits'] ) ? $plan['benefits'] : array();
 				$featured  = ! empty( $plan['featured'] );
 				?>
-				<article class="contorno-plan motion-item motion-card<?php echo $featured ? ' is-featured' : ''; ?>">
+				<article class="contorno-plan motion-item motion-card<?php echo $featured ? ' is-featured' : ''; ?>" data-contorno-carousel-slide>
 					<?php if ( ! empty( $plan['badge'] ) ) : ?>
 						<span class="contorno-plan__badge"><?php echo esc_html( (string) $plan['badge'] ); ?></span>
 					<?php endif; ?>
@@ -1016,6 +1025,13 @@ contorno_add_shortcode(
 					?>
 				</article>
 			<?php endforeach; ?>
+		</div>
+
+		<div class="contorno-plans__controls contorno-units__controls">
+			<button type="button" class="contorno-units__arrow" data-contorno-carousel-prev aria-label="<?php esc_attr_e( 'Plano anterior', 'contorno' ); ?>">&#8249;</button>
+			<button type="button" class="contorno-units__arrow" data-contorno-carousel-next aria-label="<?php esc_attr_e( 'Próximo plano', 'contorno' ); ?>">&#8250;</button>
+		</div>
+		<div class="contorno-plans__dots contorno-units__dots" role="tablist" aria-label="<?php esc_attr_e( 'Planos', 'contorno' ); ?>" data-contorno-carousel-dots data-dot-class="contorno-units__dot" data-dot-label="<?php esc_attr_e( 'Ir para plano', 'contorno' ); ?>"></div>
 		</div>
 
 		<?php if ( '' !== trim( (string) $a['note'] ) ) : ?>

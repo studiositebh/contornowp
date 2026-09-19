@@ -1,9 +1,13 @@
 /**
- * Carrossel mobile de unidades — UMA unidade por vez.
+ * Carrossel mobile — unidades (UMA por vez) e planos (1 ou 2 por tela).
  *
  * O swipe e o snapping sao nativos (scroll-snap no CSS). Este script cuida
  * das setas, dos indicadores e da sincronia com o filtro de busca: slides
  * escondidos pelo filtro saem da contagem de indicadores.
+ *
+ * Slides: [data-contorno-carousel-slide] ou .contorno-units__slide (legado).
+ * Quando o trilho nao rola (desktop em grade, poucos itens), o root recebe
+ * .is-static e o CSS esconde os controles.
  */
 (function () {
 	'use strict';
@@ -23,9 +27,12 @@
 			return;
 		}
 
+		var dotClass = (dotsWrap && dotsWrap.dataset.dotClass) || 'contorno-units__dot';
+		var dotLabel = (dotsWrap && dotsWrap.dataset.dotLabel) || 'Ir para unidade';
+
 		function visibleSlides() {
 			return Array.prototype.filter.call(
-				track.querySelectorAll('.contorno-units__slide'),
+				track.querySelectorAll('[data-contorno-carousel-slide], .contorno-units__slide'),
 				function (slide) {
 					return !slide.hidden;
 				}
@@ -78,10 +85,10 @@
 			slides.forEach(function (slide, index) {
 				var dot = document.createElement('button');
 				dot.type = 'button';
-				dot.className = 'contorno-units__dot' + (index === active ? ' is-active' : '');
+				dot.className = dotClass + (index === active ? ' is-active' : '');
 				dot.setAttribute('role', 'tab');
 				dot.setAttribute('aria-selected', index === active ? 'true' : 'false');
-				dot.setAttribute('aria-label', 'Ir para unidade ' + (index + 1));
+				dot.setAttribute('aria-label', dotLabel + ' ' + (index + 1));
 				dot.addEventListener('click', function () {
 					scrollToIndex(index);
 				});
@@ -102,6 +109,7 @@
 		}
 
 		function sync() {
+			root.classList.toggle('is-static', track.scrollWidth <= track.clientWidth + 1);
 			renderDots();
 			syncArrows();
 		}
