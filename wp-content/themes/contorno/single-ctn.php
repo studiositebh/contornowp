@@ -30,14 +30,28 @@ while ( have_posts() ) :
 
 		contorno_editorial_slot( 'after_hero', $contorno_ctn_id );
 
-		contorno_component( 'ctn_puv' );
+		/*
+		 * Ordem e textos do CTNPage.tsx: PUV (tagline + subtitulo do hero) com os
+		 * numeros, "Sobre" (texto + video vertical), galeria, marcas, video,
+		 * CTA central, localizacao, planos e CTA final.
+		 */
+		contorno_component(
+			'ctn_puv',
+			array(
+				'eyebrow' => __( 'Centro de Treinamento Contorno', 'contorno' ),
+				'title'   => contorno_field_text( 'tagline', $contorno_ctn_id, CONTORNO_CTN_TAGLINE ),
+				'text'    => contorno_field_text( 'hero_subtitle', $contorno_ctn_id ),
+			)
+		);
 		contorno_component( 'ctn_about' );
 
 		contorno_component(
 			'contorno_gallery',
 			array(
 				'eyebrow' => __( 'Estrutura', 'contorno' ),
-				'title'   => __( 'Galeria', 'contorno' ),
+				'title'   => __( 'Estrutura e equipamentos de ponta', 'contorno' ),
+				'text'    => contorno_field_text( 'structure_subtitle', $contorno_ctn_id ),
+				'align'   => 'center',
 				'columns' => 4,
 				'tone'    => 'ctn',
 			)
@@ -71,6 +85,7 @@ while ( have_posts() ) :
 				),
 				'cta_url'   => '#planos',
 				'tone'      => 'ctn',
+				'align'     => 'center',
 			)
 		);
 
@@ -78,7 +93,7 @@ while ( have_posts() ) :
 			'contorno_location',
 			array(
 				'eyebrow' => __( 'Onde estamos', 'contorno' ),
-				'title'   => __( 'Localização', 'contorno' ),
+				'title'   => __( 'Onde estamos', 'contorno' ),
 				'tone'    => 'ctn',
 			)
 		);
@@ -89,7 +104,9 @@ while ( have_posts() ) :
 			'contorno_plans',
 			array(
 				'eyebrow'   => __( 'Planos', 'contorno' ),
-				'title'     => __( 'Escolha o seu plano', 'contorno' ),
+				'title'     => __( 'Escolha como você quer treinar', 'contorno' ),
+				'text'      => sprintf( /* translators: %s: CTN name */ __( 'Planos da %s com benefícios e condições específicas desta unidade.', 'contorno' ), get_the_title() ),
+				'align'     => 'center',
 				'skin'      => 'dark',
 				'cta_label' => __( 'Assinar plano', 'contorno' ),
 				'note'      => __( 'Pagamento seguro pelo sistema oficial da Contorno.', 'contorno' ),
@@ -101,11 +118,13 @@ while ( have_posts() ) :
 		contorno_component(
 			'contorno_cta',
 			array(
+				'eyebrow'   => get_the_title(),
 				'headline'  => contorno_field_text( 'final_cta_headline', $contorno_ctn_id, CONTORNO_CTN_TAGLINE ),
-				'cta_label' => __( 'Quero treinar aqui', 'contorno' ),
+				'cta_label' => __( 'Matricule-se agora', 'contorno' ),
 				'cta_url'   => '#planos',
 				'image'     => contorno_field_text( 'final_cta_image', $contorno_ctn_id ),
 				'tone'      => 'ctn',
+				'align'     => 'center',
 			)
 		);
 

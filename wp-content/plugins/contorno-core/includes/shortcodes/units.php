@@ -874,6 +874,7 @@ contorno_add_shortcode(
 				'columns' => '4',
 				'tone'    => 'light',
 				'field'   => 'gallery',
+				'align'   => 'left',
 			),
 			(array) $atts,
 			'contorno_gallery'
@@ -894,7 +895,7 @@ contorno_add_shortcode(
 
 		ob_start();
 		echo contorno_section_open( 'gallery', array( 'tone' => (string) $a['tone'], 'id' => 'galeria', 'class' => 'unit-gallery-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], (string) $a['align'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<div class="contorno-gallery is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-lightbox data-contorno-reveal>
 			<?php foreach ( $images as $index => $src ) : ?>
@@ -944,6 +945,7 @@ contorno_add_shortcode(
 				'columns'   => '3',
 				'note'      => '',
 				'cta_label' => '',
+				'align'     => 'left',
 			),
 			(array) $atts,
 			'contorno_plans'
@@ -968,7 +970,7 @@ contorno_add_shortcode(
 
 		ob_start();
 		echo contorno_section_open( 'plans', array( 'tone' => $skin, 'id' => 'planos', 'class' => 'unit-plans-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], 'left' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], (string) $a['align'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<?php
 		/*

@@ -356,6 +356,8 @@ contorno_add_shortcode(
 				'cta_url'   => '',
 				'image'     => '',
 				'tone'      => 'dark',
+				'eyebrow'   => '',
+				'align'     => 'left',
 			),
 			(array) $atts,
 			'contorno_cta'
@@ -375,7 +377,7 @@ contorno_add_shortcode(
 
 		ob_start();
 		?>
-		<section class="contorno-final-cta is-tone-<?php echo esc_attr( sanitize_html_class( (string) $a['tone'] ) ); ?>">
+		<section class="contorno-final-cta is-tone-<?php echo esc_attr( sanitize_html_class( (string) $a['tone'] ) ); ?> is-align-<?php echo esc_attr( sanitize_html_class( (string) $a['align'] ) ); ?>">
 			<?php if ( '' !== $image ) : ?>
 				<img class="contorno-final-cta__media" src="<?php echo esc_url( $image ); ?>" alt="" loading="lazy" decoding="async" />
 				<span class="contorno-final-cta__scrim" aria-hidden="true"></span>
@@ -383,6 +385,9 @@ contorno_add_shortcode(
 			<div class="site-container contorno-final-cta__inner motion-reveal" data-contorno-reveal>
 				<?php /* Como o FinalCta do React: texto a esquerda, botao branco a direita. */ ?>
 				<div class="contorno-final-cta__copy">
+					<?php if ( '' !== trim( (string) $a['eyebrow'] ) ) : ?>
+						<p class="eyebrow contorno-final-cta__eyebrow"><?php echo esc_html( (string) $a['eyebrow'] ); ?></p>
+					<?php endif; ?>
 					<?php if ( '' !== trim( (string) $a['headline'] ) ) : ?>
 						<h2 class="contorno-final-cta__headline"><?php echo esc_html( (string) $a['headline'] ); ?></h2>
 					<?php endif; ?>

@@ -1204,6 +1204,35 @@ ol {
 	min-width: 0;
 }
 
+/* Variante centralizada (CTNMidCTA / CTNFinalCTA): eyebrow, titulo e botao empilhados. */
+.contorno-final-cta.is-align-center .contorno-final-cta__inner {
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	gap: var(--space-8);
+}
+
+.contorno-final-cta.is-align-center .contorno-final-cta__headline,
+.contorno-final-cta.is-align-center .contorno-final-cta__text {
+	margin-inline: auto;
+}
+
+.contorno-final-cta.is-align-center .contorno-final-cta__headline {
+	font-size: var(--text-3xl);
+}
+
+@media (min-width: 768px) {
+	.contorno-final-cta.is-align-center .contorno-final-cta__headline {
+		font-size: var(--text-5xl);
+	}
+}
+
+.contorno-final-cta__eyebrow {
+	margin-bottom: 1rem;
+	letter-spacing: 0.22em;
+	font-size: 11px;
+}
+
 .contorno-final-cta__scrim {
 	position: absolute;
 	inset: 0;

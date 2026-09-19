@@ -427,6 +427,29 @@
 
 /* ---- Marcas ---- */
 
+.ctn-brands__head {
+	margin-bottom: var(--space-10);
+}
+
+.ctn-brands__title {
+	font-size: var(--text-2xl);
+	text-transform: uppercase;
+}
+
+@media (min-width: 768px) {
+	.ctn-brands__title {
+		font-size: var(--text-4xl);
+	}
+}
+
+.ctn-brands__subtitle {
+	margin: 0.75rem 0 0;
+	font-size: var(--text-sm);
+	text-transform: uppercase;
+	letter-spacing: 0.18em;
+	color: rgb(255 255 255 / 0.55);
+}
+
 .ctn-brands__grid {
 	display: grid;
 	gap: var(--space-8);
@@ -521,27 +544,86 @@
 	}
 }
 
+/* Box "VER MAIS" como CTNFeaturedVideo.tsx: gradiente escuro, borda turquesa, link no rodape. */
 .ctn-videos__more {
+	position: relative;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
-	gap: var(--space-3);
+	min-height: 260px;
+	gap: var(--space-2);
 	padding: var(--space-6);
-	border: 1px solid var(--dark-border);
+	border: 1px solid rgb(16 184 177 / 0.4);
 	border-radius: var(--radius-2xl);
-	background: var(--dark-surface);
-	text-align: center;
+	background: linear-gradient(180deg, #0d2a28 0%, #0a0a0a 100%);
+	color: #fff;
+	text-align: left;
+	overflow: hidden;
+	transition: border-color 300ms var(--motion-ease), transform 300ms var(--motion-ease);
+}
+
+.ctn-videos__more:hover {
+	border-color: var(--brand);
+	color: #fff;
+	transform: translateY(-2px);
+}
+
+.ctn-videos__more::after {
+	content: "";
+	position: absolute;
+	top: -2rem;
+	right: -2rem;
+	width: 8rem;
+	height: 8rem;
+	border-radius: 999px;
+	background: rgb(16 184 177 / 0.15);
+	filter: blur(24px);
+	pointer-events: none;
+}
+
+.ctn-videos__more-eyebrow {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.2em;
+	color: var(--brand);
 }
 
 .ctn-videos__more h3 {
-	margin: 0;
-	font-size: var(--text-xl);
+	margin: 0.25rem 0 0;
+	font-size: var(--text-2xl);
+	font-weight: 700;
+	color: #fff;
 }
 
 .ctn-videos__more p {
 	margin: 0;
 	font-size: var(--text-sm);
-	color: rgb(255 255 255 / 0.7);
+	line-height: 1.6;
+	color: rgb(255 255 255 / 0.65);
+}
+
+.ctn-videos__more-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-top: auto;
+	padding-top: var(--space-6);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+	color: var(--brand);
+}
+
+.ctn-videos__more-icon {
+	width: 1rem;
+	height: 1rem;
+	transition: transform 300ms var(--motion-ease);
+}
+
+.ctn-videos__more:hover .ctn-videos__more-icon {
+	transform: translateX(4px);
 }
 
 /* ---- Hub: cards de CTN ---- */

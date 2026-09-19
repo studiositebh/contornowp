@@ -538,11 +538,18 @@ contorno_add_shortcode(
 			return '';
 		}
 
+		// Como CTNBrands.tsx: titulo em caixa alta e legenda espaçada abaixo.
+		$brands_title = '' !== trim( (string) $a['title'] ) ? (string) $a['title'] : __( 'TECNOLOGIA DE NÍVEL MUNDIAL', 'contorno' );
+		$brands_text  = '' !== trim( (string) $a['text'] ) ? (string) $a['text'] : __( 'Equipamentos de nível mundial', 'contorno' );
+
 		ob_start();
 		?>
 		<section class="ctn-brands">
 			<div class="site-container">
-				<?php echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], 'center' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<header class="contorno-section-header contorno-section-header--center ctn-brands__head">
+					<h2 class="contorno-section-header__title ctn-brands__title"><?php echo esc_html( $brands_title ); ?></h2>
+					<p class="ctn-brands__subtitle"><?php echo esc_html( $brands_text ); ?></p>
+				</header>
 				<div class="ctn-brands__grid motion-stagger" data-contorno-reveal>
 					<?php foreach ( $brands as $brand ) : ?>
 						<?php
@@ -671,27 +678,31 @@ contorno_add_shortcode(
 		$video_title = contorno_field_text( 'featured_video_title', $post_id, (string) get_the_title( $post_id ) );
 		$playlist    = '' !== trim( (string) $a['playlist_url'] ) ? (string) $a['playlist_url'] : contorno_ctn_playlist_url( $post_id );
 
-		$more_title = '' !== trim( (string) $a['more_title'] ) ? (string) $a['more_title'] : __( 'Ver mais', 'contorno' );
-		$more_label = '' !== trim( (string) $a['more_label'] ) ? (string) $a['more_label'] : __( 'Abrir playlist', 'contorno' );
+		$more_title = '' !== trim( (string) $a['more_title'] ) ? (string) $a['more_title'] : __( 'VER MAIS', 'contorno' );
+		$more_text  = '' !== trim( (string) $a['more_text'] ) ? (string) $a['more_text'] : __( 'Confira outros conteúdos da CTN.', 'contorno' );
+		$more_label = '' !== trim( (string) $a['more_label'] ) ? (string) $a['more_label'] : __( 'Ver playlist', 'contorno' );
+
+		// Cabecalho como CTNFeaturedVideo.tsx: eyebrow "Vídeos" + titulo do video em destaque.
+		$eyebrow = '' !== trim( (string) $a['eyebrow'] ) ? (string) $a['eyebrow'] : __( 'Vídeos', 'contorno' );
+		$title   = '' !== trim( (string) $a['title'] ) ? (string) $a['title'] : $video_title;
 
 		ob_start();
 		?>
 		<section class="ctn-videos" id="videos">
 			<div class="site-container">
-				<?php echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], 'center' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo contorno_section_header( $eyebrow, $title, (string) $a['text'], 'center' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 				<div class="ctn-videos__grid motion-reveal" data-contorno-reveal>
 					<div class="ctn-videos__featured">
 						<?php echo contorno_youtube_lazy_embed( $video, $video_title ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					</div>
 
-					<aside class="ctn-videos__more">
+					<a class="ctn-videos__more" href="<?php echo esc_url( $playlist ); ?>" target="_blank" rel="noopener noreferrer">
+						<p class="ctn-videos__more-eyebrow"><?php esc_html_e( '+ Vídeos', 'contorno' ); ?></p>
 						<h3><?php echo esc_html( $more_title ); ?></h3>
-						<?php if ( '' !== trim( (string) $a['more_text'] ) ) : ?>
-							<p><?php echo esc_html( (string) $a['more_text'] ); ?></p>
-						<?php endif; ?>
-						<?php echo contorno_button( $more_label, $playlist, 'primary', array( 'icon' => 'arrow-right', 'external' => true, 'class' => 'ctn-prime-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</aside>
+						<p><?php echo esc_html( $more_text ); ?></p>
+						<span class="ctn-videos__more-link"><?php echo esc_html( $more_label ); ?> <?php echo contorno_icon( 'arrow-right', 'ctn-videos__more-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+					</a>
 				</div>
 			</div>
 		</section>
