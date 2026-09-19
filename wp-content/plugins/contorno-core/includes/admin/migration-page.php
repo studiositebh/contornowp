@@ -45,7 +45,17 @@ function contorno_render_migration_page(): void {
 		$report    = $migration->run();
 	}
 
-	$dataset = Contorno_Migration::read_dataset();
+	// Limpeza: unidades no banco que nao estao no dataset (importacoes antigas
+	// com outro slug, exemplos do React). Vao para a lixeira — recuperavel.
+	$cleanup_done = null;
+
+	if ( isset( $_POST['contorno_cleanup'] ) ) {
+		check_admin_referer( 'contorno_cleanup' );
+		$cleanup_done = contorno_trash_units_outside_dataset();
+	}
+
+	$dataset  = Contorno_Migration::read_dataset();
+	$orphans  = contorno_units_outside_dataset();
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'Contorno — Migração do conteúdo', 'contorno' ); ?></h1>
@@ -176,10 +186,84 @@ function contorno_render_migration_page(): void {
 			?></pre>
 		<?php endif; ?>
 
+		<h2><?php esc_html_e( 'Unidades fora do dataset', 'contorno' ); ?></h2>
+		<p>
+			<?php esc_html_e( 'Unidades que existem no banco mas não no dataset (importações antigas com outro slug ou exemplos do site React). Vão para a lixeira — dá para restaurar.', 'contorno' ); ?>
+		</p>
+
+		<?php if ( null !== $cleanup_done ) : ?>
+			<div class="notice notice-success"><p><?php echo esc_html( sprintf( /* translators: %d: count */ __( '%d unidade(s) movida(s) para a lixeira.', 'contorno' ), $cleanup_done ) ); ?></p></div>
+		<?php endif; ?>
+
+		<?php if ( array() === $orphans ) : ?>
+			<p><em><?php esc_html_e( 'Nenhuma — o banco está alinhado com o dataset.', 'contorno' ); ?></em></p>
+		<?php else : ?>
+			<table class="widefat striped" style="max-width:760px">
+				<thead><tr><th><?php esc_html_e( 'Título', 'contorno' ); ?></th><th><?php esc_html_e( 'Slug', 'contorno' ); ?></th><th><?php esc_html_e( 'Status', 'contorno' ); ?></th></tr></thead>
+				<tbody>
+					<?php foreach ( $orphans as $orphan ) : ?>
+						<tr>
+							<td><a href="<?php echo esc_url( (string) get_edit_post_link( $orphan->ID ) ); ?>"><?php echo esc_html( (string) get_the_title( $orphan ) ); ?></a></td>
+							<td><code><?php echo esc_html( (string) $orphan->post_name ); ?></code></td>
+							<td><?php echo esc_html( (string) $orphan->post_status ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<form method="post" style="margin-top:12px">
+				<?php wp_nonce_field( 'contorno_cleanup' ); ?>
+				<button type="submit" name="contorno_cleanup" value="1" class="button button-secondary" onclick="return confirm('<?php echo esc_js( __( 'Mover essas unidades para a lixeira?', 'contorno' ) ); ?>');">
+					<?php echo esc_html( sprintf( /* translators: %d: count */ __( 'Mover %d unidade(s) para a lixeira', 'contorno' ), count( $orphans ) ) ); ?>
+				</button>
+			</form>
+		<?php endif; ?>
+
 		<h2><?php esc_html_e( 'Pela linha de comando', 'contorno' ); ?></h2>
 		<pre style="padding:12px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:6px">wp contorno status
 wp contorno migrate --dry-run
 wp contorno migrate</pre>
 	</div>
 	<?php
+}
+
+/**
+ * Unidades publicadas/rascunho cujo slug nao esta no dataset.
+ *
+ * @return WP_Post[]
+ */
+function contorno_units_outside_dataset(): array {
+	$dataset = Contorno_Migration::read_dataset();
+
+	if ( null === $dataset ) {
+		return array();
+	}
+
+	$slugs = array();
+	foreach ( (array) ( $dataset['units'] ?? array() ) as $entity ) {
+		$slugs[ sanitize_title( (string) ( $entity['slug'] ?? '' ) ) ] = true;
+	}
+
+	$units = get_posts(
+		array(
+			'post_type'      => CONTORNO_CPT_UNIT,
+			'post_status'    => array( 'publish', 'draft', 'pending', 'private', 'future' ),
+			'posts_per_page' => -1,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		)
+	);
+
+	return array_values( array_filter( $units, static fn ( WP_Post $unit ): bool => ! isset( $slugs[ (string) $unit->post_name ] ) ) );
+}
+
+function contorno_trash_units_outside_dataset(): int {
+	$count = 0;
+
+	foreach ( contorno_units_outside_dataset() as $unit ) {
+		if ( wp_trash_post( $unit->ID ) ) {
+			++$count;
+		}
+	}
+
+	return $count;
 }

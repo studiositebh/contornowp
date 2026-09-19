@@ -10274,61 +10274,46 @@
       }
     },
     {
-      "slug": "vila-olimpia",
-      "title": "Contorno do Corpo Vila Olímpia",
-      "excerpt": "Academia completa com mais de 2.500m², equipamentos de última geração e aulas para todos os objetivos.",
-      "menuOrder": 70,
+      "slug": "shopping-boulevard",
+      "title": "Shopping Boulevard",
+      "excerpt": "Estrutura completa para treinar com conforto e consistência.",
+      "menuOrder": 0,
       "terms": {
-        "city": "São Paulo",
+        "city": "Santa Efigênia, Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
-        "short_name": "Vila Olímpia",
+        "short_name": "Shopping Boulevard",
         "kind": "standard",
-        "badge": "MAIS PROCURADA",
-        "featured": "1",
-        "short_description": "Academia completa com mais de 2.500m², equipamentos de última geração e aulas para todos os objetivos.",
-        "city": "São Paulo",
-        "state": "SP",
-        "neighborhood": "Vila Olímpia",
-        "address": "Vila Olímpia – São Paulo, SP",
-        "postal_code": "04551-010",
+        "badge": "",
+        "featured": "",
+        "short_description": "Estrutura completa para treinar com conforto e consistência.",
+        "city": "Santa Efigênia, Belo Horizonte",
+        "state": "MG",
+        "neighborhood": "Av. dos Andradas, 3000",
+        "address": "Av. dos Andradas, 3000 - Santa Efigênia, Belo Horizonte - MG, Brasil",
+        "postal_code": "30110-014",
         "phone": "3140420177",
         "whatsapp": "3140420177",
-        "hours": "Consulte o horário na unidade",
-        "maps_query": "Vila Olímpia – São Paulo, SP",
-        "latitude": "-23.5940375",
-        "longitude": "-46.6842299",
-        "image": "/units/vila-olimpia.jpg",
-        "image_alt": "Fachada da academia Contorno do Corpo — Contorno do Corpo Vila Olímpia",
-        "gallery": [
-          "/units/vila-olimpia.jpg",
-          "/units/gallery/musculacao.jpg",
-          "/units/gallery/cardio.jpg",
-          "/units/gallery/aulas.jpg",
-          "/units/gallery/vestiario.jpg",
-          "/units/gallery/funcional.jpg",
-          "/units/gallery/spinning.jpg",
-          "/units/gallery/pilates.jpg",
-          "/units/gallery/recepcao.jpg",
-          "/brand/cta-gym.jpg",
-          "/brand/hero-home.jpg"
-        ],
+        "hours": "Segunda a sexta, 05h30 às 22h\nSábados e feriados, 08h ás 14h\nDomingos, 09h às 13h",
+        "maps_query": "Av. dos Andradas, 3000 - Santa Efigênia, Belo Horizonte - MG, Brasil",
+        "latitude": "-19.9206961",
+        "longitude": "-43.9202377",
+        "image": "",
+        "image_alt": "",
+        "gallery": [],
         "video_url": "",
         "differentials": [
-          "Equipamentos de musculação e cardio",
-          "Estrutura climatizada",
-          "Aulas coletivas",
-          "Atendimento humanizado"
+          "Ducha aquecida",
+          "Equipamentos modernos",
+          "Professores formados",
+          "Televisões de LED"
         ],
         "facilities": [
-          "Estrutura",
-          "Equipamentos",
-          "Aulas",
-          "Treino funcional",
-          "Vestiários",
-          "Estacionamento",
-          "Equipe"
+          "Ducha aquecida",
+          "Equipamentos modernos",
+          "Professores formados",
+          "Televisões de LED"
         ],
         "modalities": [
           "Musculação",
@@ -10336,512 +10321,92 @@
           "Aulas coletivas",
           "Funcional"
         ],
-        "starting_price": 129.9,
-        "checkout_url": "",
+        "starting_price": 9.9,
+        "checkout_url": "https://unidades.contornodocorpo.com.br/shopping-boulevard/",
         "prescricao_url": "",
         "plans": [
           {
-            "id": "basico",
-            "name": "Básico",
-            "description": "Acesso completo à academia e musculação",
-            "price": 99.9,
-            "price_label": "",
+            "id": "black",
+            "name": "Black",
+            "description": "",
+            "price": 9.9,
+            "price_label": "De R$179,90/mêsPor R$9,90*\n *no 1º mês, depois R$ 179,90 \n 12 meses de fidelidade",
             "benefits": [
-              "Musculação",
-              "Aparelhos de cardio",
-              "Vestiários",
-              "Avaliação física"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          },
-          {
-            "id": "top",
-            "name": "Top",
-            "description": "Mais benefícios para seu treino",
-            "price": 129.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Básico",
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
               "Aulas coletivas",
-              "Treino funcional",
-              "Wi-Fi grátis"
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Espaço Contorno Cycling",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
             ],
-            "checkout_url": "",
+            "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/21/site/landing-page/checkout/5809/0",
             "badge": "",
-            "featured": ""
+            "featured": "1"
           },
           {
             "id": "premium",
             "name": "Premium",
-            "description": "Experiência completa sem limites",
-            "price": 159.9,
-            "price_label": "",
+            "description": "",
+            "price": 219.9,
+            "price_label": "R$ 219,90 /mês4 meses de fidelidade",
             "benefits": [
-              "Todos do plano Top",
-              "Estacionamento",
-              "Toalha liberada",
-              "App Contorno do Corpo"
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Espaço Contorno Cycling",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
             ],
-            "checkout_url": "",
-            "badge": "Mais escolhido",
-            "featured": "1"
+            "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/21/site/landing-page/checkout/486/0",
+            "badge": "",
+            "featured": ""
           },
           {
-            "id": "black",
-            "name": "Black",
-            "description": "O melhor da Contorno para você",
-            "price": 199.9,
-            "price_label": "",
+            "id": "fit",
+            "name": "Fit",
+            "description": "",
+            "price": 49.9,
+            "price_label": "R$ 279,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "Todos do plano Premium",
-              "Personal incluso",
-              "Check-up anual",
-              "Priority Support"
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Espaço Contorno Cycling",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
             ],
-            "checkout_url": "",
+            "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/21/site/landing-page/checkout/5697/0",
             "badge": "",
             "featured": ""
           }
         ],
         "status": "open",
-        "classes_enabled": "",
-        "evo_branch_id": "",
-        "classes_url": "",
-        "classes_title": "",
-        "erp_id": "",
-        "sync_source": "manual",
-        "editorial_position": "none"
-      }
-    },
-    {
-      "slug": "campinas",
-      "title": "Contorno do Corpo Campinas",
-      "excerpt": "Estrutura premium, estúdio de aulas coletivas e estacionamento amplo.",
-      "menuOrder": 71,
-      "terms": {
-        "city": "Campinas",
-        "kind": "standard"
-      },
-      "fields": {
-        "short_name": "Campinas",
-        "kind": "standard",
-        "badge": "",
-        "featured": "1",
-        "short_description": "Estrutura premium, estúdio de aulas coletivas e estacionamento amplo.",
-        "city": "Campinas",
-        "state": "SP",
-        "neighborhood": "Cambuí",
-        "address": "Cambuí – Campinas, SP",
-        "postal_code": "13024-001",
-        "phone": "3140420177",
-        "whatsapp": "3140420177",
-        "hours": "Consulte o horário na unidade",
-        "maps_query": "Cambuí – Campinas, SP",
-        "latitude": "-22.8922220",
-        "longitude": "-47.0497220",
-        "image": "/units/campinas.jpg",
-        "image_alt": "Fachada da academia Contorno do Corpo — Contorno do Corpo Campinas",
-        "gallery": [
-          "/units/campinas.jpg",
-          "/units/gallery/musculacao.jpg",
-          "/units/gallery/cardio.jpg",
-          "/units/gallery/aulas.jpg",
-          "/units/gallery/vestiario.jpg",
-          "/units/gallery/funcional.jpg",
-          "/units/gallery/spinning.jpg",
-          "/units/gallery/pilates.jpg",
-          "/units/gallery/recepcao.jpg",
-          "/brand/cta-gym.jpg",
-          "/brand/hero-home.jpg"
-        ],
-        "video_url": "",
-        "differentials": [
-          "Equipamentos de musculação e cardio",
-          "Estrutura climatizada",
-          "Aulas coletivas",
-          "Atendimento humanizado"
-        ],
-        "facilities": [
-          "Estrutura",
-          "Equipamentos",
-          "Aulas",
-          "Treino funcional",
-          "Vestiários",
-          "Estacionamento",
-          "Equipe"
-        ],
-        "modalities": [
-          "Musculação",
-          "Cardio",
-          "Aulas coletivas",
-          "Funcional"
-        ],
-        "starting_price": 119.9,
-        "checkout_url": "",
-        "prescricao_url": "",
-        "plans": [
-          {
-            "id": "basico",
-            "name": "Básico",
-            "description": "Acesso completo à academia e musculação",
-            "price": 99.9,
-            "price_label": "",
-            "benefits": [
-              "Musculação",
-              "Aparelhos de cardio",
-              "Vestiários",
-              "Avaliação física"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          },
-          {
-            "id": "top",
-            "name": "Top",
-            "description": "Mais benefícios para seu treino",
-            "price": 129.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Básico",
-              "Aulas coletivas",
-              "Treino funcional",
-              "Wi-Fi grátis"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          },
-          {
-            "id": "premium",
-            "name": "Premium",
-            "description": "Experiência completa sem limites",
-            "price": 159.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Top",
-              "Estacionamento",
-              "Toalha liberada",
-              "App Contorno do Corpo"
-            ],
-            "checkout_url": "",
-            "badge": "Mais escolhido",
-            "featured": "1"
-          },
-          {
-            "id": "black",
-            "name": "Black",
-            "description": "O melhor da Contorno para você",
-            "price": 199.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Premium",
-              "Personal incluso",
-              "Check-up anual",
-              "Priority Support"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          }
-        ],
-        "status": "pre_sale",
-        "classes_enabled": "",
-        "evo_branch_id": "",
-        "classes_url": "",
-        "classes_title": "",
-        "erp_id": "",
-        "sync_source": "manual",
-        "editorial_position": "none",
         "presale_label": "",
         "presale_opening_label": "",
         "presale_opening_date": "",
-        "presale_promo_text": ""
-      }
-    },
-    {
-      "slug": "santos",
-      "title": "Contorno do Corpo Santos",
-      "excerpt": "Treine com vista para o mar e uma experiência única de bem-estar.",
-      "menuOrder": 72,
-      "terms": {
-        "city": "Santos",
-        "kind": "standard"
-      },
-      "fields": {
-        "short_name": "Santos",
-        "kind": "standard",
-        "badge": "",
-        "featured": "1",
-        "short_description": "Treine com vista para o mar e uma experiência única de bem-estar.",
-        "city": "Santos",
-        "state": "SP",
-        "neighborhood": "Gonzaga",
-        "address": "Gonzaga – Santos, SP",
-        "postal_code": "",
-        "phone": "3140420177",
-        "whatsapp": "3140420177",
-        "hours": "Consulte o horário na unidade",
-        "maps_query": "Gonzaga – Santos, SP",
-        "latitude": "-23.9638508",
-        "longitude": "-46.3330447",
-        "image": "/units/santos.jpg",
-        "image_alt": "Fachada da academia Contorno do Corpo — Contorno do Corpo Santos",
-        "gallery": [
-          "/units/santos.jpg",
-          "/units/gallery/musculacao.jpg",
-          "/units/gallery/cardio.jpg",
-          "/units/gallery/aulas.jpg",
-          "/units/gallery/vestiario.jpg",
-          "/units/gallery/funcional.jpg",
-          "/units/gallery/spinning.jpg",
-          "/units/gallery/pilates.jpg",
-          "/units/gallery/recepcao.jpg",
-          "/brand/cta-gym.jpg",
-          "/brand/hero-home.jpg"
-        ],
-        "video_url": "",
-        "differentials": [
-          "Equipamentos de musculação e cardio",
-          "Estrutura climatizada",
-          "Aulas coletivas",
-          "Atendimento humanizado"
-        ],
-        "facilities": [
-          "Estrutura",
-          "Equipamentos",
-          "Aulas",
-          "Treino funcional",
-          "Vestiários",
-          "Estacionamento",
-          "Equipe"
-        ],
-        "modalities": [
-          "Musculação",
-          "Cardio",
-          "Aulas coletivas",
-          "Funcional"
-        ],
-        "starting_price": 109.9,
-        "checkout_url": "",
-        "prescricao_url": "",
-        "plans": [
-          {
-            "id": "basico",
-            "name": "Básico",
-            "description": "Acesso completo à academia e musculação",
-            "price": 99.9,
-            "price_label": "",
-            "benefits": [
-              "Musculação",
-              "Aparelhos de cardio",
-              "Vestiários",
-              "Avaliação física"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          },
-          {
-            "id": "top",
-            "name": "Top",
-            "description": "Mais benefícios para seu treino",
-            "price": 129.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Básico",
-              "Aulas coletivas",
-              "Treino funcional",
-              "Wi-Fi grátis"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          },
-          {
-            "id": "premium",
-            "name": "Premium",
-            "description": "Experiência completa sem limites",
-            "price": 159.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Top",
-              "Estacionamento",
-              "Toalha liberada",
-              "App Contorno do Corpo"
-            ],
-            "checkout_url": "",
-            "badge": "Mais escolhido",
-            "featured": "1"
-          },
-          {
-            "id": "black",
-            "name": "Black",
-            "description": "O melhor da Contorno para você",
-            "price": 199.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Premium",
-              "Personal incluso",
-              "Check-up anual",
-              "Priority Support"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          }
-        ],
-        "status": "open",
+        "presale_promo_text": "",
         "classes_enabled": "",
         "evo_branch_id": "",
         "classes_url": "",
-        "classes_title": "",
+        "classes_title": "Aulas Coletivas - Horários",
         "erp_id": "",
         "sync_source": "manual",
-        "editorial_position": "none"
-      }
-    },
-    {
-      "slug": "sorocaba",
-      "title": "Contorno do Corpo Sorocaba",
-      "excerpt": "Espaços modernos, atendimento exclusivo e ambiente motivador.",
-      "menuOrder": 73,
-      "terms": {
-        "city": "Sorocaba",
-        "kind": "standard"
-      },
-      "fields": {
-        "short_name": "Sorocaba",
-        "kind": "standard",
-        "badge": "",
-        "featured": "1",
-        "short_description": "Espaços modernos, atendimento exclusivo e ambiente motivador.",
-        "city": "Sorocaba",
-        "state": "SP",
-        "neighborhood": "Parque Campolim",
-        "address": "Parque Campolim – Sorocaba, SP",
-        "postal_code": "",
-        "phone": "3140420177",
-        "whatsapp": "3140420177",
-        "hours": "Consulte o horário na unidade",
-        "maps_query": "Parque Campolim – Sorocaba, SP",
-        "latitude": "-23.5325766",
-        "longitude": "-47.4687387",
-        "image": "/units/sorocaba.jpg",
-        "image_alt": "Fachada da academia Contorno do Corpo — Contorno do Corpo Sorocaba",
-        "gallery": [
-          "/units/sorocaba.jpg",
-          "/units/gallery/musculacao.jpg",
-          "/units/gallery/cardio.jpg",
-          "/units/gallery/aulas.jpg",
-          "/units/gallery/vestiario.jpg",
-          "/units/gallery/funcional.jpg",
-          "/units/gallery/spinning.jpg",
-          "/units/gallery/pilates.jpg",
-          "/units/gallery/recepcao.jpg",
-          "/brand/cta-gym.jpg",
-          "/brand/hero-home.jpg"
-        ],
-        "video_url": "",
-        "differentials": [
-          "Equipamentos de musculação e cardio",
-          "Estrutura climatizada",
-          "Aulas coletivas",
-          "Atendimento humanizado"
-        ],
-        "facilities": [
-          "Estrutura",
-          "Equipamentos",
-          "Aulas",
-          "Treino funcional",
-          "Vestiários",
-          "Estacionamento",
-          "Equipe"
-        ],
-        "modalities": [
-          "Musculação",
-          "Cardio",
-          "Aulas coletivas",
-          "Funcional"
-        ],
-        "starting_price": 99.9,
-        "checkout_url": "",
-        "prescricao_url": "",
-        "plans": [
-          {
-            "id": "basico",
-            "name": "Básico",
-            "description": "Acesso completo à academia e musculação",
-            "price": 99.9,
-            "price_label": "",
-            "benefits": [
-              "Musculação",
-              "Aparelhos de cardio",
-              "Vestiários",
-              "Avaliação física"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          },
-          {
-            "id": "top",
-            "name": "Top",
-            "description": "Mais benefícios para seu treino",
-            "price": 129.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Básico",
-              "Aulas coletivas",
-              "Treino funcional",
-              "Wi-Fi grátis"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          },
-          {
-            "id": "premium",
-            "name": "Premium",
-            "description": "Experiência completa sem limites",
-            "price": 159.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Top",
-              "Estacionamento",
-              "Toalha liberada",
-              "App Contorno do Corpo"
-            ],
-            "checkout_url": "",
-            "badge": "Mais escolhido",
-            "featured": "1"
-          },
-          {
-            "id": "black",
-            "name": "Black",
-            "description": "O melhor da Contorno para você",
-            "price": 199.9,
-            "price_label": "",
-            "benefits": [
-              "Todos do plano Premium",
-              "Personal incluso",
-              "Check-up anual",
-              "Priority Support"
-            ],
-            "checkout_url": "",
-            "badge": "",
-            "featured": ""
-          }
-        ],
-        "status": "open",
-        "classes_enabled": "",
-        "evo_branch_id": "",
-        "classes_url": "",
-        "classes_title": "",
-        "erp_id": "",
-        "sync_source": "manual",
+        "ctn_slug": "",
         "editorial_position": "none"
       }
     }
