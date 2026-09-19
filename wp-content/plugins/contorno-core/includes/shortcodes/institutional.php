@@ -432,12 +432,18 @@ contorno_add_shortcode(
 		echo contorno_section_open( 'highlights', array( 'tone' => (string) $a['tone'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], (string) $a['align'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
+		<?php
+		// Sem icone escolhido, na Home segue a sequencia do DifferentialsSection do React.
+		$home_icons = array( 'dumbbell', 'landmark', 'smartphone', 'activity', 'armchair', 'users' );
+		?>
 		<div class="contorno-highlights is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-reveal>
-			<?php foreach ( $items as $item ) : ?>
+			<?php foreach ( array_values( $items ) as $index => $item ) : ?>
 				<?php
 				$label = (string) ( $item['label'] ?? '' );
 				$icon  = (string) ( $item['icon'] ?? '' );
-				$icon  = '' !== $icon ? $icon : contorno_icon_for_label( $label );
+				if ( '' === $icon ) {
+					$icon = is_front_page() && isset( $home_icons[ $index ] ) ? $home_icons[ $index ] : contorno_icon_for_label( $label );
+				}
 				?>
 				<article class="unit-highlight-card motion-item">
 					<span class="unit-highlight-card__icon-wrap"><?php echo contorno_icon( $icon, 'unit-highlight-card__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
