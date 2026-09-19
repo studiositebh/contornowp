@@ -97,3 +97,69 @@ register_deactivation_hook(
 		flush_rewrite_rules();
 	}
 );
+
+/**
+ * Auto-migracao do dataset.
+ *
+ * O deploy do cPanel publica os arquivos pelo git, mas o passo
+ * `wp contorno migrate` nem sempre completa no servidor. Para o conteudo de
+ * data/dataset.json (unidades, CTNs, paginas, menus) nao depender de um
+ * clique no painel, o plugin observa a "assinatura" do arquivo (tamanho +
+ * data) e, quando ela muda, agenda UMA importacao via WP-Cron. Paginas
+ * editadas no painel continuam preservadas (sem --force).
+ */
+define( 'CONTORNO_AUTO_MIGRATE_HOOK', 'contorno_auto_migrate' );
+
+function contorno_dataset_signature(): string {
+	$path = CONTORNO_CORE_DIR . 'data/dataset.json';
+
+	if ( ! is_readable( $path ) ) {
+		return '';
+	}
+
+	return CONTORNO_CORE_VERSION . ':' . (string) filesize( $path ) . ':' . (string) filemtime( $path );
+}
+
+add_action(
+	'init',
+	static function (): void {
+		if ( wp_doing_cron() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+			return;
+		}
+
+		$signature = contorno_dataset_signature();
+
+		if ( '' === $signature || $signature === (string) get_option( 'contorno_auto_migrate_signature', '' ) ) {
+			return;
+		}
+
+		if ( ! wp_next_scheduled( CONTORNO_AUTO_MIGRATE_HOOK ) ) {
+			wp_schedule_single_event( time(), CONTORNO_AUTO_MIGRATE_HOOK );
+		}
+	},
+	99
+);
+
+add_action(
+	CONTORNO_AUTO_MIGRATE_HOOK,
+	static function (): void {
+		$signature = contorno_dataset_signature();
+
+		if ( '' === $signature || $signature === (string) get_option( 'contorno_auto_migrate_signature', '' ) ) {
+			return;
+		}
+
+		require_once CONTORNO_CORE_DIR . 'includes/migration/importer.php';
+
+		// Sem "assets"/"thumbs": esses passos sao pesados e nao mudam com o conteudo.
+		$migration = new Contorno_Migration( false, false );
+		$report    = $migration->run( array( 'units', 'ctns', 'pages', 'menus' ) );
+
+		update_option( 'contorno_auto_migrate_signature', $signature, false );
+		update_option( 'contorno_auto_migrate_last_report', implode( "\n", array_merge( $report->lines, $report->warnings ) ), false );
+
+		if ( function_exists( 'contorno_geocode_missing_units' ) ) {
+			contorno_geocode_missing_units();
+		}
+	}
+);

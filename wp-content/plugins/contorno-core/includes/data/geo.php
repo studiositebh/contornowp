@@ -336,3 +336,43 @@ function contorno_geo_cep_label( string $neighborhood, string $city, string $sta
 
 	return '' !== $neighborhood ? $neighborhood . ', ' . $place : $place;
 }
+
+/**
+ * Preenche lat/lng das unidades que ainda nao tem coordenadas (ate $limit
+ * por chamada, respeitando 1 req/s do Nominatim). Usado pela auto-migracao.
+ *
+ * @return int Quantas unidades foram geocodificadas.
+ */
+function contorno_geocode_missing_units( int $limit = 20 ): int {
+	$done = 0;
+
+	foreach ( contorno_get_units( array( 'post_status' => 'any' ) ) as $unit ) {
+		if ( $done >= $limit ) {
+			break;
+		}
+
+		if ( null !== contorno_unit_coords( $unit->ID ) ) {
+			continue;
+		}
+
+		$address = contorno_field_text( 'address', $unit->ID );
+		$city    = contorno_field_text( 'city', $unit->ID );
+
+		if ( '' === $address && '' === $city ) {
+			continue;
+		}
+
+		$hit = contorno_geocode_address( $address, $city, contorno_field_text( 'state', $unit->ID ) );
+		sleep( 1 );
+
+		if ( null === $hit ) {
+			continue;
+		}
+
+		contorno_update_field( $unit->ID, 'latitude', (string) $hit['lat'] );
+		contorno_update_field( $unit->ID, 'longitude', (string) $hit['lng'] );
+		++$done;
+	}
+
+	return $done;
+}
