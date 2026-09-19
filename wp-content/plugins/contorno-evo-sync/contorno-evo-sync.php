@@ -37,7 +37,7 @@ define( 'CONTORNO_EVO_CRON_HOOK', 'contorno_evo_sync_cron' );
  * importador do dataset sobrescreve os campos do registro a cada migracao e
  * esses dados precisam sobreviver a isso.
  */
-define( 'CONTORNO_EVO_META_BRANCH', '_contorno_evo_branch_id' );
+define( 'CONTORNO_EVO_META_BRANCH', '_contorno_evo_sync_branch' ); // != _contorno_evo_branch_id (campo do core, sobrescrito pelo importador)
 define( 'CONTORNO_EVO_META_MEMBERSHIPS', '_contorno_evo_memberships' );
 define( 'CONTORNO_EVO_META_SNAPSHOT', '_contorno_evo_snapshot' );
 define( 'CONTORNO_EVO_META_LINKS', '_contorno_evo_links' );
