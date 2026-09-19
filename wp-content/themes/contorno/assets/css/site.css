@@ -1746,6 +1746,18 @@ ol {
 	color: rgb(255 255 255 / 0.7);
 }
 
+.site-footer__ctn-logo {
+	display: block;
+	width: 150px;
+	height: auto;
+}
+
+@media (min-width: 640px) {
+	.site-footer__ctn-logo {
+		width: 170px;
+	}
+}
+
 .site-footer__social {
 	flex-direction: row !important;
 	align-items: center;

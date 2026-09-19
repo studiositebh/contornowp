@@ -119,7 +119,7 @@
         "title": "Aplicativo | Contorno do Corpo",
         "description": "App Contorno do Corpo: sua academia no seu ritmo."
       },
-      "content": "[vc_row][vc_column][contorno_puv eyebrow=\"App Contorno do Corpo\" title=\"Sua academia no seu ritmo\" text=\"O app Contorno do Corpo é o seu aliado para treinar melhor, acompanhar resultados e ficar por dentro de tudo.\" bullets=\"Treinos e fichas na palma da mão\nHorários das aulas coletivas\nAcompanhamento de resultados\nNovidades da sua unidade\" image=\"/brand/app-phones.png\" image_alt=\"App Contorno do Corpo\" layout=\"image-right\"][/vc_column][/vc_row][vc_row][vc_column][contorno_cta headline=\"Baixe agora e comece hoje.\" cta_label=\"Encontre sua unidade\" cta_url=\"/unidades/\" image=\"/brand/cta-gym.jpg\"][/vc_column][/vc_row]"
+      "content": "[vc_row][vc_column][contorno_app][/vc_column][/vc_row]"
     },
     {
       "slug": "clube-contorno",

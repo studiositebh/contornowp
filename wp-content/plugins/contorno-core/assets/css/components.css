@@ -2853,11 +2853,48 @@
 	color: var(--brand, #10b8b1);
 }
 
+/* Botao "Enviar" como no React: pilula compacta, sem caixa alta. */
 .contorno-contact__submit {
+	width: auto;
+	align-self: flex-start;
+	margin-top: var(--space-2, 0.5rem);
+	padding-inline: 1.5rem;
+	border-radius: var(--radius-full, 999px);
+	font-size: var(--text-sm, 0.875rem);
+	text-transform: none;
+	letter-spacing: 0;
+}
+
+.contorno-channels__title {
+	font-size: var(--text-4xl, 2.25rem);
+	font-weight: 600;
+}
+
+@media (min-width: 768px) {
+	.contorno-channels__title {
+		font-size: var(--text-5xl, 3rem);
+	}
+}
+
+.contorno-contact__fields {
+	display: grid;
+	gap: var(--space-5, 1.25rem);
+}
+
+.contorno-contact__fields select {
 	width: 100%;
+	min-height: 2.75rem;
+	padding: 0 0.75rem;
+	border: 1px solid var(--border, #e6e8ea);
+	border-radius: var(--radius-md, 0.65rem);
+	background: #fff;
+	font: inherit;
+	font-size: var(--text-sm, 0.875rem);
+	color: var(--foreground, #000);
 }
 
 .contorno-contact__privacy {
+	display: none;
 	margin: 0;
 	font-size: var(--text-xs, 0.75rem);
 	line-height: 1.6;

@@ -116,7 +116,8 @@ contorno_add_shortcode(
 					<p class="contorno-field-error" data-error-for="name" hidden></p>
 				</div>
 
-				<div class="contorno-contact__row">
+				<?php /* Campos empilhados, um por linha, como no ContactPageForm do React. */ ?>
+				<div class="contorno-contact__fields">
 					<div class="contorno-field-row">
 						<label for="contorno-contact-email"><?php esc_html_e( 'E-mail', 'contorno' ); ?></label>
 						<input
@@ -131,10 +132,7 @@ contorno_add_shortcode(
 					</div>
 
 					<div class="contorno-field-row">
-						<label for="contorno-contact-phone">
-							<?php esc_html_e( 'Telefone', 'contorno' ); ?>
-							<span class="contorno-field-optional"><?php esc_html_e( '(opcional)', 'contorno' ); ?></span>
-						</label>
+						<label for="contorno-contact-phone"><?php esc_html_e( 'Telefone', 'contorno' ); ?></label>
 						<input
 							type="tel"
 							id="contorno-contact-phone"
@@ -146,6 +144,18 @@ contorno_add_shortcode(
 						/>
 						<p class="contorno-field-error" data-error-for="phone" hidden></p>
 					</div>
+
+					<?php if ( ! $unit instanceof WP_Post ) : ?>
+						<div class="contorno-field-row">
+							<label for="contorno-contact-unit"><?php esc_html_e( 'Unidade', 'contorno' ); ?></label>
+							<select id="contorno-contact-unit" name="unidade">
+								<option value=""><?php esc_html_e( 'Selecione', 'contorno' ); ?></option>
+								<?php foreach ( contorno_get_units() as $contact_unit ) : ?>
+									<option value="<?php echo esc_attr( (string) $contact_unit->post_name ); ?>" <?php selected( $unit_slug, (string) $contact_unit->post_name ); ?>><?php echo esc_html( (string) get_the_title( $contact_unit ) ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</div>
+					<?php endif; ?>
 				</div>
 
 				<div class="contorno-field-row">
@@ -162,8 +172,8 @@ contorno_add_shortcode(
 
 				<p class="contorno-field-error" data-error-for="form" hidden></p>
 
-				<button type="submit" class="contorno-btn contorno-btn--primary cta-label contorno-contact__submit">
-					<?php echo esc_html( '' !== trim( (string) $a['cta_label'] ) ? (string) $a['cta_label'] : __( 'Enviar mensagem', 'contorno' ) ); ?>
+				<button type="submit" class="contorno-btn contorno-btn--primary contorno-contact__submit">
+					<?php echo esc_html( '' !== trim( (string) $a['cta_label'] ) ? (string) $a['cta_label'] : __( 'Enviar', 'contorno' ) ); ?>
 				</button>
 
 				<p class="contorno-contact__privacy">
@@ -198,9 +208,11 @@ contorno_add_shortcode(
 	static function ( array|string $atts ): string {
 		$a = shortcode_atts(
 			array(
-				'eyebrow' => '',
-				'title'   => '',
-				'text'    => '',
+				'eyebrow'       => '',
+				'title'         => '',
+				'text'          => '',
+				// O React mostra so eyebrow + H1 + texto; a lista de canais e opcional.
+				'show_channels' => 'no',
 			),
 			(array) $atts,
 			'contorno_contact_channels'
@@ -224,9 +236,9 @@ contorno_add_shortcode(
 		ob_start();
 		?>
 		<div class="contorno-channels motion-reveal" data-contorno-reveal>
-			<?php echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php echo str_replace( array( '<h2 class="contorno-section-header__title">', '</h2>' ), array( '<h1 class="contorno-section-header__title contorno-channels__title">', '</h1>' ), contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
-			<ul class="contorno-channels__list">
+			<ul class="contorno-channels__list" <?php echo 'yes' === $a['show_channels'] ? '' : 'hidden'; ?>>
 				<?php if ( '' !== $display ) : ?>
 					<li>
 						<?php echo contorno_icon( 'phone', 'contorno-channels__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

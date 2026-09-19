@@ -152,17 +152,17 @@ contorno_add_shortcode(
 			? contorno_decode_param_group( (string) $a['benefits'] )
 			: array(
 				array(
-					'icon'  => 'check',
+					'icon'  => 'check-circle',
 					'label' => __( 'Sem burocracia', 'contorno' ),
 					'text'  => __( 'Processo simples e rápido para você começar hoje mesmo.', 'contorno' ),
 				),
 				array(
-					'icon'  => 'sparkles',
+					'icon'  => 'zap',
 					'label' => __( 'Ativação rápida', 'contorno' ),
 					'text'  => __( 'Após a confirmação, você já pode treinar.', 'contorno' ),
 				),
 				array(
-					'icon'  => 'phone',
+					'icon'  => 'headphones',
 					'label' => __( 'Suporte da equipe', 'contorno' ),
 					'text'  => __( 'Estamos prontos para te ajudar sempre que precisar.', 'contorno' ),
 				),
@@ -219,7 +219,7 @@ contorno_add_shortcode(
 						<div class="contorno-field-row">
 							<label for="contorno-enroll-name"><?php esc_html_e( 'Nome completo', 'contorno' ); ?></label>
 							<span class="contorno-input">
-								<?php echo contorno_icon( 'users', 'contorno-input__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php echo contorno_icon( 'user', 'contorno-input__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 								<input
 									type="text"
 									id="contorno-enroll-name"
@@ -236,7 +236,7 @@ contorno_add_shortcode(
 						<div class="contorno-field-row">
 							<label for="contorno-enroll-email"><?php esc_html_e( 'E-mail', 'contorno' ); ?></label>
 							<span class="contorno-input">
-								<?php echo contorno_icon( 'external', 'contorno-input__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php echo contorno_icon( 'mail', 'contorno-input__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 								<input
 									type="email"
 									id="contorno-enroll-email"
