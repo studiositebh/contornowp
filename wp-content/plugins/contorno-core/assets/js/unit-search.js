@@ -5,6 +5,10 @@
  * termo tem 5 ou mais digitos. Um campo dentro de uma listagem filtra a
  * propria listagem; um campo de hero (data-target="hero") leva para
  * /unidades ja com o termo aplicado.
+ *
+ * No catalogo (/unidades), um CEP completo (8 digitos) vira busca por
+ * proximidade no servidor: o campo mostra o seletor de raio e a navegacao
+ * leva ?q=<cep>&raio=<km>.
  */
 (function () {
 	'use strict';
@@ -19,6 +23,19 @@
 			.toLowerCase()
 			.replace(/\s+/g, ' ')
 			.trim();
+	}
+
+	// Mesma regra de contorno_cep_digits(): so digitos/pontuacao e 8 digitos.
+	function cepDigits(value) {
+		var term = String(value || '').trim();
+
+		if (term === '' || !/^[\d.\-\s]+$/.test(term)) {
+			return '';
+		}
+
+		var digits = term.replace(/\D/g, '');
+
+		return digits.length === 8 ? digits : '';
 	}
 
 	function applyFilter(container, query) {
@@ -62,6 +79,8 @@
 
 		var input = root.querySelector('[data-contorno-unit-search-input]');
 		var clear = root.querySelector('[data-contorno-unit-search-clear]');
+		var radiusWrap = root.querySelector('[data-contorno-unit-search-radius-wrap]');
+		var radius = root.querySelector('[data-contorno-unit-search-radius]');
 
 		if (!input) {
 			return;
@@ -70,9 +89,34 @@
 		var container = root.closest('[data-contorno-units]');
 		var isRemote = root.dataset.target === 'hero' || root.dataset.target === 'catalog' || !container;
 
+		// URL de /unidades com o termo e, quando for CEP, o raio escolhido.
+		function buildUrl(term) {
+			var archive = input.dataset.archive || '/unidades/';
+
+			if (!term) {
+				return archive;
+			}
+
+			var params = ['q=' + encodeURIComponent(term)];
+
+			if (radius && cepDigits(term) && radius.value !== radius.dataset.default) {
+				params.push('raio=' + encodeURIComponent(radius.value));
+			}
+
+			return archive + (archive.indexOf('?') === -1 ? '?' : '&') + params.join('&');
+		}
+
+		function go() {
+			window.location.href = buildUrl(input.value.trim());
+		}
+
 		function run() {
 			if (clear) {
 				clear.hidden = input.value === '';
+			}
+
+			if (radiusWrap) {
+				radiusWrap.hidden = cepDigits(input.value) === '';
 			}
 
 			if (!isRemote) {
@@ -89,17 +133,18 @@
 
 			event.preventDefault();
 
-			if (!isRemote) {
-				return;
+			if (isRemote) {
+				go();
 			}
-
-			var archive = input.dataset.archive || '/unidades/';
-			var term = input.value.trim();
-
-			window.location.href = term
-				? archive + (archive.indexOf('?') === -1 ? '?' : '&') + 'q=' + encodeURIComponent(term)
-				: archive;
 		});
+
+		if (radius) {
+			radius.addEventListener('change', function () {
+				if (cepDigits(input.value)) {
+					go();
+				}
+			});
+		}
 
 		if (clear) {
 			clear.addEventListener('click', function () {
@@ -111,6 +156,7 @@
 					var archive = input.dataset.archive || '/unidades/';
 					var url = new URL(window.location.href);
 					url.searchParams.delete('q');
+					url.searchParams.delete('raio');
 					url.searchParams.delete('unidades_page');
 					window.location.href = url.pathname + (url.search ? url.search : '') || archive;
 				}
@@ -118,16 +164,9 @@
 		}
 
 		// Botão do cartão do hero: leva para /unidades com o termo aplicado.
-		const submit = root.querySelector('[data-contorno-unit-search-submit]');
+		var submit = root.querySelector('[data-contorno-unit-search-submit]');
 		if (submit) {
-			submit.addEventListener('click', function () {
-				const archive = input.dataset.archive || '/unidades/';
-				const term = input.value.trim();
-
-				window.location.href = term
-					? archive + (archive.indexOf('?') === -1 ? '?' : '&') + 'q=' + encodeURIComponent(term)
-					: archive;
-			});
+			submit.addEventListener('click', go);
 		}
 
 		// Termo vindo da URL (?q=) aplicado na chegada.

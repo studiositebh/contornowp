@@ -125,6 +125,14 @@ wp_cmd contorno migrate
 wp_cmd contorno status
 log "Migration OK"
 
+# Coordenadas de unidades criadas no painel sem lat/lng (busca por CEP).
+# Depende de rede externa (Nominatim); nao derruba o deploy se falhar.
+if wp_cmd contorno geocode; then
+	log "Geocode OK"
+else
+	log "Geocode skipped (network or provider error)"
+fi
+
 wp_cmd rewrite flush
 log "Rewrite OK"
 

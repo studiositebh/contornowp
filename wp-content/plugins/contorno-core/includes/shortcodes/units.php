@@ -76,6 +76,13 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 				<p class="unit-card__location"><?php echo contorno_icon( 'map-pin', 'unit-card__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( $location ); ?></span></p>
 			<?php endif; ?>
 
+			<?php if ( isset( $args['distance'] ) && is_numeric( $args['distance'] ) ) : ?>
+				<?php /* Busca por CEP: distancia em linha reta ate o ponto pesquisado. */ ?>
+				<p class="unit-card__distance">
+					<?php echo esc_html( sprintf( /* translators: %s: formatted distance */ __( 'a %s de você', 'contorno' ), contorno_format_distance( (float) $args['distance'] ) ) ); ?>
+				</p>
+			<?php endif; ?>
+
 			<?php if ( $is_pre_sale ) : ?>
 				<?php $info = contorno_pre_sale_info_line( $post_id ); ?>
 				<?php if ( '' !== $info ) : ?>
@@ -202,7 +209,36 @@ contorno_add_shortcode(
 
 		$units = contorno_get_units( $query_args );
 
-		if ( $is_catalog_mode && '' !== trim( $search_query ) ) {
+		// Busca por CEP: o termo vira lat/lng e a lista passa a ser ordenada
+		// por distancia, limitada ao raio escolhido (?raio=). Um CEP que nao
+		// resolve avisa o visitante e cai na busca textual comum.
+		$radius           = contorno_geo_requested_radius();
+		$geo_origin       = null;
+		$geo_cep          = $is_catalog_mode ? contorno_cep_digits( $search_query ) : '';
+		$geo_failed       = false;
+		$geo_fallback     = false;
+		$distances        = array();
+
+		if ( '' !== $geo_cep ) {
+			$geo_origin = contorno_geocode_cep( $geo_cep );
+			$geo_failed = null === $geo_origin;
+		}
+
+		if ( null !== $geo_origin ) {
+			$ranked = contorno_units_by_distance( $units, $geo_origin['lat'], $geo_origin['lng'] );
+			$within = array_values( array_filter( $ranked, static fn ( array $row ): bool => $row['distance'] <= $radius ) );
+
+			if ( array() === $within ) {
+				$within       = array_slice( $ranked, 0, CONTORNO_GEO_NEAREST_FALLBACK );
+				$geo_fallback = array() !== $within;
+			}
+
+			$units = array();
+			foreach ( $within as $row ) {
+				$units[]                      = $row['post'];
+				$distances[ $row['post']->ID ] = $row['distance'];
+			}
+		} elseif ( $is_catalog_mode && '' !== trim( $search_query ) ) {
 			$needle = contorno_normalize_search( $search_query );
 			$digits = preg_replace( '/\D/', '', $needle );
 			$digits = is_string( $digits ) ? $digits : '';
@@ -252,13 +288,25 @@ contorno_add_shortcode(
 					<?php if ( $has_count ) : ?>
 						<p class="contorno-units__count">
 							<?php
-							echo esc_html(
-								sprintf(
-									/* translators: %d: units count */
-									_n( '%d unidade encontrada', '%d unidades encontradas', $total_units, 'contorno' ),
-									$total_units
-								)
-							);
+							if ( null !== $geo_origin && ! $geo_fallback ) {
+								echo esc_html(
+									sprintf(
+										/* translators: 1: units count, 2: radius in km, 3: place name */
+										_n( '%1$d unidade a até %2$d km de %3$s', '%1$d unidades a até %2$d km de %3$s', $total_units, 'contorno' ),
+										$total_units,
+										$radius,
+										$geo_origin['label']
+									)
+								);
+							} else {
+								echo esc_html(
+									sprintf(
+										/* translators: %d: units count */
+										_n( '%d unidade encontrada', '%d unidades encontradas', $total_units, 'contorno' ),
+										$total_units
+									)
+								);
+							}
 							?>
 						</p>
 					<?php endif; ?>
@@ -266,6 +314,9 @@ contorno_add_shortcode(
 						<form class="contorno-units__per-page" method="get">
 							<?php if ( '' !== $search_query ) : ?>
 								<input type="hidden" name="q" value="<?php echo esc_attr( $search_query ); ?>" />
+							<?php endif; ?>
+							<?php if ( null !== $geo_origin && CONTORNO_GEO_DEFAULT_RADIUS !== $radius ) : ?>
+								<input type="hidden" name="<?php echo esc_attr( CONTORNO_GEO_RADIUS_PARAM ); ?>" value="<?php echo esc_attr( (string) $radius ); ?>" />
 							<?php endif; ?>
 							<label for="contorno-units-per-page"><?php esc_html_e( 'Exibir', 'contorno' ); ?></label>
 							<select id="contorno-units-per-page" name="per_page" onchange="this.form.submit()">
@@ -284,6 +335,33 @@ contorno_add_shortcode(
 				<?php echo do_shortcode( '[contorno_units_search target="' . ( $is_catalog_mode ? 'catalog' : '' ) . '"]' ); ?>
 			<?php endif; ?>
 
+			<?php if ( $geo_failed ) : ?>
+				<p class="contorno-units__notice" role="status">
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: %s: formatted CEP */
+							__( 'Não conseguimos localizar o CEP %s. Confira os números ou busque pelo nome do bairro ou da cidade.', 'contorno' ),
+							contorno_format_cep( $geo_cep )
+						)
+					);
+					?>
+				</p>
+			<?php elseif ( $geo_fallback ) : ?>
+				<p class="contorno-units__notice" role="status">
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: 1: radius in km, 2: place name */
+							__( 'Nenhuma unidade a até %1$d km de %2$s. Estas são as mais próximas:', 'contorno' ),
+							$radius,
+							$geo_origin['label']
+						)
+					);
+					?>
+				</p>
+			<?php endif; ?>
+
 			<?php if ( array() === $units ) : ?>
 				<p class="contorno-units__empty"><?php echo esc_html( $empty_text ); ?></p>
 			<?php else : ?>
@@ -299,7 +377,7 @@ contorno_add_shortcode(
 								data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 								data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
 							>
-								<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta, 'distance' => $distances[ $unit->ID ] ?? null ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</div>
 						<?php endforeach; ?>
 					</div>
@@ -320,7 +398,7 @@ contorno_add_shortcode(
 							data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 							data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
 						>
-							<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta, 'distance' => $distances[ $unit->ID ] ?? null ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						</div>
 					<?php endforeach; ?>
 				</div>
@@ -340,8 +418,9 @@ contorno_add_shortcode(
 									'next_text' => __( 'Próxima', 'contorno' ),
 									'add_args'  => array_filter(
 										array(
-											'per_page' => $per_page,
-											'q'        => $search_query,
+											'per_page'                 => $per_page,
+											'q'                        => $search_query,
+											CONTORNO_GEO_RADIUS_PARAM => null !== $geo_origin && CONTORNO_GEO_DEFAULT_RADIUS !== $radius ? $radius : '',
 										),
 										static fn ( $value ): bool => '' !== $value && null !== $value
 									),
@@ -400,6 +479,21 @@ contorno_add_shortcode(
 				autocomplete="off"
 			/>
 			<button type="button" class="contorno-unit-search__clear" data-contorno-unit-search-clear hidden aria-label="<?php esc_attr_e( 'Limpar busca', 'contorno' ); ?>">&times;</button>
+
+			<?php if ( 'catalog' === $a['target'] ) : ?>
+				<?php /* Raio da busca por CEP. Sem CEP no campo o seletor fica oculto (JS). */ ?>
+				<?php $radius = contorno_geo_requested_radius(); ?>
+				<label class="contorno-unit-search__radius" data-contorno-unit-search-radius-wrap hidden>
+					<span class="screen-reader-text"><?php esc_html_e( 'Raio de busca', 'contorno' ); ?></span>
+					<select data-contorno-unit-search-radius data-default="<?php echo esc_attr( (string) CONTORNO_GEO_DEFAULT_RADIUS ); ?>" aria-label="<?php esc_attr_e( 'Raio de busca a partir do CEP', 'contorno' ); ?>">
+						<?php foreach ( CONTORNO_GEO_RADIUS_OPTIONS as $option ) : ?>
+							<option value="<?php echo esc_attr( (string) $option ); ?>" <?php selected( $radius, $option ); ?>>
+								<?php echo esc_html( sprintf( /* translators: %d: radius in km */ __( 'até %d km', 'contorno' ), $option ) ); ?>
+							</option>
+						<?php endforeach; ?>
+					</select>
+				</label>
+			<?php endif; ?>
 
 			<?php if ( 'hero' === $a['target'] ) : ?>
 				<?php /* No cartão do hero a busca leva para /unidades, então tem botão próprio. */ ?>

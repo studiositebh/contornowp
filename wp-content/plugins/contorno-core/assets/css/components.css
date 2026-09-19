@@ -55,12 +55,46 @@
 	color: var(--muted-foreground, #949398);
 }
 
+/* Raio da busca por CEP — aparece so quando o campo contem um CEP. */
+.contorno-unit-search__radius {
+	flex: none;
+	display: flex;
+	align-items: center;
+}
+
+.contorno-unit-search__radius[hidden] {
+	display: none;
+}
+
+.contorno-unit-search__radius select {
+	min-height: 2.25rem;
+	padding: 0 1.75rem 0 0.75rem;
+	border: 1px solid var(--border, #e6e8ea);
+	border-radius: var(--radius-full, 999px);
+	background: var(--card, #fff);
+	color: var(--foreground, #000);
+	font: inherit;
+	font-size: var(--text-sm, 0.875rem);
+	cursor: pointer;
+}
+
 /* ====================================================================
  * Listagem de unidades
  * ================================================================== */
 
 .contorno-units__empty {
 	color: var(--muted-foreground, #949398);
+	font-size: var(--text-sm, 0.875rem);
+}
+
+/* Aviso da busca por CEP (CEP nao encontrado / nada dentro do raio). */
+.contorno-units__notice {
+	margin: 0 0 var(--space-6, 1.5rem);
+	padding: 0.85rem 1.1rem;
+	border-left: 3px solid var(--brand, #10b8b1);
+	border-radius: var(--radius-md, 0.65rem);
+	background: var(--muted, #f4f5f6);
+	color: var(--foreground, #000);
 	font-size: var(--text-sm, 0.875rem);
 }
 
@@ -329,6 +363,14 @@
 .unit-card__title {
 	font-size: var(--text-lg, 1.125rem);
 	margin: 0;
+}
+
+/* Busca por CEP: distancia ate o ponto pesquisado. */
+.unit-card__distance {
+	margin: -0.25rem 0 0;
+	font-size: var(--text-sm, 0.875rem);
+	font-weight: 600;
+	color: var(--brand, #10b8b1);
 }
 
 .unit-card__location,
