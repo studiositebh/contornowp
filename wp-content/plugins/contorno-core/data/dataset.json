@@ -10673,7 +10673,8 @@
         "seo_title": "CTN Castelo | Centro de Treinamento Contorno",
         "seo_description": "CTN Castelo — Centro de Treinamento Contorno com 2.500 m² de estrutura premium, equipamentos Panatta, Hammer, Realleader, Supreme e Shua em Belo Horizonte.",
         "editorial_position": "none"
-      }
+      },
+      "menuOrder": 1
     },
     {
       "slug": "buritis",
@@ -10940,7 +10941,8 @@
         "seo_title": "CTN Buritis | Centro de Treinamento Contorno",
         "seo_description": "CTN Buritis — Centro de Treinamento Contorno com mais de 5.000 m², quadra de areia, recovery e equipamentos de marcas internacionais em Belo Horizonte.",
         "editorial_position": "none"
-      }
+      },
+      "menuOrder": 2
     }
   ],
   "assets": [

@@ -108,7 +108,10 @@ contorno_add_shortcode(
 				<div class="site-container">
 					<div class="ctn-hub-search__field">
 						<label for="ctn-search"><?php echo esc_html( (string) $a['search_label'] ); ?></label>
-						<input id="ctn-search" type="search" placeholder="<?php echo esc_attr( (string) $a['search_placeholder'] ); ?>" data-ctn-filter />
+						<div class="ctn-hub-search__control">
+							<?php echo contorno_icon( 'search', 'ctn-hub-search__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<input id="ctn-search" type="search" placeholder="<?php echo esc_attr( (string) $a['search_placeholder'] ); ?>" data-ctn-filter />
+						</div>
 					</div>
 					<div class="ctn-hub-grid" data-ctn-grid>
 						<?php foreach ( $ctns as $ctn ) : ?>
