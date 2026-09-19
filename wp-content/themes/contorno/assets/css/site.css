@@ -1241,6 +1241,39 @@ ol {
 		linear-gradient(rgb(0 116 108 / 0.72), rgb(0 116 108 / 0.72));
 }
 
+/* Tom CTN (CTNFinalCTA.tsx): foto com veu preto a 75%, botao turquesa. */
+.contorno-final-cta.is-tone-ctn {
+	background-color: #000;
+}
+
+.contorno-final-cta.is-tone-ctn .contorno-final-cta__scrim {
+	background: rgb(0 0 0 / 0.75);
+}
+
+.contorno-final-cta.is-tone-ctn .contorno-final-cta__inner .contorno-btn {
+	background: var(--brand);
+	border-color: var(--brand);
+	color: #fff;
+	border-radius: var(--radius-md);
+	padding-inline: 2rem;
+}
+
+.contorno-final-cta.is-tone-ctn .contorno-final-cta__inner .contorno-btn:hover {
+	background: var(--brand-ink);
+	border-color: var(--brand-ink);
+	color: #fff;
+}
+
+.contorno-final-cta.is-align-center .contorno-final-cta__inner {
+	padding-block: 6rem;
+}
+
+@media (min-width: 768px) {
+	.contorno-final-cta.is-align-center .contorno-final-cta__inner {
+		padding-block: 8rem;
+	}
+}
+
 .contorno-final-cta__headline {
 	font-size: var(--text-3xl);
 	max-width: 48rem;
