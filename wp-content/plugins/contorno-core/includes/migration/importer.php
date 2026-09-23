@@ -202,6 +202,7 @@ final class Contorno_Migration {
 
 		if ( in_array( 'units', $steps, true ) ) {
 			$this->import_entities( (array) ( $dataset['units'] ?? array() ), CONTORNO_CPT_UNIT, 'units' );
+			$this->retire_entities( (array) ( $dataset['retiredUnits'] ?? array() ), CONTORNO_CPT_UNIT );
 		}
 
 		if ( in_array( 'ctns', $steps, true ) ) {
@@ -495,6 +496,44 @@ final class Contorno_Migration {
 		}
 
 		$this->report->log( sprintf( '%s: %d processados.', $post_type, $this->report->counts[ $counter ] ) );
+	}
+
+	/**
+	 * Registros retirados do dataset (ex.: duplicata de unidade): vao para a
+	 * LIXEIRA — recuperavel pelo painel, nunca delete definitivo. Sem isso o
+	 * post continuaria publicado ate alguem usar "Unidades fora do dataset".
+	 *
+	 * @param array<int,array<string,string>> $retired Itens {slug, reason}.
+	 */
+	private function retire_entities( array $retired, string $post_type ): void {
+		foreach ( $retired as $item ) {
+			$slug = sanitize_title( (string) ( $item['slug'] ?? '' ) );
+
+			if ( '' === $slug ) {
+				continue;
+			}
+
+			$found = get_posts(
+				array(
+					'post_type'      => $post_type,
+					'name'           => $slug,
+					'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
+					'posts_per_page' => 1,
+				)
+			);
+
+			if ( ! isset( $found[0] ) ) {
+				continue;
+			}
+
+			if ( $this->dry_run ) {
+				$this->report->log( sprintf( 'Enviaria para a lixeira: %s/%s', $post_type, $slug ) );
+				continue;
+			}
+
+			wp_trash_post( $found[0]->ID );
+			$this->report->log( sprintf( 'Retirado do dataset, na lixeira: %s/%s (%s)', $post_type, $slug, (string) ( $item['reason'] ?? '' ) ) );
+		}
 	}
 
 	/* ============================================================

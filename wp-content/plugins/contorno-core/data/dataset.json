@@ -9874,56 +9874,65 @@
     },
     {
       "slug": "sao-bento-prime",
-      "title": "São Bento Prime",
-      "excerpt": "Estrutura completa para treinar com conforto e consistência.",
+      "title": "BH Prime Falls Shopping",
+      "excerpt": "Junto ao Falls Shopping: 1.400 m², iluminação natural e estacionamento com cerca de 70 vagas.",
       "menuOrder": 68,
       "terms": {
-        "city": "São Bento, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "prime"
       },
       "fields": {
-        "short_name": "São Bento Prime",
+        "short_name": "BH Prime Falls Shopping",
         "kind": "prime",
         "badge": "",
         "featured": "",
-        "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "São Bento, Belo Horizonte",
+        "short_description": "Junto ao Falls Shopping: 1.400 m², iluminação natural e estacionamento com cerca de 70 vagas.",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Rua Kepler, 441, (Falls Shopping)",
-        "address": "Rua Kepler, 441, (Falls Shopping) - São Bento, Belo Horizonte",
-        "postal_code": "30350-570",
+        "neighborhood": "São Bento",
+        "address": "Rua Kepler, 441 (Falls Shopping) – São Bento – Belo Horizonte - MG",
+        "postal_code": "30360-240",
         "phone": "3140420177",
         "whatsapp": "3140420177",
-        "hours": "",
-        "maps_query": "Rua Kepler, 441, (Falls Shopping) - São Bento, Belo Horizonte",
-        "latitude": "-19.9611736",
-        "longitude": "-43.9500417",
+        "hours": "Segunda a quinta, 05h às 23h\nSexta, 05h às 22h\nSábados e feriados, 07h às 16h\nDomingos, 09h às 13h",
+        "maps_query": "Rua Kepler, 441 - Falls Shopping - Belo Horizonte - MG",
+        "latitude": "-19.9636285",
+        "longitude": "-43.9492036",
         "image": "/units/xml/sao-bento-prime/hero-01.png",
-        "image_alt": "Fachada da academia Contorno do Corpo - São Bento Prime",
+        "image_alt": "Academia Contorno do Corpo - BH Prime Falls Shopping",
         "gallery": [
           "/units/xml/sao-bento-prime/hero-01.png"
         ],
         "video_url": "",
         "differentials": [
-          "Estrutura completa",
-          "Aulas coletivas",
-          "Equipamentos modernos",
-          "Atendimento humanizado"
+          "Vestiários com escaninhos para terno e blazer",
+          "Iluminação natural",
+          "Estacionamento com cerca de 70 vagas",
+          "Spinning presencial"
         ],
-        "facilities": [],
+        "facilities": [
+          "Cadeira de Massagem",
+          "Vestiários",
+          "Balança de bioimpedância",
+          "Ambiente Climatizado",
+          "Equipamentos de Última Geração",
+          "Sonorização Especial",
+          "Televisões de LED",
+          "Acesso WIFI",
+          "Aulas coletivas"
+        ],
         "modalities": [
           "Musculação",
-          "Cardio",
-          "Aulas coletivas",
-          "Funcional"
+          "Spinning presencial",
+          "Aulas coletivas"
         ],
         "starting_price": 99.9,
-        "checkout_url": "",
+        "checkout_url": "https://unidades.contornodocorpo.com.br/bh-prime-falls-shopping/",
         "prescricao_url": "",
         "plans": [],
-        "status": "open",
+        "status": "pre_sale",
         "presale_label": "",
-        "presale_opening_label": "",
+        "presale_opening_label": "Condições exclusivas de pré-inauguração",
         "presale_opening_date": "",
         "presale_promo_text": "",
         "classes_enabled": "",
@@ -10050,77 +10059,6 @@
         "status": "open",
         "presale_label": "",
         "presale_opening_label": "",
-        "presale_opening_date": "",
-        "presale_promo_text": "",
-        "classes_enabled": "",
-        "evo_branch_id": "",
-        "classes_url": "",
-        "classes_title": "",
-        "erp_id": "",
-        "sync_source": "manual",
-        "ctn_slug": "",
-        "editorial_position": "none"
-      }
-    },
-    {
-      "slug": "bh-prime-falls-shopping",
-      "title": "BH Prime Falls Shopping",
-      "excerpt": "Junto ao Falls Shopping: 1.400 m², iluminação natural e estacionamento com cerca de 70 vagas.",
-      "menuOrder": 70,
-      "terms": {
-        "city": "Belo Horizonte",
-        "kind": "prime"
-      },
-      "fields": {
-        "short_name": "BH Prime Falls Shopping",
-        "kind": "prime",
-        "badge": "",
-        "featured": "",
-        "short_description": "Junto ao Falls Shopping: 1.400 m², iluminação natural e estacionamento com cerca de 70 vagas.",
-        "city": "Belo Horizonte",
-        "state": "MG",
-        "neighborhood": "São Bento",
-        "address": "Rua Kepler, 441 (Falls Shopping) – São Bento – Belo Horizonte - MG",
-        "postal_code": "30360-240",
-        "phone": "3140420177",
-        "whatsapp": "3140420177",
-        "hours": "Segunda a quinta, 05h às 23h\nSexta, 05h às 22h\nSábados e feriados, 07h às 16h\nDomingos, 09h às 13h",
-        "maps_query": "Rua Kepler, 441 - Falls Shopping - Belo Horizonte - MG",
-        "latitude": "-19.9636285",
-        "longitude": "-43.9492036",
-        "image": "",
-        "image_alt": "",
-        "gallery": [],
-        "video_url": "",
-        "differentials": [
-          "Vestiários com escaninhos para terno e blazer",
-          "Iluminação natural",
-          "Estacionamento com cerca de 70 vagas",
-          "Spinning presencial"
-        ],
-        "facilities": [
-          "Cadeira de Massagem",
-          "Vestiários",
-          "Balança de bioimpedância",
-          "Ambiente Climatizado",
-          "Equipamentos de Última Geração",
-          "Sonorização Especial",
-          "Televisões de LED",
-          "Acesso WIFI",
-          "Aulas coletivas"
-        ],
-        "modalities": [
-          "Musculação",
-          "Spinning presencial",
-          "Aulas coletivas"
-        ],
-        "starting_price": "",
-        "checkout_url": "https://unidades.contornodocorpo.com.br/bh-prime-falls-shopping/",
-        "prescricao_url": "",
-        "plans": [],
-        "status": "pre_sale",
-        "presale_label": "",
-        "presale_opening_label": "Condições exclusivas de pré-inauguração",
         "presale_opening_date": "",
         "presale_promo_text": "",
         "classes_enabled": "",
@@ -11537,5 +11475,11 @@
     "/units/xml/xangri-la/gallery-06.jpg",
     "/units/xml/xangri-la/gallery-07.jpg",
     "/units/xml/xangri-la/hero-01.jpg"
+  ],
+  "retiredUnits": [
+    {
+      "slug": "bh-prime-falls-shopping",
+      "reason": "duplicata de sao-bento-prime (mesma unidade: Rua Kepler, 441 - Falls Shopping)"
+    }
   ]
 }
