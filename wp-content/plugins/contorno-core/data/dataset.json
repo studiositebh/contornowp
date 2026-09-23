@@ -35,6 +35,11 @@
       {
         "label": "Fale Conosco",
         "path": "/fale-conosco/"
+      },
+      {
+        "label": "Trabalhe Conosco",
+        "url": "https://docs.google.com/forms/d/e/1FAIpQLSdj30Lq4C-BdmtYMmduQsxlEiAOzvUMQU_fI15EgAYpqSK1cQ/viewform",
+        "target": "_blank"
       }
     ]
   },
@@ -107,9 +112,9 @@
       "template": "templates/page-blank.php",
       "seo": {
         "title": "Fale Conosco | Contorno do Corpo",
-        "description": "Fale com a equipe da Contorno do Corpo. Estamos prontos para ajudar."
+        "description": "Fale com a equipe da Contorno do Corpo pelo WhatsApp, e-mail ou telefone."
       },
-      "content": "[vc_row][vc_column width=\"5/12\"][contorno_contact_channels eyebrow=\"Atendimento\" title=\"Fale Conosco\" text=\"Envie sua mensagem e nossa equipe retorna o contato.\"][/vc_column][vc_column width=\"7/12\"][contorno_contact_form][/vc_column][/vc_row]"
+      "content": "[vc_row][vc_column][contorno_contact_channels layout=\"cards\" eyebrow=\"Atendimento\" title=\"Fale Conosco\" text=\"Escolha o canal que preferir. Nossa equipe está pronta para ajudar.\"][/vc_column][/vc_row]"
     },
     {
       "slug": "aplicativo",
@@ -170,7 +175,7 @@
         "title": "Política de Privacidade | Contorno do Corpo",
         "description": "Política de privacidade da Academia Contorno do Corpo."
       },
-      "content": "<h2>Introdução</h2>\n<p>Esta Política de Privacidade explica como Academia Contorno do Corpo trata dados pessoais coletados por meio deste site e de seus canais digitais.</p>\n<p>O tratamento de dados pessoais é realizado de acordo com as finalidades descritas nesta política e com a legislação aplicável.</p>\n<h2>Controlador dos dados</h2>\n<p>Academia Contorno do Corpo, Belo Horizonte – MG. E-mail para assuntos de privacidade: <a href=\"mailto:contato@contornodocorpo.com.br\">contato@contornodocorpo.com.br</a></p>\n<h2>Dados tratados</h2>\n<h3>Formulário de contato</h3>\n<p>O formulário disponível em /fale-conosco solicita: nome, e-mail, telefone (opcional) e conteúdo da mensagem. Ao enviar, essas informações são encaminhadas por meio do cliente de e-mail do visitante para o endereço contato@contornodocorpo.com.br. O site não armazena as mensagens em banco de dados próprio.</p>\n<h3>WhatsApp</h3>\n<p>Ao utilizar o botão de WhatsApp, o visitante é direcionado para um serviço externo operado pela Meta. Os dados enviados nesse canal estão sujeitos às práticas de privacidade da plataforma utilizada e não são controlados integralmente por este site.</p>\n<h3>Telefone e e-mail</h3>\n<p>Dados enviados diretamente por telefone ou e-mail podem ser tratados para responder à solicitação apresentada pelo titular.</p>\n<h3>Navegação</h3>\n<p>Na data desta publicação, o site não utiliza ferramentas de analytics, pixels de marketing ou cookies de rastreamento identificados no código do projeto. Podem existir cookies ou tecnologias similares associados a serviços de terceiros incorporados, como Google Maps.</p>\n<h2>Finalidades</h2>\n<ul>\n<li>Receber e analisar solicitações de contato;</li>\n<li>Responder dúvidas e pedidos apresentados pelo próprio titular;</li>\n<li>Organizar o atendimento solicitado;</li>\n<li>Realizar procedimentos preliminares relacionados a uma possível contratação;</li>\n<li>Manter a segurança e prevenir uso indevido dos canais digitais;</li>\n<li>Cumprir obrigações legais e regulatórias, quando aplicável;</li>\n<li>Exercer ou defender direitos em processos judiciais, administrativos ou arbitrais, quando aplicável;</li>\n<li>Manter registros necessários para proteção da organização e do titular, conforme a operação do canal utilizado.</li>\n</ul>\n<h2>Hipóteses legais</h2>\n<p>As hipóteses legais aplicáveis dependem da finalidade e do contexto de cada tratamento. Conforme o caso, podem ser consideradas, entre outras, situações como procedimentos preliminares relacionados a contrato a pedido do titular, cumprimento de obrigação legal ou regulatória, exercício regular de direitos, legítimo interesse — quando cabível e após avaliação — e consentimento apenas para finalidades opcionais específicas que realmente o exijam.</p>\n<p>O envio do formulário de contato não é tratado como consentimento genérico para qualquer finalidade de tratamento de dados.</p>\n<h2>Dados pessoais sensíveis</h2>\n<p>O formulário de contato não foi desenvolvido para o envio de documentos sigilosos ou outras informações pessoais sensíveis. Caso esse tipo de informação seja necessário, a equipe indicará um canal apropriado após o contato inicial.</p>\n<p>Caso o próprio usuário inclua espontaneamente informações sensíveis na mensagem, elas serão tratadas apenas na medida necessária para analisar a solicitação e adotar as providências cabíveis.</p>\n<h2>Compartilhamento e operadores</h2>\n<p>Para operar o site e seus canais digitais, Academia Contorno do Corpo utiliza fornecedores técnicos que podem tratar dados pessoais em nome da organização ou em interação com o visitante, conforme a finalidade de cada serviço:</p>\n<ul>\n<li>Provedor de hospedagem do site — hospedagem e distribuição do site;</li>\n<li>Google Maps — exibição de mapa de localização nas páginas de unidade e de contato;</li>\n<li>WhatsApp (Meta) — canal de atendimento iniciado pelo visitante;</li>\n<li>EVO / W12 — sistema de gestão, grade de aulas coletivas e checkout de matrícula.</li>\n</ul>\n<p>Esses fornecedores devem tratar os dados para as finalidades contratadas ou disponibilizadas ao visitante, conforme suas próprias políticas e instruções aplicáveis.</p>\n<h2>Transferência internacional</h2>\n<p>Alguns fornecedores utilizados pelo site podem processar dados em infraestrutura localizada fora do Brasil. Quando isso ocorrer, o tratamento estará sujeito às salvaguardas previstas na legislação aplicável e às práticas dos respectivos fornecedores.</p>\n<h2>Retenção e eliminação</h2>\n<p>Os dados pessoais não serão mantidos indefinidamente. Em regra, serão conservados pelo período necessário para responder à solicitação, durante eventual relação contratual, para cumprimento de obrigações legais, para exercício regular de direitos e pelo tempo necessário à segurança dos canais digitais.</p>\n<p>Mensagens recebidas por e-mail, telefone ou WhatsApp seguem a política de organização e arquivamento adotada para o respectivo canal, ainda não detalhada nesta política pública.</p>\n<h2>Segurança</h2>\n<p>São adotadas medidas técnicas e administrativas razoáveis para proteger os dados pessoais contra acessos não autorizados, perda, alteração, divulgação ou destruição indevida. Nenhum ambiente digital é completamente isento de riscos.</p>\n<h2>Direitos dos titulares</h2>\n<p>O titular pode solicitar, nos termos da legislação aplicável, informações sobre o tratamento de seus dados pessoais, incluindo confirmação da existência de tratamento, acesso, correção, informações sobre compartilhamento, oposição quando cabível e revogação de consentimento quando alguma operação específica se basear nessa hipótese legal.</p>\n<p>Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados pessoais, entre em contato pelo e-mail <a href=\"mailto:contato@contornodocorpo.com.br\">contato@contornodocorpo.com.br</a>.</p>\n<h2>Links e serviços externos</h2>\n<p>O site possui links e integrações com serviços externos, como WhatsApp e Google Maps. Esses serviços possuem práticas próprias de privacidade, sobre as quais a organização não tem controle integral.</p>\n<h2>Cookies e tecnologias</h2>\n<p>Na data desta publicação, não foram identificados no projeto cookies de analytics, marketing, captcha ou rastreamento comportamental. O site utiliza recursos de terceiros que podem envolver tecnologias próprias, como o mapa incorporado do Google Maps.</p>\n<h2>Crianças e adolescentes</h2>\n<p>Os canais deste site não são direcionados especificamente a crianças ou adolescentes. Caso seja identificado o tratamento indevido de dados desse público, serão adotadas as providências adequadas.</p>\n<h2>Atualizações da política</h2>\n<p>Esta Política de Privacidade poderá ser atualizada para refletir alterações legais, operacionais ou tecnológicas.</p>\n<p>Última atualização: agosto de 2026</p>"
+      "content": "<h2>Introdução</h2>\n<p>Esta Política de Privacidade explica como Academia Contorno do Corpo trata dados pessoais coletados por meio deste site e de seus canais digitais.</p>\n<p>O tratamento de dados pessoais é realizado de acordo com as finalidades descritas nesta política e com a legislação aplicável.</p>\n<h2>Controlador dos dados</h2>\n<p>Academia Contorno do Corpo, Belo Horizonte – MG. E-mail para assuntos de privacidade: <a href=\"mailto:contato@contornodocorpo.com.br\">contato@contornodocorpo.com.br</a></p>\n<h2>Dados tratados</h2>\n<h3>Página Fale Conosco</h3>\n<p>A página /fale-conosco reúne os canais oficiais de atendimento (WhatsApp, e-mail e telefone) e não possui formulário. O site não coleta nem armazena mensagens por essa página: os dados que o visitante decidir enviar seguem para o canal escolhido, conforme descrito abaixo.</p>\n<h3>WhatsApp</h3>\n<p>Ao utilizar o botão de WhatsApp, o visitante é direcionado para um serviço externo operado pela Meta. Os dados enviados nesse canal estão sujeitos às práticas de privacidade da plataforma utilizada e não são controlados integralmente por este site.</p>\n<h3>Telefone e e-mail</h3>\n<p>Dados enviados diretamente por telefone ou e-mail podem ser tratados para responder à solicitação apresentada pelo titular.</p>\n<h3>Navegação</h3>\n<p>Na data desta publicação, o site não utiliza ferramentas de analytics, pixels de marketing ou cookies de rastreamento identificados no código do projeto. Podem existir cookies ou tecnologias similares associados a serviços de terceiros incorporados, como Google Maps.</p>\n<h2>Finalidades</h2>\n<ul>\n<li>Receber e analisar solicitações de contato;</li>\n<li>Responder dúvidas e pedidos apresentados pelo próprio titular;</li>\n<li>Organizar o atendimento solicitado;</li>\n<li>Realizar procedimentos preliminares relacionados a uma possível contratação;</li>\n<li>Manter a segurança e prevenir uso indevido dos canais digitais;</li>\n<li>Cumprir obrigações legais e regulatórias, quando aplicável;</li>\n<li>Exercer ou defender direitos em processos judiciais, administrativos ou arbitrais, quando aplicável;</li>\n<li>Manter registros necessários para proteção da organização e do titular, conforme a operação do canal utilizado.</li>\n</ul>\n<h2>Hipóteses legais</h2>\n<p>As hipóteses legais aplicáveis dependem da finalidade e do contexto de cada tratamento. Conforme o caso, podem ser consideradas, entre outras, situações como procedimentos preliminares relacionados a contrato a pedido do titular, cumprimento de obrigação legal ou regulatória, exercício regular de direitos, legítimo interesse — quando cabível e após avaliação — e consentimento apenas para finalidades opcionais específicas que realmente o exijam.</p>\n<p>O contato iniciado pelo titular nos canais de atendimento não é tratado como consentimento genérico para qualquer finalidade de tratamento de dados.</p>\n<h2>Dados pessoais sensíveis</h2>\n<p>Os canais de atendimento não foram pensados para o envio de documentos sigilosos ou outras informações pessoais sensíveis. Caso esse tipo de informação seja necessário, a equipe indicará um canal apropriado após o contato inicial.</p>\n<p>Caso o próprio usuário inclua espontaneamente informações sensíveis na mensagem, elas serão tratadas apenas na medida necessária para analisar a solicitação e adotar as providências cabíveis.</p>\n<h2>Compartilhamento e operadores</h2>\n<p>Para operar o site e seus canais digitais, Academia Contorno do Corpo utiliza fornecedores técnicos que podem tratar dados pessoais em nome da organização ou em interação com o visitante, conforme a finalidade de cada serviço:</p>\n<ul>\n<li>Provedor de hospedagem do site — hospedagem e distribuição do site;</li>\n<li>Google Maps — exibição de mapa de localização nas páginas de unidade e de contato;</li>\n<li>WhatsApp (Meta) — canal de atendimento iniciado pelo visitante;</li>\n<li>EVO / W12 — sistema de gestão, grade de aulas coletivas e checkout de matrícula.</li>\n</ul>\n<p>Esses fornecedores devem tratar os dados para as finalidades contratadas ou disponibilizadas ao visitante, conforme suas próprias políticas e instruções aplicáveis.</p>\n<h2>Transferência internacional</h2>\n<p>Alguns fornecedores utilizados pelo site podem processar dados em infraestrutura localizada fora do Brasil. Quando isso ocorrer, o tratamento estará sujeito às salvaguardas previstas na legislação aplicável e às práticas dos respectivos fornecedores.</p>\n<h2>Retenção e eliminação</h2>\n<p>Os dados pessoais não serão mantidos indefinidamente. Em regra, serão conservados pelo período necessário para responder à solicitação, durante eventual relação contratual, para cumprimento de obrigações legais, para exercício regular de direitos e pelo tempo necessário à segurança dos canais digitais.</p>\n<p>Mensagens recebidas por e-mail, telefone ou WhatsApp seguem a política de organização e arquivamento adotada para o respectivo canal, ainda não detalhada nesta política pública.</p>\n<h2>Segurança</h2>\n<p>São adotadas medidas técnicas e administrativas razoáveis para proteger os dados pessoais contra acessos não autorizados, perda, alteração, divulgação ou destruição indevida. Nenhum ambiente digital é completamente isento de riscos.</p>\n<h2>Direitos dos titulares</h2>\n<p>O titular pode solicitar, nos termos da legislação aplicável, informações sobre o tratamento de seus dados pessoais, incluindo confirmação da existência de tratamento, acesso, correção, informações sobre compartilhamento, oposição quando cabível e revogação de consentimento quando alguma operação específica se basear nessa hipótese legal.</p>\n<p>Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados pessoais, entre em contato pelo e-mail <a href=\"mailto:contato@contornodocorpo.com.br\">contato@contornodocorpo.com.br</a>.</p>\n<h2>Links e serviços externos</h2>\n<p>O site possui links e integrações com serviços externos, como WhatsApp e Google Maps. Esses serviços possuem práticas próprias de privacidade, sobre as quais a organização não tem controle integral.</p>\n<h2>Cookies e tecnologias</h2>\n<p>Na data desta publicação, não foram identificados no projeto cookies de analytics, marketing, captcha ou rastreamento comportamental. O site utiliza recursos de terceiros que podem envolver tecnologias próprias, como o mapa incorporado do Google Maps.</p>\n<h2>Crianças e adolescentes</h2>\n<p>Os canais deste site não são direcionados especificamente a crianças ou adolescentes. Caso seja identificado o tratamento indevido de dados desse público, serão adotadas as providências adequadas.</p>\n<h2>Atualizações da política</h2>\n<p>Esta Política de Privacidade poderá ser atualizada para refletir alterações legais, operacionais ou tecnológicas.</p>\n<p>Última atualização: setembro de 2026</p>"
     }
   ],
   "units": [
@@ -276,10 +281,6 @@
             "price": 169.9,
             "price_label": "R$ 169,90 /mês12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -299,17 +300,12 @@
             "price": 49.9,
             "price_label": "R$ 209,90 /mês Taxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/24/site/landing-page/checkout/5700/0",
             "badge": "",
@@ -440,10 +436,6 @@
             "price": 49.9,
             "price_label": "De R$119,90/mêsPor R$49,90*\n *no 1º mês, depois R$ 119,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -463,17 +455,12 @@
             "price": 49.9,
             "price_label": "R$ 139,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Espaço Contorno Cycling",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/5/site/landing-page/checkout/5683/0",
             "badge": "",
@@ -597,10 +584,6 @@
             "price": 119.9,
             "price_label": "De R$139,90/mêsPor R$119,90*\n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -620,17 +603,12 @@
             "price": 49.9,
             "price_label": "R$ 139,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Espaço Contorno Cycling",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/8/site/landing-page/checkout/5685/0",
             "badge": "",
@@ -788,10 +766,6 @@
             "price": 159.9,
             "price_label": "R$ 159,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -811,17 +785,12 @@
             "price": 49.9,
             "price_label": "R$ 259,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/7/site/landing-page/checkout/5684/0",
             "badge": "",
@@ -957,10 +926,6 @@
             "price": 199.9,
             "price_label": "R$ 199,90 /mês12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -980,17 +945,12 @@
             "price": 49.9,
             "price_label": "R$ 309,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/6/site/landing-page/checkout/5847/0",
             "badge": "",
@@ -1111,10 +1071,6 @@
             "price": 99.9,
             "price_label": "De R$149,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 149,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
@@ -1133,16 +1089,11 @@
             "price": 49.9,
             "price_label": "R$ 199,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/1/site/landing-page/checkout/5679/0",
             "badge": "",
@@ -1270,10 +1221,6 @@
             "price": 99.9,
             "price_label": "De R$129,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -1293,17 +1240,12 @@
             "price": 49.9,
             "price_label": "R$ 149,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/23/site/landing-page/checkout/5699/0",
             "badge": "",
@@ -1425,10 +1367,6 @@
             "price": 99.9,
             "price_label": "De R$159,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 159,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -1448,17 +1386,12 @@
             "price": 49.9,
             "price_label": "R$ 269,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/9/site/landing-page/checkout/5686/0",
             "badge": "",
@@ -1582,10 +1515,6 @@
             "price": 99.9,
             "price_label": "De R$139,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 139,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -1605,17 +1534,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/3/site/landing-page/checkout/5681/0",
             "badge": "",
@@ -1741,10 +1665,6 @@
             "price": 49.9,
             "price_label": "De R$149,90/mêsPor R$49,90*\n *no 1º mês, depois R$ 149,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -1787,17 +1707,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/22/site/landing-page/checkout/5698/0",
             "badge": "",
@@ -1926,10 +1841,6 @@
             "price": 99.9,
             "price_label": "De R$139,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 139,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -1949,17 +1860,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/10/site/landing-page/checkout/5687/0",
             "badge": "",
@@ -2077,7 +1983,7 @@
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
               "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matícula"
+              "Sem taxa de matrícula"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/14/site/landing-page/checkout/5802/0",
             "badge": "",
@@ -2090,17 +1996,13 @@
             "price": 49.9,
             "price_label": "De R$129,90/mêsPor R$49,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
               "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matícula"
+              "Sem taxa de matrícula"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/14/site/landing-page/checkout/5746/0",
             "badge": "",
@@ -2136,17 +2038,12 @@
             "price": 49.9,
             "price_label": "R$ 159,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/14/site/landing-page/checkout/5690/0",
             "badge": "",
@@ -2335,17 +2232,12 @@
             "price": 49.9,
             "price_label": "R$ 279,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Espaço Contorno Cycling",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/21/site/landing-page/checkout/5697/0",
             "badge": "",
@@ -2473,10 +2365,6 @@
             "price": 159.9,
             "price_label": "R$ 159,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -2496,17 +2384,12 @@
             "price": 49.9,
             "price_label": "R$ 219,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/13/site/landing-page/checkout/5689/0",
             "badge": "",
@@ -2635,10 +2518,6 @@
             "price": 99.9,
             "price_label": "De R$149,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 149,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -2658,17 +2537,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/17/site/landing-page/checkout/5693/0",
             "badge": "",
@@ -2801,10 +2675,6 @@
             "price": 99.9,
             "price_label": "De R$139,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 139,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -2824,17 +2694,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/15/site/landing-page/checkout/5691/0",
             "badge": "",
@@ -2957,10 +2822,6 @@
             "price": 159.9,
             "price_label": "R$ 159,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -2980,17 +2841,12 @@
             "price": 49.9,
             "price_label": "R$ 259,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/2/site/landing-page/checkout/5680/0",
             "badge": "",
@@ -3133,10 +2989,6 @@
             "price": 49.9,
             "price_label": "De R$129,90/mêsPor R$49,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -3156,17 +3008,12 @@
             "price": 49.9,
             "price_label": "R$ 159,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/16/site/landing-page/checkout/5692/0",
             "badge": "",
@@ -3313,10 +3160,6 @@
             "price": 99.9,
             "price_label": "De R$149,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 149,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -3336,17 +3179,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/19/site/landing-page/checkout/5695/0",
             "badge": "",
@@ -3469,10 +3307,6 @@
             "price": 49.9,
             "price_label": "De R$129,90/mêsPor R$49,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -3515,17 +3349,12 @@
             "price": 49.9,
             "price_label": "R$ 179,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/20/site/landing-page/checkout/5696/0",
             "badge": "",
@@ -3656,10 +3485,6 @@
             "price": 159.9,
             "price_label": "R$ 159,90 /mês12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -3679,17 +3504,12 @@
             "price": 49.9,
             "price_label": "R$ 249,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/4/site/landing-page/checkout/5682/0",
             "badge": "",
@@ -3851,10 +3671,6 @@
             "price": 99.9,
             "price_label": "De R$139,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 139,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -3874,17 +3690,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/18/site/landing-page/checkout/5694/0",
             "badge": "",
@@ -4001,10 +3812,6 @@
             "price": 99.9,
             "price_label": "De R$129,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
@@ -4023,16 +3830,11 @@
             "price": 49.9,
             "price_label": "R$ 149,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/25/site/landing-page/checkout/5701/0",
             "badge": "",
@@ -4155,10 +3957,6 @@
             "price": 219.9,
             "price_label": "R$ 219,90 /mês 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
@@ -4177,16 +3975,11 @@
             "price": 49.9,
             "price_label": "R$ 329,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/26/site/landing-page/checkout/453/0",
             "badge": "",
@@ -4318,10 +4111,6 @@
             "price": 149.9,
             "price_label": "R$ 149,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -4341,17 +4130,12 @@
             "price": 49.9,
             "price_label": "R$ 259,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/27/site/landing-page/checkout/5702/0",
             "badge": "",
@@ -4515,10 +4299,6 @@
             "price": 99.9,
             "price_label": "De R$129,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -4538,17 +4318,12 @@
             "price": 49.9,
             "price_label": "R$ 149,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/28/site/landing-page/checkout/5703/0",
             "badge": "",
@@ -4672,10 +4447,6 @@
             "price": 129.9,
             "price_label": "De R$139,90/mêsPor R$129,90*\n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -4695,17 +4466,12 @@
             "price": 49.9,
             "price_label": "R$ 159,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/33/site/landing-page/checkout/5708/0",
             "badge": "",
@@ -4828,10 +4594,6 @@
             "price": 139.9,
             "price_label": "R$ 139,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -4851,17 +4613,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/32/site/landing-page/checkout/5707/0",
             "badge": "",
@@ -4979,10 +4736,6 @@
             "price": 99.9,
             "price_label": "De R$139,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 139,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -5002,17 +4755,12 @@
             "price": 49.9,
             "price_label": "R$ 159,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/31/site/landing-page/checkout/5706/0",
             "badge": "",
@@ -5136,10 +4884,6 @@
             "price": 149.9,
             "price_label": "R$ 149,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -5159,17 +4903,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90/mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/29/site/landing-page/checkout/5704/0",
             "badge": "",
@@ -5293,10 +5032,6 @@
             "price": 49.9,
             "price_label": "De R$129,90/mêsPor R$49,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas Coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -5316,17 +5051,12 @@
             "price": 49.9,
             "price_label": "R$ 169,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas Coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de adesão"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/35/site/landing-page/checkout/5710/0",
             "badge": "",
@@ -5472,10 +5202,6 @@
             "price": 139.9,
             "price_label": "R$ 139,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas Coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -5495,17 +5221,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas Coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/34/site/landing-page/checkout/5709/0",
             "badge": "",
@@ -5627,10 +5348,6 @@
             "price": 139.9,
             "price_label": "R$ 139,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -5650,17 +5367,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/36/site/landing-page/checkout/5711/0",
             "badge": "",
@@ -5791,10 +5503,6 @@
             "price": 149.9,
             "price_label": "R$ 149,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -5814,17 +5522,12 @@
             "price": 49.9,
             "price_label": "R$ 169,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/30/site/landing-page/checkout/5705/0",
             "badge": "",
@@ -5941,10 +5644,6 @@
             "price": 99.9,
             "price_label": "De R$149,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 149,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -5964,17 +5663,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/40/site/landing-page/checkout/5715/0",
             "badge": "",
@@ -6095,10 +5789,6 @@
             "price": 99.9,
             "price_label": "De R$129,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -6118,17 +5808,12 @@
             "price": 49.9,
             "price_label": "R$ 149,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/38/site/landing-page/checkout/5713/0",
             "badge": "",
@@ -6251,10 +5936,6 @@
             "price": 159.9,
             "price_label": "R$ 159,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -6274,17 +5955,12 @@
             "price": 49.9,
             "price_label": "R$ 259,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/37/site/landing-page/checkout/5712/0",
             "badge": "",
@@ -6405,10 +6081,6 @@
             "price": 109.9,
             "price_label": "R$ 109,90 /mês\n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -6428,17 +6100,12 @@
             "price": 49.9,
             "price_label": "R$ 129,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/39/site/landing-page/checkout/5714/0",
             "badge": "",
@@ -6566,10 +6233,6 @@
             "price": 99.9,
             "price_label": "De R$149,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 149,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -6589,17 +6252,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/42/site/landing-page/checkout/5717/0",
             "badge": "",
@@ -6721,10 +6379,6 @@
             "price": 149.9,
             "price_label": "R$ 149,90/mês \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -6744,17 +6398,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/41/site/landing-page/checkout/5716/0",
             "badge": "",
@@ -6877,10 +6526,6 @@
             "price": 99.9,
             "price_label": "De R$139,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 119,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -6900,17 +6545,12 @@
             "price": 49.9,
             "price_label": "R$ 149,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/45/site/landing-page/checkout/5720/0",
             "badge": "",
@@ -7031,10 +6671,6 @@
             "price": 99.9,
             "price_label": "De R$129,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -7054,17 +6690,12 @@
             "price": 49.9,
             "price_label": "R$ 159,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/43/site/landing-page/checkout/5718/0",
             "badge": "",
@@ -7188,10 +6819,6 @@
             "price": 159.9,
             "price_label": "R$ 159,90 /mês12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -7211,17 +6838,12 @@
             "price": 99.9,
             "price_label": "R$ 249,90 /mêsTaxa de matrícula: R$ 99,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/46/site/landing-page/checkout/5721/0",
             "badge": "",
@@ -7342,10 +6964,6 @@
             "price": 99.9,
             "price_label": "De R$149,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 149,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -7365,17 +6983,12 @@
             "price": 99.9,
             "price_label": "R$ 209,90 /mêsTaxa de matrícula: R$ 99,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/44/site/landing-page/checkout/5719/0",
             "badge": "",
@@ -7495,10 +7108,6 @@
             "price": 99.9,
             "price_label": "De R$149,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 149,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -7518,17 +7127,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/49/site/landing-page/checkout/5724/0",
             "badge": "",
@@ -7646,10 +7250,6 @@
             "price": 99.9,
             "price_label": "De R$129,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -7669,17 +7269,12 @@
             "price": 49.9,
             "price_label": "R$ 149,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/48/site/landing-page/checkout/5723/0",
             "badge": "",
@@ -7802,10 +7397,6 @@
             "price": 159.9,
             "price_label": "R$ 159,90 /mês12 Meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -7825,17 +7416,12 @@
             "price": 49.9,
             "price_label": "R$ 249,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/51/site/landing-page/checkout/5725/0",
             "badge": "",
@@ -7959,10 +7545,6 @@
             "price": 49.9,
             "price_label": "De R$129,90/mêsPor R$49,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Espaço Contorno Cycling",
@@ -7981,16 +7563,11 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Espaço Contorno Cycling",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/52/site/landing-page/checkout/5726/0",
             "badge": "",
@@ -8110,10 +7687,6 @@
             "price": 99.9,
             "price_label": "De R$159,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 159,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
@@ -8132,16 +7705,11 @@
             "price": 49.9,
             "price_label": "R$ 249,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/47/site/landing-page/checkout/5722/0",
             "badge": "",
@@ -8267,10 +7835,6 @@
             "price": 129.9,
             "price_label": "De R$139,90/mêsPor R$129,90*\n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -8290,17 +7854,12 @@
             "price": 49.9,
             "price_label": "R$ 139,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/55/site/landing-page/checkout/5729/0",
             "badge": "",
@@ -8422,10 +7981,6 @@
             "price": 99.9,
             "price_label": "De R$129,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -8445,17 +8000,12 @@
             "price": 49.9,
             "price_label": "R$ 149,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Presencial",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/54/site/landing-page/checkout/5728/0",
             "badge": "",
@@ -8574,10 +8124,6 @@
             "price": 99.9,
             "price_label": "De R$139,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 139,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -8597,17 +8143,12 @@
             "price": 49.9,
             "price_label": "R$ 199,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/56/site/landing-page/checkout/5730/0",
             "badge": "",
@@ -8729,10 +8270,6 @@
             "price": 99.9,
             "price_label": "De R$149,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 129,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -8752,17 +8289,12 @@
             "price": 49.9,
             "price_label": "R$ 149,90 /mêsTaxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/53/site/landing-page/checkout/5727/0",
             "badge": "",
@@ -8884,10 +8416,6 @@
             "price": 99.9,
             "price_label": "De R$149,90/mêsPor R$99,90*\n *no 1º mês, depois R$ 149,90 \n 12 meses de fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
@@ -8907,17 +8435,12 @@
             "price": 49.9,
             "price_label": "R$ 249,90 /mês Taxa de matrícula: R$ 49,90 \n Sem fidelidade",
             "benefits": [
-              "1 mapeamento corporal por mês",
-              "Leve 4 amigos por mês para treinar com você",
-              "Treine em todas as unidades CDC (exceto unidades prime)",
-              "Cadeira de Massagem",
               "Aulas coletivas",
               "Musculação e Cárdio",
               "Horário Livre",
               "Contorno Cycling Virtual",
               "App Contorno do Corpo",
-              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
-              "Sem taxa de matrícula"
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
             ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/59/site/landing-page/checkout/5731/0",
             "badge": "",
@@ -9103,7 +8626,15 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/58/site/landing-page/checkout/5875/0",
             "badge": "",
             "featured": ""
@@ -9114,7 +8645,14 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/58/site/landing-page/checkout/5874/0",
             "badge": "",
             "featured": ""
@@ -9154,7 +8692,7 @@
         "state": "MG",
         "neighborhood": "",
         "address": "Av. Tancredo Neves, 2225, Castelo. Em frente à Drogaria Araújo.",
-        "postal_code": "31330-572",
+        "postal_code": "30840-535",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "",
@@ -9288,7 +8826,19 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/60/site/landing-page/checkout/5844/0",
             "badge": "",
             "featured": "1"
@@ -9299,7 +8849,15 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/60/site/landing-page/checkout/5788/0",
             "badge": "",
             "featured": ""
@@ -9310,7 +8868,14 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/60/site/landing-page/checkout/5732/0",
             "badge": "",
             "featured": ""
@@ -9386,7 +8951,19 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/61/site/landing-page/checkout/5450/0",
             "badge": "",
             "featured": "1"
@@ -9397,7 +8974,15 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/61/site/landing-page/checkout/5789/0",
             "badge": "",
             "featured": ""
@@ -9408,7 +8993,14 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/61/site/landing-page/checkout/5271/0",
             "badge": "",
             "featured": ""
@@ -9484,7 +9076,19 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/62/site/landing-page/checkout/5846/0",
             "badge": "",
             "featured": "1"
@@ -9495,7 +9099,15 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/62/site/landing-page/checkout/5790/0",
             "badge": "",
             "featured": ""
@@ -9506,7 +9118,14 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/62/site/landing-page/checkout/5734/0",
             "badge": "",
             "featured": ""
@@ -9582,7 +9201,19 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/63/site/landing-page/checkout/6028/0",
             "badge": "",
             "featured": "1"
@@ -9593,7 +9224,15 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/63/site/landing-page/checkout/6026/0",
             "badge": "",
             "featured": ""
@@ -9604,7 +9243,14 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/63/site/landing-page/checkout/6027/0",
             "badge": "",
             "featured": ""
@@ -9631,7 +9277,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 62,
       "terms": {
-        "city": "Belo Horizonte",
+        "city": "Betim",
         "kind": "standard"
       },
       "fields": {
@@ -9640,15 +9286,15 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Belo Horizonte",
+        "city": "Betim",
         "state": "MG",
         "neighborhood": "Jardim Alterosa",
-        "address": "Av. Campos de Ourique, 1445 - Jardim Alterosa – Belo Horizonte - MG",
+        "address": "Av. Campos de Ourique, 1445 - Jardim Alterosa – Betim - MG",
         "postal_code": "32670-708",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "",
-        "maps_query": "Av. Campos de Ourique, 1445 - Jardim Alterosa – Belo Horizonte - MG",
+        "maps_query": "Av. Campos de Ourique, 1445 - Jardim Alterosa – Betim - MG",
         "latitude": "-19.9476162",
         "longitude": "-44.1602196",
         "image": "/units/xml/campos-ourique-betim/hero-01.png",
@@ -9680,7 +9326,7 @@
         "presale_opening_date": "",
         "presale_promo_text": "",
         "classes_enabled": "",
-        "evo_branch_id": "",
+        "evo_branch_id": "67",
         "classes_url": "",
         "classes_title": "Aulas Coletivas - Horários",
         "erp_id": "32755",
@@ -9842,7 +9488,19 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/65/site/landing-page/checkout/6334/0",
             "badge": "",
             "featured": "1"
@@ -9853,7 +9511,15 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/65/site/landing-page/checkout/6118/0",
             "badge": "",
             "featured": ""
@@ -9864,7 +9530,14 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/65/site/landing-page/checkout/6117/0",
             "badge": "",
             "featured": ""
@@ -9940,7 +9613,19 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/11/site/landing-page/checkout/5800/0",
             "badge": "",
             "featured": "1"
@@ -9951,7 +9636,15 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/11/site/landing-page/checkout/5744/0",
             "badge": "",
             "featured": ""
@@ -9962,7 +9655,14 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/11/site/landing-page/checkout/5688/0",
             "badge": "",
             "featured": ""
@@ -10038,7 +9738,19 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "1 mapeamento corporal por mês",
+              "Leve 4 amigos por mês para treinar com você",
+              "Treine em todas as unidades CDC (exceto unidades prime)",
+              "Cadeira de Massagem",
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/66/site/landing-page/checkout/6347/0",
             "badge": "",
             "featured": "1"
@@ -10049,7 +9761,15 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!",
+              "Sem taxa de matrícula"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/66/site/landing-page/checkout/6349/0",
             "badge": "",
             "featured": ""
@@ -10060,7 +9780,14 @@
             "description": "",
             "price": 0,
             "price_label": "",
-            "benefits": [],
+            "benefits": [
+              "Aulas coletivas",
+              "Musculação e Cárdio",
+              "Horário Livre",
+              "Contorno Cycling Virtual",
+              "App Contorno do Corpo",
+              "NÃO TRAVA O LIMITE DO SEU CARTÃO!"
+            ],
             "checkout_url": "https://checkout.contornodocorpo.com.br/contornodocorpo/66/site/landing-page/checkout/6350/0",
             "badge": "",
             "featured": ""
@@ -10493,7 +10220,7 @@
         "neighborhood": "Castelo",
         "address": "Av. Tancredo Neves, 2225, Castelo, Belo Horizonte",
         "address_complement": "Em frente à Drogaria Araújo.",
-        "postal_code": "",
+        "postal_code": "30840-535",
         "maps_query": "Av. Tancredo Neves, 2225, Castelo - Belo Horizonte",
         "map_embed_url": "https://maps.google.com/maps?q=Av.%20Tancredo%20Neves%2C%202225%2C%20Castelo%20-%20Belo%20Horizonte&t=m&z=14&output=embed&iwloc=near",
         "phone": "",
@@ -10760,7 +10487,7 @@
         "neighborhood": "Buritis",
         "address": "Av. Mário Werneck, 1239, Buritis, Belo Horizonte",
         "address_complement": "Ao lado do Jeronimo/Madero.",
-        "postal_code": "",
+        "postal_code": "30455-610",
         "maps_query": "Av. Professor Mário Werneck, N.1239, Belo Horizonte – MG",
         "map_embed_url": "https://maps.google.com/maps?q=Av.%20Professor%20M%C3%A1rio%20Werneck%2C%20N.1239%2C%20Belo%20Horizonte%20%E2%80%93%20MG&t=m&z=14&output=embed&iwloc=near",
         "phone": "",

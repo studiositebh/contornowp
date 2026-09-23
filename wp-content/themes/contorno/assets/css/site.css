@@ -1532,6 +1532,102 @@ ol {
 	max-width: 44rem;
 }
 
+/* ====================================================================
+ * Documento (politica, termos): coluna de leitura com hierarquia clara.
+ * ================================================================== */
+
+.contorno-page--document .contorno-page__header .site-container,
+.contorno-document {
+	max-width: calc(46rem + 2 * var(--container-px, 1rem));
+	margin-inline: auto;
+	padding-inline: var(--container-px, 1rem);
+}
+
+.contorno-page--document .contorno-page__header {
+	padding-block: var(--space-12) var(--space-8);
+	border-bottom: 1px solid var(--border, #e6e8ea);
+}
+
+.contorno-document {
+	padding-block: var(--space-10) var(--space-20, 5rem);
+	font-size: 1rem;
+	line-height: 1.75;
+	color: #3f4348;
+	overflow-wrap: anywhere;
+}
+
+.contorno-document > :first-child {
+	margin-top: 0;
+}
+
+.contorno-document h2 {
+	margin: var(--space-12) 0 var(--space-4);
+	font-size: var(--text-2xl);
+	line-height: 1.25;
+	color: var(--foreground, #000);
+}
+
+.contorno-document h3 {
+	margin: var(--space-8) 0 var(--space-2);
+	font-size: var(--text-lg);
+	line-height: 1.35;
+	color: var(--foreground, #000);
+}
+
+.contorno-document p {
+	margin: 0 0 var(--space-4);
+}
+
+.contorno-document ul,
+.contorno-document ol {
+	margin: 0 0 var(--space-6);
+	padding-left: 1.25rem;
+}
+
+.contorno-document li {
+	margin-bottom: var(--space-2);
+	padding-left: 0.25rem;
+}
+
+.contorno-document li::marker {
+	color: var(--brand, #10b8b1);
+}
+
+.contorno-document a {
+	color: var(--brand-ink);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* "Ultima atualizacao". */
+.contorno-document > p:last-child {
+	margin-top: var(--space-12);
+	padding-top: var(--space-6);
+	border-top: 1px solid var(--border, #e6e8ea);
+	font-size: var(--text-sm);
+	color: var(--muted-foreground, #949398);
+}
+
+@media (min-width: 768px) {
+	.contorno-document {
+		font-size: 1.0625rem;
+	}
+
+	.contorno-document h2 {
+		font-size: var(--text-3xl);
+	}
+}
+
+/* Ancoras (#estrutura, #planos...) nao ficam escondidas sob o header fixo. */
+.contorno-page [id],
+.site-main section[id] {
+	scroll-margin-top: calc(4.75rem + var(--contorno-admin-offset, 0px) + 1rem);
+}
+
+.contorno-ctn-context .site-main section[id] {
+	scroll-margin-top: 0;
+}
+
 .contorno-editorial {
 	padding-block: var(--space-10);
 }

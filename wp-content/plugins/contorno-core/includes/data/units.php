@@ -163,27 +163,24 @@ function contorno_plan_checkout_url( array $plan, ?int $post_id = null ): string
  *    URL (/matricula/?unidade={slug}&plano={id}). E la que o aluno preenche
  *    os dados antes de ir ao checkout.
  *
- *  - CTN: vai DIRETO ao checkout da EVO cadastrado no plano. A landing CTN
- *    nao tem etapa de dados propria.
+ *  - CTN: mesmo formulario de captura, com a CTN na URL
+ *    (/matricula/?ctn={slug}&plano={id}). O checkout de destino continua
+ *    sendo resolvido no servidor a partir do plano cadastrado — a URL nunca
+ *    carrega o endereco de destino.
  *
  * @param array<string,mixed> $plan
  * @return array{url:string,external:bool}
  */
 function contorno_plan_cta_target( array $plan, int $post_id ): array {
-	$checkout = contorno_plan_checkout_url( $plan, $post_id );
-
-	if ( CONTORNO_CPT_CTN === get_post_type( $post_id ) ) {
-		return array( 'url' => $checkout, 'external' => true );
-	}
-
 	$page = get_page_by_path( 'matricula' );
 	$base = $page instanceof WP_Post ? (string) get_permalink( $page ) : home_url( '/matricula/' );
+	$key  = CONTORNO_CPT_CTN === get_post_type( $post_id ) ? 'ctn' : 'unidade';
 
 	$url = add_query_arg(
 		array_filter(
 			array(
-				'unidade' => (string) get_post_field( 'post_name', $post_id ),
-				'plano'   => isset( $plan['id'] ) ? (string) $plan['id'] : '',
+				$key    => (string) get_post_field( 'post_name', $post_id ),
+				'plano' => isset( $plan['id'] ) ? (string) $plan['id'] : '',
 			)
 		),
 		$base

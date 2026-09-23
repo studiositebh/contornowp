@@ -213,6 +213,8 @@ contorno_add_shortcode(
 				'text'          => '',
 				// O React mostra so eyebrow + H1 + texto; a lista de canais e opcional.
 				'show_channels' => 'no',
+				// "cards": canais lado a lado, sem formulario (pagina Fale Conosco).
+				'layout'        => 'list',
 			),
 			(array) $atts,
 			'contorno_contact_channels'
@@ -234,6 +236,85 @@ contorno_add_shortcode(
 		}
 
 		ob_start();
+
+		/*
+		 * layout="cards": pagina Fale Conosco sem formulario — os canais viram
+		 * cartoes lado a lado (WhatsApp em destaque, e-mail, telefone), empilhados
+		 * no celular. O layout padrao (lista) continua para quem ja o usa.
+		 */
+		if ( 'cards' === $a['layout'] ) {
+			$cards = array();
+
+			if ( '' !== $whatsapp ) {
+				$cards[] = array(
+					'key'      => 'whatsapp',
+					'label'    => __( 'WhatsApp', 'contorno' ),
+					'value'    => $display,
+					'text'     => __( 'Atendimento mais rápido: fale com a nossa equipe agora.', 'contorno' ),
+					'cta'      => __( 'Chamar no WhatsApp', 'contorno' ),
+					'url'      => $whatsapp,
+					'external' => true,
+				);
+			}
+
+			if ( '' !== $email ) {
+				$cards[] = array(
+					'key'      => 'email',
+					'label'    => __( 'E-mail', 'contorno' ),
+					'value'    => $email,
+					'text'     => __( 'Para dúvidas, sugestões e assuntos que pedem mais detalhes.', 'contorno' ),
+					'cta'      => __( 'Enviar e-mail', 'contorno' ),
+					'url'      => 'mailto:' . $email,
+					'external' => false,
+				);
+			}
+
+			if ( '' !== $display ) {
+				$cards[] = array(
+					'key'      => 'phone',
+					'label'    => __( 'Telefone', 'contorno' ),
+					'value'    => $display,
+					'text'     => __( 'Prefere conversar? Ligue para a nossa central.', 'contorno' ),
+					'cta'      => __( 'Ligar agora', 'contorno' ),
+					'url'      => 'tel:+55' . $digits,
+					'external' => false,
+				);
+			}
+			?>
+			<div class="contorno-channels contorno-channels--cards motion-reveal" data-contorno-reveal>
+				<?php echo str_replace( array( '<h2 class="contorno-section-header__title">', '</h2>' ), array( '<h1 class="contorno-section-header__title contorno-channels__title">', '</h1>' ), contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+
+				<ul class="contorno-channels__cards">
+					<?php foreach ( $cards as $card ) : ?>
+						<li class="contorno-channel-card is-<?php echo esc_attr( $card['key'] ); ?>">
+							<a
+								class="contorno-channel-card__link"
+								href="<?php echo 'email' === $card['key'] || 'phone' === $card['key'] ? esc_attr( $card['url'] ) : esc_url( $card['url'] ); ?>"
+								<?php echo $card['external'] ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
+							>
+								<span class="contorno-channel-card__icon" aria-hidden="true">
+									<?php if ( 'whatsapp' === $card['key'] ) : ?>
+										<svg viewBox="0 0 24 24" fill="currentColor" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.174.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.174-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.05-.52-.099-.148-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.695.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413"/></svg>
+									<?php else : ?>
+										<?php echo contorno_icon( 'email' === $card['key'] ? 'mail' : 'phone', 'contorno-channel-card__svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+									<?php endif; ?>
+								</span>
+								<span class="contorno-channel-card__label"><?php echo esc_html( $card['label'] ); ?></span>
+								<span class="contorno-channel-card__value"><?php echo esc_html( $card['value'] ); ?></span>
+								<span class="contorno-channel-card__text"><?php echo esc_html( $card['text'] ); ?></span>
+								<span class="contorno-channel-card__cta cta-label">
+									<?php echo esc_html( $card['cta'] ); ?>
+									<?php echo contorno_icon( 'arrow-right', 'contorno-channel-card__arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								</span>
+							</a>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</div>
+			<?php
+
+			return (string) ob_get_clean();
+		}
 		?>
 		<div class="contorno-channels motion-reveal" data-contorno-reveal>
 			<?php echo str_replace( array( '<h2 class="contorno-section-header__title">', '</h2>' ), array( '<h1 class="contorno-section-header__title contorno-channels__title">', '</h1>' ), contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

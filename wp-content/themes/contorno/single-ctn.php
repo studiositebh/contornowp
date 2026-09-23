@@ -54,6 +54,8 @@ while ( have_posts() ) :
 				'align'   => 'center',
 				'columns' => 4,
 				'tone'    => 'ctn',
+				// Destino do botao "Conheca a estrutura" do hero (#estrutura).
+				'anchor'  => 'estrutura',
 			)
 		);
 

@@ -965,6 +965,11 @@
 	transition: transform 300ms var(--motion-ease), border-color 300ms var(--motion-ease), box-shadow 300ms var(--motion-ease);
 }
 
+/* display:flex acima venceria o atributo hidden da busca. */
+.ctn-hub-card[hidden] {
+	display: none;
+}
+
 .ctn-hub-card:hover {
 	transform: translateY(-2px);
 	border-color: rgb(16 184 177 / 0.7);
@@ -1057,6 +1062,22 @@
 	height: 2.75rem;
 	margin-top: auto;
 	border-radius: var(--radius-md);
+}
+
+/* Respiro entre os atributos (ou a localizacao) e o CTA; o margin-top:auto
+   do botao continua alinhando os CTAs na base dos cards. */
+.ctn-hub-card__body > :nth-last-child(2) {
+	margin-bottom: 1.75rem;
+}
+
+.ctn-hub-search__notice {
+	margin: 2rem 0 0;
+	padding: 0.875rem 1rem;
+	border-left: 3px solid var(--brand);
+	border-radius: var(--radius-md);
+	background: rgb(255 255 255 / 0.05);
+	font-size: var(--text-sm);
+	color: rgb(255 255 255 / 0.8);
 }
 
 .ctn-hub-search__empty {

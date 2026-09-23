@@ -685,11 +685,32 @@ final class Contorno_Migration {
 			}
 		}
 
-		foreach ( $items as $item ) {
+		foreach ( $items as $position => $item ) {
 			$label = (string) ( $item['label'] ?? '' );
 			$path  = (string) ( $item['path'] ?? '' );
+			$url   = (string) ( $item['url'] ?? '' );
 
 			if ( '' === $label || in_array( $label, $titles, true ) ) {
+				continue;
+			}
+
+			// Link externo (ex.: Trabalhe Conosco no Google Forms): vai direto,
+			// sem pagina intermediaria. Posicao do dataset preservada.
+			if ( 1 === preg_match( '#^https://#', $url ) ) {
+				wp_update_nav_menu_item(
+					$menu->term_id,
+					0,
+					array(
+						'menu-item-title'    => $label,
+						'menu-item-url'      => esc_url_raw( $url ),
+						'menu-item-type'     => 'custom',
+						'menu-item-status'   => 'publish',
+						'menu-item-target'   => '_blank' === ( $item['target'] ?? '' ) ? '_blank' : '',
+						'menu-item-xfn'      => '_blank' === ( $item['target'] ?? '' ) ? 'noopener' : '',
+						'menu-item-position' => (int) $position + 1,
+					)
+				);
+				$this->report->bump( 'menu_items' );
 				continue;
 			}
 

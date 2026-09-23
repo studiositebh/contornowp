@@ -38,10 +38,17 @@ const CONTORNO_ENROLL_ACTION = 'contorno_enroll';
  * @return array{unit:?WP_Post,plan:array<string,mixed>|null}
  */
 function contorno_enrollment_context(): array {
-	$slug = isset( $_GET['unidade'] ) ? sanitize_title( wp_unslash( (string) $_GET['unidade'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$plan_id = isset( $_GET['plano'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['plano'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$slug     = isset( $_GET['unidade'] ) ? sanitize_title( wp_unslash( (string) $_GET['unidade'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$ctn_slug = isset( $_GET['ctn'] ) ? sanitize_title( wp_unslash( (string) $_GET['ctn'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$plan_id  = isset( $_GET['plano'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['plano'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-	$unit = '' !== $slug ? contorno_get_unit_by_slug( $slug ) : null;
+	// Planos CTN passam pela mesma captura: o "unit" do contexto vira o post
+	// da CTN, e os planos (e o checkout) saem do registro dela.
+	if ( '' === $slug && '' !== $ctn_slug ) {
+		$unit = contorno_get_ctn_by_slug( $ctn_slug );
+	} else {
+		$unit = '' !== $slug ? contorno_get_unit_by_slug( $slug ) : null;
+	}
 
 	if ( ! $unit instanceof WP_Post ) {
 		return array( 'unit' => null, 'plan' => null );
@@ -195,7 +202,8 @@ contorno_add_shortcode(
 				>
 					<?php wp_nonce_field( CONTORNO_ENROLL_ACTION, 'contorno_nonce' ); ?>
 					<input type="hidden" name="contorno_form" value="<?php echo esc_attr( CONTORNO_ENROLL_ACTION ); ?>" />
-					<input type="hidden" name="unidade" value="<?php echo esc_attr( $unit instanceof WP_Post ? (string) $unit->post_name : '' ); ?>" />
+					<?php $is_ctn = $unit instanceof WP_Post && CONTORNO_CPT_CTN === $unit->post_type; ?>
+					<input type="hidden" name="<?php echo $is_ctn ? 'ctn' : 'unidade'; ?>" value="<?php echo esc_attr( $unit instanceof WP_Post ? (string) $unit->post_name : '' ); ?>" />
 					<input type="hidden" name="plano" value="<?php echo esc_attr( $plan ? (string) ( $plan['id'] ?? '' ) : '' ); ?>" />
 					<?php /* Honeypot. */ ?>
 					<input type="text" name="website" class="contorno-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true" />

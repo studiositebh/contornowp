@@ -15,8 +15,11 @@ get_header();
 
 while ( have_posts() ) :
 	the_post();
+
+	// Texto corrido, sem shortcodes (politica, termos, regulamentos): coluna de leitura.
+	$contorno_is_document = false === strpos( (string) get_post_field( 'post_content' ), '[' );
 	?>
-	<article class="contorno-page" id="post-<?php the_ID(); ?>">
+	<article class="contorno-page<?php echo $contorno_is_document ? ' contorno-page--document' : ''; ?>" id="post-<?php the_ID(); ?>">
 		<?php if ( ! is_front_page() && ! contorno_page_hides_title() ) : ?>
 			<header class="contorno-page__header">
 				<div class="site-container">
@@ -39,7 +42,7 @@ while ( have_posts() ) :
 				</div>
 			</div>
 		<?php else : ?>
-			<div class="contorno-page__content">
+			<div class="contorno-page__content<?php echo $contorno_is_document ? ' contorno-document' : ''; ?>">
 				<?php the_content(); ?>
 			</div>
 		<?php endif; ?>

@@ -77,9 +77,13 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 			<?php endif; ?>
 
 			<?php if ( isset( $args['distance'] ) && is_numeric( $args['distance'] ) ) : ?>
-				<?php /* Busca por CEP: distancia em linha reta ate o ponto pesquisado. */ ?>
+				<?php /* Busca por CEP: distancia em linha reta ate o ponto pesquisado (ou ate o centro da regiao, quando o CEP exato nao existe). */ ?>
 				<p class="unit-card__distance">
-					<?php echo esc_html( sprintf( /* translators: %s: formatted distance */ __( 'a %s de você', 'contorno' ), contorno_format_distance( (float) $args['distance'] ) ) ); ?>
+					<?php if ( ! empty( $args['distance_approx'] ) ) : ?>
+						<?php echo esc_html( sprintf( /* translators: %s: approximate distance */ __( '%s da região do CEP', 'contorno' ), contorno_format_distance_approx( (float) $args['distance'] ) ) ); ?>
+					<?php else : ?>
+						<?php echo esc_html( sprintf( /* translators: %s: formatted distance */ __( 'a %s de você', 'contorno' ), contorno_format_distance( (float) $args['distance'] ) ) ); ?>
+					<?php endif; ?>
 				</p>
 			<?php endif; ?>
 
@@ -213,18 +217,36 @@ contorno_add_shortcode(
 		$units = contorno_get_units( $query_args );
 
 		// Busca por CEP: o termo vira lat/lng e a lista passa a ser ordenada
-		// por distancia, limitada ao raio escolhido (?raio=). Um CEP que nao
-		// resolve avisa o visitante e cai na busca textual comum.
+		// por distancia, limitada ao raio escolhido (?raio=). CEP que nao
+		// existe na base cai na regiao dele (CEP do setor / codigo postal) com
+		// distancia marcada como aproximada; sem regiao, nas unidades da mesma
+		// faixa de CEP (sem distancia). So sem nada disso o visitante ve o aviso.
 		$radius           = contorno_geo_requested_radius();
 		$geo_origin       = null;
 		$geo_cep          = $is_catalog_mode ? contorno_cep_digits( $search_query ) : '';
 		$geo_failed       = false;
 		$geo_fallback     = false;
+		$geo_approx       = false;
+		$geo_prefix       = false;
 		$distances        = array();
 
 		if ( '' !== $geo_cep ) {
 			$geo_origin = contorno_geocode_cep( $geo_cep );
-			$geo_failed = null === $geo_origin;
+
+			if ( null === $geo_origin ) {
+				$geo_origin = contorno_geocode_cep_region( $geo_cep );
+				$geo_approx = null !== $geo_origin;
+			}
+
+			if ( null === $geo_origin ) {
+				$nearby     = contorno_units_by_cep_prefix( $units, $geo_cep );
+				$geo_prefix = array() !== $nearby;
+				$geo_failed = ! $geo_prefix;
+
+				if ( $geo_prefix ) {
+					$units = $nearby;
+				}
+			}
 		}
 
 		if ( null !== $geo_origin ) {
@@ -241,7 +263,7 @@ contorno_add_shortcode(
 				$units[]                      = $row['post'];
 				$distances[ $row['post']->ID ] = $row['distance'];
 			}
-		} elseif ( $is_catalog_mode && '' !== trim( $search_query ) ) {
+		} elseif ( ! $geo_prefix && $is_catalog_mode && '' !== trim( $search_query ) ) {
 			$needle = contorno_normalize_search( $search_query );
 			$digits = preg_replace( '/\D/', '', $needle );
 			$digits = is_string( $digits ) ? $digits : '';
@@ -318,7 +340,16 @@ contorno_add_shortcode(
 					<?php if ( $has_count ) : ?>
 						<p class="contorno-units__count">
 							<?php
-							if ( null !== $geo_origin && ! $geo_fallback ) {
+							if ( null !== $geo_origin && ! $geo_fallback && $geo_approx ) {
+								echo esc_html(
+									sprintf(
+										/* translators: 1: units count, 2: place name */
+										_n( '%1$d unidade próxima da região de %2$s', '%1$d unidades próximas da região de %2$s', $total_units, 'contorno' ),
+										$total_units,
+										$geo_origin['label']
+									)
+								);
+							} elseif ( null !== $geo_origin && ! $geo_fallback ) {
 								echo esc_html(
 									sprintf(
 										/* translators: 1: units count, 2: radius in km, 3: place name */
@@ -377,6 +408,31 @@ contorno_add_shortcode(
 					);
 					?>
 				</p>
+			<?php elseif ( $geo_prefix ) : ?>
+				<p class="contorno-units__notice" role="status">
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: %s: formatted CEP */
+							__( 'Não localizamos o CEP %s exato. Estas são as unidades com CEP da mesma região:', 'contorno' ),
+							contorno_format_cep( $geo_cep )
+						)
+					);
+					?>
+				</p>
+			<?php elseif ( $geo_approx ) : ?>
+				<p class="contorno-units__notice" role="status">
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: 1: formatted CEP, 2: place name */
+							__( 'Não localizamos o CEP %1$s exato. Mostrando as unidades mais próximas da região de %2$s — distâncias aproximadas.', 'contorno' ),
+							contorno_format_cep( $geo_cep ),
+							$geo_origin['label']
+						)
+					);
+					?>
+				</p>
 			<?php elseif ( $geo_fallback ) : ?>
 				<p class="contorno-units__notice" role="status">
 					<?php
@@ -407,7 +463,7 @@ contorno_add_shortcode(
 								data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 								data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
 							>
-								<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta, 'distance' => $distances[ $unit->ID ] ?? null ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta, 'distance' => $distances[ $unit->ID ] ?? null, 'distance_approx' => $geo_approx ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</div>
 						<?php endforeach; ?>
 					</div>
@@ -428,7 +484,7 @@ contorno_add_shortcode(
 							data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 							data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
 						>
-							<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta, 'distance' => $distances[ $unit->ID ] ?? null ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta, 'distance' => $distances[ $unit->ID ] ?? null, 'distance_approx' => $geo_approx ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						</div>
 					<?php endforeach; ?>
 				</div>
@@ -875,6 +931,8 @@ contorno_add_shortcode(
 				'tone'    => 'light',
 				'field'   => 'gallery',
 				'align'   => 'left',
+				// Id da secao (destino de ancoras). A CTN usa "estrutura" (botao do hero).
+				'anchor'  => 'galeria',
 			),
 			(array) $atts,
 			'contorno_gallery'
@@ -894,7 +952,7 @@ contorno_add_shortcode(
 		contorno_enqueue_component( 'lightbox' );
 
 		ob_start();
-		echo contorno_section_open( 'gallery', array( 'tone' => (string) $a['tone'], 'id' => 'galeria', 'class' => 'unit-gallery-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo contorno_section_open( 'gallery', array( 'tone' => (string) $a['tone'], 'id' => sanitize_html_class( (string) $a['anchor'], 'galeria' ), 'class' => 'unit-gallery-section' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'], (string) $a['align'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<div class="contorno-gallery is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-lightbox data-contorno-reveal>
@@ -1046,7 +1104,7 @@ contorno_add_shortcode(
 					<?php endif; ?>
 
 					<?php
-					// Unidade -> /matricula; CTN -> checkout direto da EVO.
+					// Unidade e CTN -> /matricula (captura do lead) -> checkout da EVO do plano.
 					$target = contorno_plan_cta_target( $plan, $post_id );
 					echo contorno_button( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						$cta_label,

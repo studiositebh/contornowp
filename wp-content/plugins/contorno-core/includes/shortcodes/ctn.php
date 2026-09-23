@@ -51,16 +51,17 @@ contorno_add_shortcode(
 			array(
 				'eyebrow'          => 'Centros de Treinamento Contorno',
 				'title'            => 'Alta performance tem endereço.',
-				'subtitle'         => 'YOUR ONLY LIMIT IS YOU. O maior e mais completo CT de BH espera por você.',
+				'subtitle'         => 'SEU ÚNICO LIMITE É VOCÊ MESMO! O maior e mais completo Centro de Treinamento espera por você.',
 				'image'            => '/ctn/hub-hero.jpg',
-				'cta_label'        => 'Encontre sua CTN',
-				'puv_eyebrow'      => 'Proposta de valor',
+				'cta_label'        => 'Encontre seu CTN',
+				// Rotulo removido a pedido do cliente; o atributo segue aceito no builder.
+				'puv_eyebrow'      => '',
 				'puv_title'        => 'YOUR ONLY LIMIT IS YOU',
 				'puv_text'         => 'YOUR ONLY LIMIT IS YOU. Equipamentos de marcas líderes em um ambiente premium.',
 				'puv_image'        => '/ctn/institucional/leg-press-realleader.jpg',
 				'puv_image_alt'    => 'Leg Press Realleader dourado — equipamento de alto nível dos Centros de Treinamento Contorno',
-				'search_label'     => 'Encontre uma CTN',
-				'search_placeholder' => 'Busque por bairro, cidade ou CEP',
+				'search_label'     => 'Encontre um CTN',
+				'search_placeholder' => 'Busque por nome, bairro, cidade ou CEP',
 			),
 			(array) $atts,
 			'ctn_hub'
@@ -92,7 +93,9 @@ contorno_add_shortcode(
 			<section class="ctn-hub-puv">
 				<div class="site-container ctn-hub-puv__grid">
 					<div class="motion-reveal" data-contorno-reveal>
-						<p class="ctn-hub__eyebrow"><?php echo esc_html( (string) $a['puv_eyebrow'] ); ?></p>
+						<?php if ( '' !== trim( (string) $a['puv_eyebrow'] ) ) : ?>
+							<p class="ctn-hub__eyebrow"><?php echo esc_html( (string) $a['puv_eyebrow'] ); ?></p>
+						<?php endif; ?>
 						<h2 class="ctn-hub-puv__title"><?php echo esc_html( (string) $a['puv_title'] ); ?></h2>
 						<p class="ctn-hub-puv__text"><?php echo esc_html( (string) $a['puv_text'] ); ?></p>
 					</div>
@@ -113,6 +116,7 @@ contorno_add_shortcode(
 							<input id="ctn-search" type="search" placeholder="<?php echo esc_attr( (string) $a['search_placeholder'] ); ?>" data-ctn-filter />
 						</div>
 					</div>
+					<p class="ctn-hub-search__notice" data-ctn-notice role="status" hidden></p>
 					<div class="ctn-hub-grid" data-ctn-grid>
 						<?php foreach ( $ctns as $ctn ) : ?>
 							<?php
@@ -125,13 +129,22 @@ contorno_add_shortcode(
 										contorno_field_text( 'short_name', $ctn->ID ),
 										contorno_field_text( 'neighborhood', $ctn->ID ),
 										contorno_field_text( 'city', $ctn->ID ),
+										contorno_field_text( 'address', $ctn->ID ),
 										contorno_field_text( 'postal_code', $ctn->ID ),
 									)
 								)
 							);
 							$highlights = array_slice( array_map( 'strval', contorno_field_list( 'highlights', $ctn->ID ) ), 0, 3 );
+							$postal     = (string) preg_replace( '/\D/', '', contorno_field_text( 'postal_code', $ctn->ID ) );
+							$place      = trim( contorno_field_text( 'city', $ctn->ID ) . ' - ' . contorno_field_text( 'state', $ctn->ID ), ' -' );
 							?>
-							<article class="ctn-hub-card" data-ctn-card data-search="<?php echo esc_attr( remove_accents( strtolower( $terms ) ) ); ?>">
+							<article
+								class="ctn-hub-card"
+								data-ctn-card
+								data-search="<?php echo esc_attr( remove_accents( strtolower( $terms ) ) ); ?>"
+								data-postal="<?php echo esc_attr( $postal ); ?>"
+								data-place="<?php echo esc_attr( $place ); ?>"
+							>
 								<a class="ctn-hub-card__media" href="<?php echo esc_url( (string) get_permalink( $ctn->ID ) ); ?>">
 									<?php if ( '' !== $image ) : ?>
 										<img src="<?php echo esc_url( $image ); ?>" alt="" loading="lazy" decoding="async" />
@@ -153,7 +166,7 @@ contorno_add_shortcode(
 							</article>
 						<?php endforeach; ?>
 					</div>
-					<p class="ctn-hub-search__empty" data-ctn-empty hidden>Nenhuma CTN encontrada. Tente outro bairro ou cidade.</p>
+					<p class="ctn-hub-search__empty" data-ctn-empty hidden>Nenhum CTN encontrado. Tente outro nome, bairro, cidade ou CEP.</p>
 				</div>
 			</section>
 		</div>
@@ -164,16 +177,31 @@ contorno_add_shortcode(
 			const input = root.querySelector('[data-ctn-filter]');
 			const cards = [...root.querySelectorAll('[data-ctn-card]')];
 			const empty = root.querySelector('[data-ctn-empty]');
+			const notice = root.querySelector('[data-ctn-notice]');
 			root.querySelector('[data-ctn-scroll]')?.addEventListener('click', () => root.querySelector('#ctn-busca')?.scrollIntoView({ behavior: 'smooth' }));
+			// Texto (nome, bairro, cidade, endereco) ou CEP com/sem hifen. CEP
+			// completo sem CTN no mesmo setor (5 digitos) mostra os CTNs da mesma
+			// faixa estadual de CEP (1o digito), avisando que nao e o CEP exato.
 			input?.addEventListener('input', () => {
-				const term = input.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-				let visible = 0;
-				cards.forEach((card) => {
-					const show = !term || card.dataset.search.includes(term);
-					card.hidden = !show;
-					if (show) visible += 1;
+				const raw = input.value.trim();
+				const term = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+				const digits = /^[\d.\-\s]+$/.test(raw) ? raw.replace(/\D/g, '') : '';
+				let matches = cards.filter((card) => {
+					if (!term) return true;
+					if (digits.length >= 5) return (card.dataset.postal || '').startsWith(digits.slice(0, 5));
+					return card.dataset.search.includes(term);
 				});
-				if (empty) empty.hidden = visible > 0;
+				let message = '';
+				if (!matches.length && digits.length === 8) {
+					matches = cards.filter((card) => (card.dataset.postal || '').charAt(0) === digits.charAt(0));
+					if (matches.length) {
+						const places = [...new Set(matches.map((card) => card.dataset.place).filter(Boolean))].join(', ');
+						message = 'N\u00e3o h\u00e1 CTN no CEP ' + digits.slice(0, 5) + '-' + digits.slice(5) + '. Estes s\u00e3o os CTNs da sua regi\u00e3o' + (places ? ' (' + places + ')' : '') + ':';
+					}
+				}
+				cards.forEach((card) => { card.hidden = !matches.includes(card); });
+				if (notice) { notice.textContent = message; notice.hidden = !message; }
+				if (empty) empty.hidden = matches.length > 0;
 			});
 		})();
 		</script>

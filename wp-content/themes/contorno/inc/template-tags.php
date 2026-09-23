@@ -62,6 +62,12 @@ function contorno_default_nav_fallback(): void {
 			esc_html( $label )
 		);
 	}
+	// Trabalhe Conosco: formulario externo (Google Forms), sem pagina intermediaria.
+	printf(
+		'<li><a href="%s" target="_blank" rel="noopener"><span class="site-nav-link">%s</span></a></li>',
+		esc_url( 'https://docs.google.com/forms/d/e/1FAIpQLSdj30Lq4C-BdmtYMmduQsxlEiAOzvUMQU_fI15EgAYpqSK1cQ/viewform' ),
+		esc_html__( 'Trabalhe Conosco', 'contorno' )
+	);
 	echo '</ul>';
 }
 

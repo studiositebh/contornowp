@@ -106,6 +106,18 @@ function contorno_format_distance( float $km ): string {
 }
 
 /**
+ * Distancia a partir de um ponto aproximado (centro da regiao do CEP):
+ * arredonda para km inteiro — nao ha precisao para mais que isso.
+ */
+function contorno_format_distance_approx( float $km ): string {
+	if ( $km < 1 ) {
+		return __( 'menos de 1 km', 'contorno' );
+	}
+
+	return sprintf( /* translators: %s: kilometers */ __( 'cerca de %s km', 'contorno' ), number_format_i18n( round( $km ) ) );
+}
+
+/**
  * Raio pedido na URL, limitado as opcoes conhecidas.
  */
 function contorno_geo_requested_radius(): int {
@@ -329,6 +341,128 @@ function contorno_geocode_cep_uncached( string $digits ): ?array {
 	}
 
 	return $last_resort;
+}
+
+/**
+ * Ponto aproximado de um CEP que nao existe na base (digitado errado, CEP
+ * novo, loteamento). Os 5 primeiros digitos sao o setor/subsetor dos
+ * Correios, entao o CEP geral do setor (XXXXX-000) cai na mesma regiao.
+ *
+ * Ordem: CEP do setor pelo ViaCEP -> codigo postal no Nominatim (o exato e o
+ * do setor). Quem chama deve tratar o resultado como APROXIMADO: e o centro
+ * da regiao, nao o endereco do visitante.
+ *
+ * @return array{lat: float, lng: float, label: string}|null
+ */
+function contorno_geocode_cep_region( string $cep ): ?array {
+	$digits = contorno_cep_digits( $cep );
+
+	if ( '' === $digits ) {
+		return null;
+	}
+
+	$sector = substr( $digits, 0, 5 ) . '000';
+
+	if ( $sector !== $digits ) {
+		$hit = contorno_geocode_cep( $sector );
+
+		if ( null !== $hit ) {
+			return $hit;
+		}
+	}
+
+	$cache_key = 'contorno_geo_region_' . $digits;
+	$cached    = get_transient( $cache_key );
+
+	if ( is_array( $cached ) ) {
+		return isset( $cached['lat'] ) ? $cached : null;
+	}
+
+	$result = null;
+
+	foreach ( array_unique( array( $digits, $sector ) ) as $candidate ) {
+		$data = contorno_geo_fetch_json(
+			'https://nominatim.openstreetmap.org/search?' . http_build_query(
+				array(
+					'format'         => 'jsonv2',
+					'limit'          => 1,
+					'countrycodes'   => 'br',
+					'postalcode'     => contorno_format_cep( $candidate ),
+					'addressdetails' => 1,
+				)
+			)
+		);
+
+		if ( ! empty( $data[0]['lat'] ) && ! empty( $data[0]['lon'] ) ) {
+			$address = (array) ( $data[0]['address'] ?? array() );
+			$city    = (string) ( $address['city'] ?? $address['town'] ?? $address['village'] ?? $address['municipality'] ?? '' );
+			$result  = array(
+				'lat'   => (float) $data[0]['lat'],
+				'lng'   => (float) $data[0]['lon'],
+				'label' => '' !== $city ? contorno_geo_cep_label( (string) ( $address['suburb'] ?? '' ), $city, contorno_geo_state_code( (string) ( $address['ISO3166-2-lvl4'] ?? '' ) ) ) : contorno_format_cep( $candidate ),
+			);
+			break;
+		}
+	}
+
+	set_transient( $cache_key, null === $result ? array( 'miss' => true ) : $result, null === $result ? HOUR_IN_SECONDS : 30 * DAY_IN_SECONDS );
+
+	return $result;
+}
+
+/**
+ * "BR-MG" -> "MG".
+ */
+function contorno_geo_state_code( string $iso ): string {
+	return 1 === preg_match( '/^BR-([A-Z]{2})$/', $iso, $match ) ? $match[1] : '';
+}
+
+/**
+ * Ultimo recurso da busca por CEP, sem rede: unidades cujo CEP compartilha
+ * o maior prefixo com o CEP pesquisado (mesma sub-regiao postal). Sem
+ * distancia — so a ordem por proximidade de faixa de CEP.
+ *
+ * @param WP_Post[] $units
+ * @return WP_Post[]
+ */
+function contorno_units_by_cep_prefix( array $units, string $cep, int $min_prefix = 3, int $limit = 6 ): array {
+	$digits = contorno_cep_digits( $cep );
+
+	if ( '' === $digits ) {
+		return array();
+	}
+
+	$ranked = array();
+
+	foreach ( $units as $unit ) {
+		$postal = contorno_unit_postal_digits( $unit->ID );
+
+		if ( 8 !== strlen( $postal ) ) {
+			continue;
+		}
+
+		$prefix = 0;
+		while ( $prefix < 8 && $postal[ $prefix ] === $digits[ $prefix ] ) {
+			++$prefix;
+		}
+
+		if ( $prefix < $min_prefix ) {
+			continue;
+		}
+
+		$ranked[] = array(
+			'post'   => $unit,
+			'prefix' => $prefix,
+			'gap'    => abs( (int) $postal - (int) $digits ),
+		);
+	}
+
+	usort(
+		$ranked,
+		static fn ( array $a, array $b ): int => array( $b['prefix'], $a['gap'] ) <=> array( $a['prefix'], $b['gap'] )
+	);
+
+	return array_map( static fn ( array $row ): WP_Post => $row['post'], array_slice( $ranked, 0, $limit ) );
 }
 
 function contorno_geo_cep_label( string $neighborhood, string $city, string $state ): string {
