@@ -3212,7 +3212,8 @@
 	outline-color: #128c4a;
 }
 
-/* Tablet: WhatsApp em linha inteira (horizontal), e-mail e telefone abaixo. */
+/* Tablet e desktop: subgrid — icone, rotulo, valor, texto e CTA ficam na
+   mesma linha em todos os cartoes da fileira, sem margens manuais. */
 @media (min-width: 768px) {
 	.contorno-contact-hub {
 		padding-block: 5.5rem 7rem;
@@ -3236,7 +3237,24 @@
 	}
 
 	.contorno-contact-card {
+		display: grid;
+		grid-row: span 5;
+		grid-template-rows: subgrid;
+		row-gap: 0;
 		padding: 1.75rem;
+	}
+
+	.contorno-contact-card__body {
+		display: contents;
+	}
+
+	.contorno-contact-card__label {
+		margin-top: 1.5rem;
+	}
+
+	.contorno-contact-card__action {
+		align-self: end;
+		margin-top: 1.75rem;
 	}
 
 	.contorno-contact-card__badge {
@@ -3245,8 +3263,13 @@
 	}
 }
 
+/* Tablet: WhatsApp em linha inteira e horizontal (icone | texto | CTA);
+   e-mail e telefone lado a lado abaixo. O selo entra no fluxo do texto
+   para nunca encostar no CTA. */
 @media (min-width: 768px) and (max-width: 1199px) {
 	.contorno-contact-card.is-whatsapp {
+		display: flex;
+		grid-row: auto;
 		grid-column: 1 / -1;
 		flex-direction: row;
 		align-items: center;
@@ -3254,11 +3277,23 @@
 	}
 
 	.contorno-contact-card.is-whatsapp .contorno-contact-card__body {
+		display: block;
+		margin-top: 0;
+	}
+
+	.contorno-contact-card.is-whatsapp .contorno-contact-card__badge {
+		position: static;
+		display: inline-block;
+		margin-bottom: 0.5rem;
+	}
+
+	.contorno-contact-card.is-whatsapp .contorno-contact-card__label {
 		margin-top: 0;
 	}
 
 	.contorno-contact-card.is-whatsapp .contorno-contact-card__action {
 		flex: none;
+		align-self: center;
 		margin-top: 0;
 	}
 
@@ -3268,8 +3303,7 @@
 	}
 }
 
-/* Desktop: tres colunas com subgrid — icone, rotulo, valor, texto e CTA
-   ficam na mesma linha nos tres cartoes, sem margens manuais. */
+/* Desktop: tres colunas. */
 @media (min-width: 1200px) {
 	.contorno-contact-hub {
 		padding-block: 6.5rem 8.5rem;
@@ -3281,29 +3315,12 @@
 	}
 
 	.contorno-contact-card {
-		display: grid;
-		grid-row: span 5;
-		grid-template-rows: subgrid;
-		row-gap: 0;
 		padding: 2rem;
-	}
-
-	.contorno-contact-card__body {
-		display: contents;
-	}
-
-	.contorno-contact-card__label {
-		margin-top: 1.5rem;
 	}
 
 	/* O e-mail inteiro cabe numa linha na coluna de 1/3 (valor igual nos tres). */
 	.contorno-contact-card__value {
 		font-size: 1.0625rem;
-	}
-
-	.contorno-contact-card__action {
-		align-self: end;
-		margin-top: 1.75rem;
 	}
 
 	.contorno-contact-card__badge {

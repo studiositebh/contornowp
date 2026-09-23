@@ -312,11 +312,10 @@ contorno_add_shortcode(
 										<?php endif; ?>
 									</span>
 
-									<?php if ( 'whatsapp' === $card['key'] ) : ?>
-										<span class="contorno-contact-card__badge"><?php esc_html_e( 'Mais rápido', 'contorno' ); ?></span>
-									<?php endif; ?>
-
 									<div class="contorno-contact-card__body">
+										<?php if ( 'whatsapp' === $card['key'] ) : ?>
+											<span class="contorno-contact-card__badge"><?php esc_html_e( 'Mais rápido', 'contorno' ); ?></span>
+										<?php endif; ?>
 										<p class="contorno-contact-card__label"><?php echo esc_html( $card['label'] ); ?></p>
 										<?php /* E-mail longo quebra so depois do "@", nunca no meio do dominio. */ ?>
 										<p class="contorno-contact-card__value"><?php echo str_replace( '@', '@<wbr>', esc_html( $card['value'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
