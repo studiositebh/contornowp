@@ -679,7 +679,10 @@ contorno_add_shortcode(
 
 					<div class="unit-hero__actions motion-hero-actions">
 						<?php echo contorno_button( __( 'Matricule-se agora', 'contorno' ), $enroll_url, 'primary', array( 'class' => 'unit-page-btn unit-cta-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-						<?php echo contorno_button( __( 'Ver planos e preços', 'contorno' ), '#planos', 'outline', array( 'class' => 'unit-page-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php /* Sem planos (pre-venda / aguardando EVO) nao ha secao #planos para ancorar. */ ?>
+						<?php if ( array() !== contorno_field_list( 'plans', $post_id ) ) : ?>
+							<?php echo contorno_button( __( 'Ver planos e preços', 'contorno' ), '#planos', 'outline', array( 'class' => 'unit-page-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php endif; ?>
 					</div>
 				</div>
 
