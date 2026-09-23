@@ -50,9 +50,67 @@
 		});
 	}
 
+	/*
+	 * Ancoras internas (#estrutura, #planos...). A navegacao nativa por hash
+	 * nem sempre rola em navegadores moveis com scroll-behavior:smooth; aqui o
+	 * destino e rolado explicitamente, respeitando o scroll-margin-top do CSS
+	 * (header fixo) e a preferencia de movimento reduzido.
+	 */
+	function initAnchors() {
+		var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		function targetFor(hash) {
+			if (!hash || hash.length < 2) {
+				return null;
+			}
+
+			try {
+				return document.getElementById(decodeURIComponent(hash.slice(1)));
+			} catch (error) {
+				return null;
+			}
+		}
+
+		document.addEventListener('click', function (event) {
+			var link = event.target.closest('a[href^="#"]');
+
+			if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
+				return;
+			}
+
+			var target = targetFor(link.getAttribute('href'));
+
+			if (!target) {
+				return;
+			}
+
+			event.preventDefault();
+			target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+
+			// Mantem o comportamento de foco da ancora nativa (skip link, leitores de tela).
+			if (!target.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) {
+				target.setAttribute('tabindex', '-1');
+			}
+			target.focus({ preventScroll: true });
+
+			if (window.history && window.history.pushState) {
+				window.history.pushState(null, '', link.getAttribute('href'));
+			}
+		});
+
+		// Chegada com hash (ex.: /ctn/castelo/#estrutura): rola depois do layout.
+		var initial = targetFor(window.location.hash);
+		if (initial) {
+			window.addEventListener('load', function () {
+				initial.scrollIntoView({ behavior: 'auto', block: 'start' });
+			});
+		}
+	}
+
 	function init() {
 		initHeader();
 		initMobileMenu();
+		initAnchors();
 	}
 
 	if (document.readyState !== 'loading') {

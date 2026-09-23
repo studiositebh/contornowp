@@ -2133,3 +2133,8 @@ a.site-footer__social-link:hover {
 	}
 	.motion-hero-search { animation: none !important; opacity: 1 !important; translate: none !important; }
 }
+
+/* Destinos de ancora recebem foco programatico (tabindex=-1) sem anel visual. */
+[tabindex="-1"]:focus {
+	outline: none;
+}
