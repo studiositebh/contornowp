@@ -5400,7 +5400,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 34,
       "terms": {
-        "city": "MG",
+        "city": "Ouro Preto",
         "kind": "standard"
       },
       "fields": {
@@ -5409,9 +5409,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "",
+        "city": "Ouro Preto",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Bauxita",
         "address": "Avenida Presidente Juscelino Kubitschek 91 Loja 12. Bauxita Ouro Preto MG 35402-179.",
         "postal_code": "35402-179",
         "phone": "3140420177",
@@ -7737,7 +7737,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 50,
       "terms": {
-        "city": "MG",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -7746,9 +7746,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Jardim Vitória",
         "address": "Rua Três Mil e Setenta e Quatro n 3045, no My Mall Parque Real, Bairro Jardim Vitória BH (Junto ao Supermercados BH)",
         "postal_code": "31970-360",
         "phone": "3140420177",
@@ -8033,7 +8033,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 52,
       "terms": {
-        "city": "Contagem/",
+        "city": "Contagem",
         "kind": "standard"
       },
       "fields": {
@@ -8042,11 +8042,11 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Contagem/",
+        "city": "Contagem",
         "state": "MG",
-        "neighborhood": "Praça Belarmino de Souza,110, Pavimento 2 (na rotatória, em cima da Araújo), Bairro Xangri-la",
+        "neighborhood": "Parque Xangri-Lá",
         "address": "Praça Belarmino de Souza,110, Pavimento 2 (na rotatória, em cima da Araújo), Bairro Xangri-la – Contagem/MG.",
-        "postal_code": "33937-190",
+        "postal_code": "32187-610",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda à sexta, 05:30h às 23h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -8322,7 +8322,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 54,
       "terms": {
-        "city": "MG",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -8331,11 +8331,11 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Dona Clara",
         "address": "Av. Sebastião de Brito, 647, Bairro Dona Clara, Belo Horizonte MG. No mesmo prédio do Super Nosso.",
-        "postal_code": "31420-160",
+        "postal_code": "31260-000",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda à quinta, 05h às 23h\nSexta, 05h às 22h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -8468,7 +8468,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 55,
       "terms": {
-        "city": "MG",
+        "city": "Belo Horizonte",
         "kind": "ctn-prime"
       },
       "fields": {
@@ -8477,9 +8477,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Buritis",
         "address": "Av. Mário Werneck, 1239, Buritis. Ao lado do Jeronimo/Madero.",
         "postal_code": "30455-610",
         "phone": "3140420177",
@@ -8679,7 +8679,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 57,
       "terms": {
-        "city": "MG",
+        "city": "Belo Horizonte",
         "kind": "ctn-prime"
       },
       "fields": {
@@ -8688,9 +8688,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Castelo",
         "address": "Av. Tancredo Neves, 2225, Castelo. Em frente à Drogaria Araújo.",
         "postal_code": "31330-472",
         "phone": "3140420177",
@@ -8777,7 +8777,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 58,
       "terms": {
-        "city": "Palmares, Belo Horizonte/",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -8786,9 +8786,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Palmares, Belo Horizonte/",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Av. Bernardo Vasconcelos, 2323",
+        "neighborhood": "Palmares",
         "address": "Av. Bernardo Vasconcelos, 2323 – Palmares, Belo Horizonte/MG",
         "postal_code": "31160-540",
         "phone": "3140420177",
