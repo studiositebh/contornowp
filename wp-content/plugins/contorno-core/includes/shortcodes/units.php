@@ -80,7 +80,7 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 				<?php /* Busca por CEP: distancia em linha reta ate o ponto pesquisado (ou ate o centro da regiao, quando o CEP exato nao existe). */ ?>
 				<p class="unit-card__distance">
 					<?php if ( ! empty( $args['distance_approx'] ) ) : ?>
-						<?php echo esc_html( sprintf( /* translators: %s: approximate distance */ __( '%s da região do CEP', 'contorno' ), contorno_format_distance_approx( (float) $args['distance'] ) ) ); ?>
+						<?php echo esc_html( sprintf( /* translators: %s: approximate distance */ __( '%s da região', 'contorno' ), contorno_format_distance_approx( (float) $args['distance'] ) ) ); ?>
 					<?php else : ?>
 						<?php echo esc_html( sprintf( /* translators: %s: formatted distance */ __( 'a %s de você', 'contorno' ), contorno_format_distance( (float) $args['distance'] ) ) ); ?>
 					<?php endif; ?>
@@ -131,6 +131,86 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 	<?php
 
 	return (string) ob_get_clean();
+}
+
+/**
+ * Textos da busca por CEP (contador + aviso), a partir do resultado de
+ * contorno_geo_locate_cep(). Local sempre nomeado sem ambiguidade:
+ * "bairro São Paulo, em Belo Horizonte/MG" — nunca "São Paulo, Belo
+ * Horizonte - MG", que parece a cidade de São Paulo.
+ *
+ * @param array{status: string, cep: string, origin: array<string,mixed>|null} $location
+ * @return array{count: string, notice: string}
+ */
+function contorno_units_geo_messages( array $location, int $total, int $radius, bool $nearest_only, bool $by_prefix ): array {
+	$cep     = contorno_format_cep( (string) $location['cep'] );
+	$origin  = $location['origin'];
+	$precise = contorno_geo_is_precise( $location );
+	$place   = is_array( $origin ) ? contorno_geo_place_label( $origin ) : '';
+
+	if ( '' === $place ) {
+		/* translators: %s: CEP */
+		$near = sprintf( __( 'da região do CEP %s', 'contorno' ), $cep );
+	} elseif ( str_starts_with( $place, 'bairro ' ) ) {
+		/* translators: %s: "bairro X, em Cidade/UF" */
+		$near = sprintf( __( 'ao %s', 'contorno' ), $place );
+	} else {
+		/* translators: %s: "Cidade/UF" */
+		$near = sprintf( __( 'a %s', 'contorno' ), $place );
+	}
+
+	$count  = '';
+	$notice = '';
+
+	if ( is_array( $origin ) && $precise && ! $nearest_only ) {
+		$count = '' !== $place
+			/* translators: 1: units count, 2: radius in km, 3: CEP, 4: place */
+			? sprintf( _n( '%1$d unidade a até %2$d km do CEP %3$s (%4$s)', '%1$d unidades a até %2$d km do CEP %3$s (%4$s)', $total, 'contorno' ), $total, $radius, $cep, $place )
+			/* translators: 1: units count, 2: radius in km, 3: CEP */
+			: sprintf( _n( '%1$d unidade a até %2$d km do CEP %3$s', '%1$d unidades a até %2$d km do CEP %3$s', $total, 'contorno' ), $total, $radius, $cep );
+	} elseif ( is_array( $origin ) ) {
+		/* translators: 1: units count, 2: "ao bairro X, em Cidade/UF" */
+		$count = sprintf( _n( '%1$d unidade encontrada próxima %2$s', '%1$d unidades encontradas próximas %2$s', $total, 'contorno' ), $total, $near );
+	}
+
+	switch ( $location['status'] ) {
+		case 'region':
+			/* translators: %s: CEP */
+			$notice = sprintf( __( 'Não encontramos o CEP %s exatamente. Mostrando unidades próximas a essa região — distâncias aproximadas.', 'contorno' ), $cep );
+			break;
+
+		case 'exact':
+			if ( ! $precise ) {
+				/* translators: 1: CEP, 2: place */
+				$notice = sprintf( __( 'Localizamos o CEP %1$s em %2$s, sem precisão de endereço — distâncias aproximadas.', 'contorno' ), $cep, $place );
+			}
+			break;
+
+		case 'unavailable':
+			/* translators: %s: CEP */
+			$notice = sprintf( __( 'No momento não foi possível consultar a localização do CEP %s. Você pode buscar pelo nome da unidade, bairro ou cidade.', 'contorno' ), $cep );
+			if ( $by_prefix ) {
+				$notice .= ' ' . __( 'Enquanto isso, estas são as unidades com CEP da mesma faixa:', 'contorno' );
+			}
+			break;
+
+		default: // not_found
+			$notice = $by_prefix
+				/* translators: %s: CEP */
+				? sprintf( __( 'Não encontramos o CEP %s. Estas são as unidades com CEP da mesma faixa:', 'contorno' ), $cep )
+				/* translators: %s: CEP */
+				: sprintf( __( 'Não encontramos o CEP %s. Confira os números ou busque pelo nome da unidade, bairro ou cidade.', 'contorno' ), $cep );
+	}
+
+	if ( $nearest_only && is_array( $origin ) ) {
+		/* translators: %d: radius in km */
+		$notice = trim( $notice . ' ' . sprintf( __( 'Nenhuma unidade a até %d km; estas são as mais próximas.', 'contorno' ), $radius ) );
+	}
+
+	return array(
+		'count'  => $count,
+		'notice' => $notice,
+	);
 }
 
 /**
@@ -216,41 +296,33 @@ contorno_add_shortcode(
 
 		$units = contorno_get_units( $query_args );
 
-		// Busca por CEP: o termo vira lat/lng e a lista passa a ser ordenada
-		// por distancia, limitada ao raio escolhido (?raio=). CEP que nao
-		// existe na base cai na regiao dele (CEP do setor / codigo postal) com
-		// distancia marcada como aproximada; sem regiao, nas unidades da mesma
-		// faixa de CEP (sem distancia). So sem nada disso o visitante ve o aviso.
-		$radius           = contorno_geo_requested_radius();
-		$geo_origin       = null;
-		$geo_cep          = $is_catalog_mode ? contorno_cep_digits( $search_query ) : '';
-		$geo_failed       = false;
-		$geo_fallback     = false;
-		$geo_approx       = false;
-		$geo_prefix       = false;
-		$distances        = array();
+		// Busca por CEP (pipeline em includes/data/geo.php):
+		//   exact     -> distancia real (Haversine) e filtro pelo raio;
+		//   region    -> CEP inexistente: ponto APROXIMADO da regiao do CEP, com
+		//                distancias marcadas como aproximadas;
+		//   sem ponto -> unidades da mesma faixa de CEP, sem distancia.
+		// Os textos saem de contorno_units_geo_messages(): o local e sempre
+		// "bairro X, em Cidade/UF" — nunca "X, Cidade", que confunde bairro e cidade.
+		$radius       = contorno_geo_requested_radius();
+		$geo_cep      = $is_catalog_mode ? contorno_cep_digits( $search_query ) : '';
+		$geo_location = '' !== $geo_cep ? contorno_geo_locate_cep( $geo_cep ) : null;
+		$geo_origin   = null !== $geo_location ? $geo_location['origin'] : null;
+		$geo_approx   = null !== $geo_origin && ! contorno_geo_is_precise( $geo_location );
+		$geo_fallback = false;
+		$geo_prefix   = false;
+		$distances    = array();
 
-		if ( '' !== $geo_cep ) {
-			$geo_origin = contorno_geocode_cep( $geo_cep );
+		if ( null !== $geo_location && null === $geo_origin ) {
+			$nearby     = contorno_units_by_cep_prefix( $units, $geo_cep );
+			$geo_prefix = array() !== $nearby;
 
-			if ( null === $geo_origin ) {
-				$geo_origin = contorno_geocode_cep_region( $geo_cep );
-				$geo_approx = null !== $geo_origin;
-			}
-
-			if ( null === $geo_origin ) {
-				$nearby     = contorno_units_by_cep_prefix( $units, $geo_cep );
-				$geo_prefix = array() !== $nearby;
-				$geo_failed = ! $geo_prefix;
-
-				if ( $geo_prefix ) {
-					$units = $nearby;
-				}
+			if ( $geo_prefix ) {
+				$units = $nearby;
 			}
 		}
 
 		if ( null !== $geo_origin ) {
-			$ranked = contorno_units_by_distance( $units, $geo_origin['lat'], $geo_origin['lng'] );
+			$ranked = contorno_units_by_distance( $units, (float) $geo_origin['lat'], (float) $geo_origin['lng'] );
 			$within = array_values( array_filter( $ranked, static fn ( array $row ): bool => $row['distance'] <= $radius ) );
 
 			if ( array() === $within ) {
@@ -283,6 +355,9 @@ contorno_add_shortcode(
 		}
 
 		$total_units = count( $units );
+		$geo_messages = null !== $geo_location
+			? contorno_units_geo_messages( $geo_location, $total_units, $radius, $geo_fallback, $geo_prefix )
+			: array( 'count' => '', 'notice' => '' );
 		$total_pages = $is_paginated_list ? max( 1, (int) ceil( $total_units / $per_page ) ) : 1;
 		$current_page = min( $current_page, $total_pages );
 
@@ -340,25 +415,8 @@ contorno_add_shortcode(
 					<?php if ( $has_count ) : ?>
 						<p class="contorno-units__count">
 							<?php
-							if ( null !== $geo_origin && ! $geo_fallback && $geo_approx ) {
-								echo esc_html(
-									sprintf(
-										/* translators: 1: units count, 2: place name */
-										_n( '%1$d unidade próxima da região de %2$s', '%1$d unidades próximas da região de %2$s', $total_units, 'contorno' ),
-										$total_units,
-										$geo_origin['label']
-									)
-								);
-							} elseif ( null !== $geo_origin && ! $geo_fallback ) {
-								echo esc_html(
-									sprintf(
-										/* translators: 1: units count, 2: radius in km, 3: place name */
-										_n( '%1$d unidade a até %2$d km de %3$s', '%1$d unidades a até %2$d km de %3$s', $total_units, 'contorno' ),
-										$total_units,
-										$radius,
-										$geo_origin['label']
-									)
-								);
+							if ( '' !== $geo_messages['count'] ) {
+								echo esc_html( $geo_messages['count'] );
 							} else {
 								echo esc_html(
 									sprintf(
@@ -396,56 +454,8 @@ contorno_add_shortcode(
 				<?php echo do_shortcode( '[contorno_units_search target=""]' ); ?>
 			<?php endif; ?>
 
-			<?php if ( $geo_failed ) : ?>
-				<p class="contorno-units__notice" role="status">
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: %s: formatted CEP */
-							__( 'Não conseguimos localizar o CEP %s. Confira os números ou busque pelo nome do bairro ou da cidade.', 'contorno' ),
-							contorno_format_cep( $geo_cep )
-						)
-					);
-					?>
-				</p>
-			<?php elseif ( $geo_prefix ) : ?>
-				<p class="contorno-units__notice" role="status">
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: %s: formatted CEP */
-							__( 'Não localizamos o CEP %s exato. Estas são as unidades com CEP da mesma região:', 'contorno' ),
-							contorno_format_cep( $geo_cep )
-						)
-					);
-					?>
-				</p>
-			<?php elseif ( $geo_approx ) : ?>
-				<p class="contorno-units__notice" role="status">
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: 1: formatted CEP, 2: place name */
-							__( 'Não localizamos o CEP %1$s exato. Mostrando as unidades mais próximas da região de %2$s — distâncias aproximadas.', 'contorno' ),
-							contorno_format_cep( $geo_cep ),
-							$geo_origin['label']
-						)
-					);
-					?>
-				</p>
-			<?php elseif ( $geo_fallback ) : ?>
-				<p class="contorno-units__notice" role="status">
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: 1: radius in km, 2: place name */
-							__( 'Nenhuma unidade a até %1$d km de %2$s. Estas são as mais próximas:', 'contorno' ),
-							$radius,
-							$geo_origin['label']
-						)
-					);
-					?>
-				</p>
+			<?php if ( '' !== $geo_messages['notice'] ) : ?>
+				<p class="contorno-units__notice" role="status"><?php echo esc_html( $geo_messages['notice'] ); ?></p>
 			<?php endif; ?>
 
 			<?php if ( array() === $units ) : ?>

@@ -55,6 +55,7 @@ $contorno_core_modules = array(
 	'includes/data/evo.php',
 	'includes/data/presale.php',
 	'includes/data/units.php',
+	'includes/data/google-maps.php',
 	'includes/data/geo.php',
 	'includes/data/ctn.php',
 	'includes/helpers.php',
@@ -66,6 +67,7 @@ $contorno_core_modules = array(
 	'includes/builder/wpbakery.php',
 	'includes/builder/wpbakery-phase2.php',
 	'includes/admin/migration-page.php',
+	'includes/admin/location-page.php',
 	'includes/cli/commands.php',
 );
 

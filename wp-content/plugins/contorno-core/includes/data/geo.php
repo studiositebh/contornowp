@@ -2,10 +2,11 @@
 /**
  * Geolocalizacao: busca de unidades por CEP e raio.
  *
- * O visitante digita um CEP; ele vira lat/lng (BrasilAPI -> ViaCEP ->
- * Nominatim, com cache em transient) e as unidades sao ordenadas pela
- * distancia em linha reta (Haversine) usando os campos latitude/longitude
- * de cada `unidade`. Nenhuma chave de API e necessaria.
+ * O visitante digita um CEP; ele vira lat/lng (ViaCEP -> Google Geocoding
+ * API v4 quando ha chave -> Nominatim como reserva, com cache em transient) e
+ * as unidades sao ordenadas pela distancia em linha reta (Haversine) usando
+ * os campos latitude/longitude persistidos em cada `unidade`. Sem chave do
+ * Google tudo continua funcionando com a reserva. Chave: data/google-maps.php.
  *
  * Tambem expoe contorno_geocode_address(), usada pelo `wp contorno geocode`
  * para preencher coordenadas de unidades cadastradas sem lat/lng.
@@ -111,10 +112,10 @@ function contorno_format_distance( float $km ): string {
  */
 function contorno_format_distance_approx( float $km ): string {
 	if ( $km < 1 ) {
-		return __( 'menos de 1 km', 'contorno' );
+		return __( 'a menos de 1 km', 'contorno' );
 	}
 
-	return sprintf( /* translators: %s: kilometers */ __( 'cerca de %s km', 'contorno' ), number_format_i18n( round( $km ) ) );
+	return sprintf( /* translators: %s: kilometers */ __( 'aprox. %s km', 'contorno' ), number_format_i18n( round( $km ) ) );
 }
 
 /**
@@ -156,20 +157,40 @@ function contorno_units_by_distance( array $units, float $lat, float $lng ): arr
 
 /* ============================================================
  * Geocodificacao (CEP e endereco)
+ *
+ * Um unico pipeline, usado pela busca por CEP e pelo preenchimento de
+ * coordenadas das unidades:
+ *
+ *   CEP -> ViaCEP (endereco oficial; BrasilAPI so se o ViaCEP cair)
+ *       -> Google Geocoding API v4 (se houver chave) -> Nominatim (reserva)
+ *
+ * Todo ponto sai como "local" estruturado — nunca como string pronta — para
+ * a interface poder dizer "bairro X, em Cidade/UF" sem ambiguidade:
+ *
+ *   array{lat: float, lng: float, neighborhood: string, city: string,
+ *         state: string, precision: 'street'|'area'|'city', source: string}
  * ========================================================== */
+
+/** Transients: resultado de CEP e de endereco (Google/Nominatim). */
+const CONTORNO_GEO_CACHE_TTL      = 30 * DAY_IN_SECONDS;
+const CONTORNO_GEO_MISS_CACHE_TTL = HOUR_IN_SECONDS;
+
+/** Versao do formato em cache (troca invalida os transients antigos). */
+const CONTORNO_GEO_CACHE_VERSION = 'v2';
 
 /**
  * GET JSON com timeout curto. Retorna null em qualquer falha.
  *
+ * @param array<string,string> $headers
  * @return array<string,mixed>|null
  */
-function contorno_geo_fetch_json( string $url ): ?array {
+function contorno_geo_fetch_json( string $url, array $headers = array() ): ?array {
 	$response = wp_remote_get(
 		$url,
 		array(
 			'timeout'    => 6,
 			'user-agent' => CONTORNO_GEO_USER_AGENT,
-			'headers'    => array( 'Accept' => 'application/json', 'Accept-Language' => 'pt-BR' ),
+			'headers'    => array_merge( array( 'Accept' => 'application/json', 'Accept-Language' => 'pt-BR' ), $headers ),
 		)
 	);
 
@@ -183,15 +204,159 @@ function contorno_geo_fetch_json( string $url ): ?array {
 }
 
 /**
- * Nominatim (OpenStreetMap): texto livre -> lat/lng.
+ * Chave de cache normalizada (sem acento, caixa, espacos) + versao + se a
+ * resposta veio com Google disponivel. Cadastrar a chave passa a usar o
+ * Google sem esperar o cache antigo (so Nominatim) expirar.
+ */
+function contorno_geo_cache_key( string $kind, string $query ): string {
+	$normalized = contorno_normalize_search( $query );
+
+	return 'contorno_geo_' . CONTORNO_GEO_CACHE_VERSION . '_' . $kind . '_' . ( '' !== contorno_google_maps_api_key() ? 'g' : 'n' ) . '_' . md5( $normalized );
+}
+
+/* ---------- Google Geocoding API v4 (server-side) ---------- */
+
+/**
+ * Consulta o Google com endereco estruturado, restrito ao Brasil.
  *
- * @return array{lat: float, lng: float, label: string}|null
+ * Retorna o ponto, null quando o Google nao achou nada, ou false quando o
+ * Google esta indisponivel (sem chave, chave recusada, cota, rede). Quem
+ * chama trata false como "use a reserva" — a busca nunca cai por isso.
+ *
+ * @param array{street?: string, neighborhood?: string, city?: string, state?: string, postal_code?: string} $parts
+ * @param bool $use_cache false so no teste da tela de configuracao.
+ * @return array{lat: float, lng: float, precision: string}|null|false
+ */
+function contorno_google_geocode( array $parts, bool $use_cache = true ) {
+	$key = contorno_google_maps_api_key();
+
+	if ( '' === $key ) {
+		return false;
+	}
+
+	$lines = implode( ', ', array_filter( array( $parts['street'] ?? '', $parts['neighborhood'] ?? '' ) ) );
+	$query = array_filter(
+		array(
+			'address.addressLines'       => $lines,
+			'address.locality'           => (string) ( $parts['city'] ?? '' ),
+			'address.administrativeArea' => (string) ( $parts['state'] ?? '' ),
+			'address.postalCode'         => (string) ( $parts['postal_code'] ?? '' ),
+			'address.regionCode'         => 'BR',
+			'regionCode'                 => 'BR',
+			'languageCode'               => 'pt-BR',
+		),
+		static fn ( string $value ): bool => '' !== $value
+	);
+
+	$cache_key = contorno_geo_cache_key( 'google', (string) wp_json_encode( $query ) );
+	$cached    = $use_cache ? get_transient( $cache_key ) : false;
+
+	if ( is_array( $cached ) ) {
+		return isset( $cached['lat'] ) ? $cached : null;
+	}
+
+	// Chave no cabecalho (nunca na URL, que pode ir para logs de acesso).
+	$response = wp_remote_get(
+		'https://geocode.googleapis.com/v4/geocode/address?' . http_build_query( $query ),
+		array(
+			'timeout' => 6,
+			'headers' => array(
+				'X-Goog-Api-Key'   => $key,
+				'X-Goog-FieldMask' => 'results.location,results.granularity,results.types',
+				'Accept'           => 'application/json',
+			),
+		)
+	);
+
+	if ( is_wp_error( $response ) ) {
+		contorno_google_geocode_status( 'network' );
+
+		return false;
+	}
+
+	$code = (int) wp_remote_retrieve_response_code( $response );
+	$data = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+
+	if ( 200 !== $code || ! is_array( $data ) ) {
+		// 400 chave invalida / 403 API nao habilitada ou restricao / 429 cota.
+		contorno_google_geocode_status( 'http_' . $code );
+
+		return false;
+	}
+
+	contorno_google_geocode_status( 'ok' );
+
+	$first = $data['results'][0] ?? null;
+
+	if ( ! is_array( $first ) || ! isset( $first['location']['latitude'], $first['location']['longitude'] ) ) {
+		set_transient( $cache_key, array( 'miss' => true ), DAY_IN_SECONDS );
+
+		return null;
+	}
+
+	$result = array(
+		'lat'       => (float) $first['location']['latitude'],
+		'lng'       => (float) $first['location']['longitude'],
+		'precision' => contorno_google_precision( (string) ( $first['granularity'] ?? '' ), (array) ( $first['types'] ?? array() ) ),
+	);
+
+	set_transient( $cache_key, $result, CONTORNO_GEO_CACHE_TTL );
+
+	return $result;
+}
+
+/**
+ * granularity + types do Google -> street | area | city.
+ *
+ * @param array<int,string> $types
+ */
+function contorno_google_precision( string $granularity, array $types ): string {
+	if ( in_array( $granularity, array( 'ROOFTOP', 'RANGE_INTERPOLATED' ), true ) ) {
+		return 'street';
+	}
+
+	if ( array_intersect( $types, array( 'street_address', 'route', 'premise', 'subpremise', 'intersection' ) ) ) {
+		return 'street';
+	}
+
+	if ( array_intersect( $types, array( 'locality', 'administrative_area_level_2', 'administrative_area_level_1', 'country' ) ) ) {
+		return 'city';
+	}
+
+	return 'area'; // bairro, CEP, sublocalidade.
+}
+
+/**
+ * Ultimo status do Google nesta requisicao (diagnostico da tela de
+ * configuracao). Nunca guarda a chave nem a URL.
+ */
+function contorno_google_geocode_status( ?string $status = null ): string {
+	static $last = '';
+
+	if ( null !== $status ) {
+		$last = $status;
+	}
+
+	return $last;
+}
+
+/* ---------- Nominatim (reserva, sem chave) ---------- */
+
+/**
+ * @return array{lat: float, lng: float}|null
  */
 function contorno_geo_nominatim( string $query ): ?array {
 	$query = trim( $query );
 
 	if ( '' === $query ) {
 		return null;
+	}
+
+	$cache_key = contorno_geo_cache_key( 'osm', $query );
+	$cached    = get_transient( $cache_key );
+
+	if ( is_array( $cached ) ) {
+		return isset( $cached['lat'] ) ? $cached : null;
 	}
 
 	$data = contorno_geo_fetch_json(
@@ -205,38 +370,66 @@ function contorno_geo_nominatim( string $query ): ?array {
 		)
 	);
 
-	if ( empty( $data[0]['lat'] ) || empty( $data[0]['lon'] ) ) {
+	if ( null === $data ) {
+		return null; // fora do ar: nao guarda "nao encontrado".
+	}
+
+	$result = ! empty( $data[0]['lat'] ) && ! empty( $data[0]['lon'] )
+		? array( 'lat' => (float) $data[0]['lat'], 'lng' => (float) $data[0]['lon'] )
+		: null;
+
+	set_transient( $cache_key, $result ?? array( 'miss' => true ), null === $result ? CONTORNO_GEO_MISS_CACHE_TTL : CONTORNO_GEO_CACHE_TTL );
+
+	return $result;
+}
+
+/* ---------- Endereco -> ponto ---------- */
+
+/**
+ * Endereco estruturado -> local. Google primeiro (endereco completo); sem
+ * Google, Nominatim da rua ao bairro e a cidade — e a precisao registra ate
+ * onde foi possivel chegar.
+ *
+ * @param array{street?: string, neighborhood?: string, city?: string, state?: string, postal_code?: string} $parts
+ * @return array{lat: float, lng: float, neighborhood: string, city: string, state: string, precision: string, source: string}|null
+ */
+function contorno_geo_locate_address( array $parts ): ?array {
+	$street       = trim( (string) ( $parts['street'] ?? '' ) );
+	$neighborhood = trim( (string) ( $parts['neighborhood'] ?? '' ) );
+	$city         = trim( (string) ( $parts['city'] ?? '' ) );
+	$state        = trim( (string) ( $parts['state'] ?? '' ) );
+
+	if ( '' === $street && '' === $neighborhood && '' === $city && '' === (string) ( $parts['postal_code'] ?? '' ) ) {
 		return null;
 	}
 
-	return array(
-		'lat'   => (float) $data[0]['lat'],
-		'lng'   => (float) $data[0]['lon'],
-		'label' => (string) ( $data[0]['display_name'] ?? $query ),
-	);
-}
-
-/**
- * Endereco livre -> lat/lng (tenta o endereco completo, depois so cidade/UF).
- *
- * @return array{lat: float, lng: float, label: string}|null
- */
-function contorno_geocode_address( string $address, string $city = '', string $state = '' ): ?array {
-	$address = trim( (string) preg_replace( '/\s+/', ' ', $address ) );
-	$suffix  = trim( implode( ', ', array_filter( array( $city, $state, 'Brasil' ) ) ) );
-
-	$attempts = array_filter(
-		array(
-			'' !== $address ? $address . ', ' . $suffix : '',
-			'' !== $city ? $suffix : '',
-		)
+	$place = array(
+		'neighborhood' => $neighborhood,
+		'city'         => $city,
+		'state'        => $state,
 	);
 
-	foreach ( array_unique( $attempts ) as $query ) {
+	$google = contorno_google_geocode( $parts );
+
+	if ( is_array( $google ) ) {
+		return array( 'lat' => $google['lat'], 'lng' => $google['lng'] ) + $place + array( 'precision' => $google['precision'], 'source' => 'google' );
+	}
+
+	$attempts = array(
+		'street' => '' !== $street ? implode( ', ', array_filter( array( $street, $neighborhood, $city, $state, 'Brasil' ) ) ) : '',
+		'area'   => '' !== $neighborhood ? implode( ', ', array_filter( array( $neighborhood, $city, $state, 'Brasil' ) ) ) : '',
+		'city'   => '' !== $city ? implode( ', ', array_filter( array( $city, $state, 'Brasil' ) ) ) : '',
+	);
+
+	foreach ( $attempts as $precision => $query ) {
+		if ( '' === $query ) {
+			continue;
+		}
+
 		$hit = contorno_geo_nominatim( $query );
 
 		if ( null !== $hit ) {
-			return $hit;
+			return $hit + $place + array( 'precision' => $precision, 'source' => 'nominatim' );
 		}
 	}
 
@@ -244,141 +437,159 @@ function contorno_geocode_address( string $address, string $city = '', string $s
 }
 
 /**
- * CEP -> lat/lng + rotulo legivel ("Lourdes, Belo Horizonte - MG").
+ * Endereco livre da unidade -> lat/lng (usado uma unica vez por unidade,
+ * pelo `wp contorno geocode` e pela auto-migracao; o resultado e gravado).
  *
- * Ordem: ViaCEP (endereco; e rigoroso com CEP inexistente) -> Nominatim
- * (coordenadas da rua, depois do bairro, depois da cidade). A BrasilAPI so
- * entra se o ViaCEP estiver fora do ar: ela aceita CEP invalido e devolve
- * coordenada do centro da cidade, entao serve apenas como ultimo recurso.
- * Resultado fica 30 dias em transient; CEP nao encontrado fica 1 hora.
- *
- * @return array{lat: float, lng: float, label: string}|null
+ * @return array{lat: float, lng: float, neighborhood: string, city: string, state: string, precision: string, source: string}|null
  */
-function contorno_geocode_cep( string $cep ): ?array {
+function contorno_geocode_address( string $address, string $city = '', string $state = '' ): ?array {
+	$address = trim( (string) preg_replace( '/\s+/', ' ', $address ) );
+
+	return contorno_geo_locate_address(
+		array(
+			'street' => $address,
+			'city'   => $city,
+			'state'  => $state,
+		)
+	);
+}
+
+/* ---------- CEP ---------- */
+
+/**
+ * Endereco oficial de um CEP.
+ *
+ * @return array{street: string, neighborhood: string, city: string, state: string, postal_code: string}|string
+ *         O endereco, 'not_found' (CEP inexistente) ou 'unavailable'.
+ */
+function contorno_geo_cep_address( string $digits ) {
+	$via = contorno_geo_fetch_json( 'https://viacep.com.br/ws/' . $digits . '/json/' );
+
+	if ( is_array( $via ) ) {
+		if ( ! empty( $via['erro'] ) || empty( $via['localidade'] ) ) {
+			return 'not_found';
+		}
+
+		return array(
+			'street'       => (string) ( $via['logradouro'] ?? '' ),
+			'neighborhood' => (string) ( $via['bairro'] ?? '' ),
+			'city'         => (string) $via['localidade'],
+			'state'        => (string) ( $via['uf'] ?? '' ),
+			'postal_code'  => contorno_format_cep( $digits ),
+		);
+	}
+
+	// ViaCEP fora do ar: BrasilAPI (so o endereco; ela aceita CEP invalido
+	// e devolve o centro da cidade, entao as coordenadas dela nao servem).
+	$brasil = contorno_geo_fetch_json( 'https://brasilapi.com.br/api/cep/v2/' . $digits );
+
+	if ( is_array( $brasil ) && ! empty( $brasil['city'] ) ) {
+		return array(
+			'street'       => (string) ( $brasil['street'] ?? '' ),
+			'neighborhood' => (string) ( $brasil['neighborhood'] ?? '' ),
+			'city'         => (string) $brasil['city'],
+			'state'        => (string) ( $brasil['state'] ?? '' ),
+			'postal_code'  => contorno_format_cep( $digits ),
+		);
+	}
+
+	return 'unavailable';
+}
+
+/**
+ * Localiza um CEP para a busca de unidades.
+ *
+ *   exact       — CEP existe; ponto do endereco dele.
+ *   region      — CEP nao existe; ponto APROXIMADO da regiao (CEP geral do
+ *                 setor, XXXXX-000, ou o codigo postal no Google/OSM).
+ *   not_found   — CEP nao existe e a regiao tambem nao foi localizada.
+ *   unavailable — servicos de CEP/geocodificacao fora do ar.
+ *
+ * Cache: 30 dias para exact/region, 1 hora para not_found; unavailable nao
+ * e guardado (a proxima busca tenta de novo).
+ *
+ * @return array{status: string, cep: string, origin: array<string,mixed>|null}
+ */
+function contorno_geo_locate_cep( string $cep ): array {
 	$digits = contorno_cep_digits( $cep );
 
 	if ( '' === $digits ) {
-		return null;
+		return array( 'status' => 'not_found', 'cep' => '', 'origin' => null );
 	}
 
-	$cache_key = 'contorno_geo_cep_' . $digits;
+	$cache_key = contorno_geo_cache_key( 'cep', $digits );
 	$cached    = get_transient( $cache_key );
 
-	if ( is_array( $cached ) ) {
-		return isset( $cached['lat'] ) ? $cached : null;
+	if ( is_array( $cached ) && isset( $cached['status'] ) ) {
+		return $cached;
 	}
 
-	$result = contorno_geocode_cep_uncached( $digits );
+	$result = contorno_geo_locate_cep_uncached( $digits );
 
-	set_transient( $cache_key, null === $result ? array( 'miss' => true ) : $result, null === $result ? HOUR_IN_SECONDS : 30 * DAY_IN_SECONDS );
+	// Com chave cadastrada, um ponto que veio da reserva (Google fora do ar
+	// naquele momento) vale so 1 hora: a proxima busca tenta o Google de novo.
+	$fallback = '' !== contorno_google_maps_api_key() && 'google' !== ( $result['origin']['source'] ?? 'google' );
+
+	if ( 'unavailable' !== $result['status'] ) {
+		set_transient( $cache_key, $result, 'not_found' === $result['status'] || $fallback ? CONTORNO_GEO_MISS_CACHE_TTL : CONTORNO_GEO_CACHE_TTL );
+	}
 
 	return $result;
 }
 
 /**
- * @return array{lat: float, lng: float, label: string}|null
+ * @return array{status: string, cep: string, origin: array<string,mixed>|null}
  */
-function contorno_geocode_cep_uncached( string $digits ): ?array {
-	$street       = '';
-	$neighborhood = '';
-	$city         = '';
-	$state        = '';
-	$last_resort  = null;
+function contorno_geo_locate_cep_uncached( string $digits ): array {
+	$out   = static fn ( string $status, ?array $origin = null ): array => array( 'status' => $status, 'cep' => $digits, 'origin' => $origin );
+	$state = contorno_cep_state( $digits );
 
-	// 1) ViaCEP — endereco do CEP. "erro" significa CEP inexistente.
-	$via = contorno_geo_fetch_json( 'https://viacep.com.br/ws/' . $digits . '/json/' );
-
-	if ( is_array( $via ) ) {
-		if ( ! empty( $via['erro'] ) || empty( $via['localidade'] ) ) {
-			return null;
-		}
-
-		$street       = (string) ( $via['logradouro'] ?? '' );
-		$neighborhood = (string) ( $via['bairro'] ?? '' );
-		$city         = (string) ( $via['localidade'] ?? '' );
-		$state        = (string) ( $via['uf'] ?? '' );
-	} else {
-		// 2) ViaCEP fora do ar: BrasilAPI v2 como reserva.
-		$brasil = contorno_geo_fetch_json( 'https://brasilapi.com.br/api/cep/v2/' . $digits );
-
-		if ( ! is_array( $brasil ) || empty( $brasil['city'] ) ) {
-			return null;
-		}
-
-		$street       = (string) ( $brasil['street'] ?? '' );
-		$neighborhood = (string) ( $brasil['neighborhood'] ?? '' );
-		$city         = (string) ( $brasil['city'] ?? '' );
-		$state        = (string) ( $brasil['state'] ?? '' );
-
-		$coords = $brasil['location']['coordinates'] ?? array();
-
-		if ( ! empty( $coords['latitude'] ) && ! empty( $coords['longitude'] ) ) {
-			$last_resort = array(
-				'lat'   => (float) $coords['latitude'],
-				'lng'   => (float) $coords['longitude'],
-				'label' => contorno_geo_cep_label( $neighborhood, $city, $state ),
-			);
-		}
+	// Faixa que os Correios nao usam: inexistente, sem gastar nenhuma consulta.
+	if ( '' === $state ) {
+		return $out( 'not_found' );
 	}
 
-	// 3) Nominatim — rua > bairro > cidade.
-	$attempts = array_filter(
-		array(
-			'' !== $street ? implode( ', ', array_filter( array( $street, $neighborhood, $city, $state, 'Brasil' ) ) ) : '',
-			'' !== $neighborhood ? implode( ', ', array_filter( array( $neighborhood, $city, $state, 'Brasil' ) ) ) : '',
-			implode( ', ', array_filter( array( $city, $state, 'Brasil' ) ) ),
-		)
-	);
+	$address = contorno_geo_cep_address( $digits );
 
-	foreach ( array_unique( $attempts ) as $query ) {
-		$hit = contorno_geo_nominatim( $query );
+	if ( is_array( $address ) ) {
+		$origin = contorno_geo_locate_address( $address );
 
-		if ( null !== $hit ) {
-			$hit['label'] = contorno_geo_cep_label( $neighborhood, $city, $state );
-
-			return $hit;
-		}
+		return null !== $origin ? $out( 'exact', $origin ) : $out( 'unavailable' );
 	}
 
-	return $last_resort;
-}
-
-/**
- * Ponto aproximado de um CEP que nao existe na base (digitado errado, CEP
- * novo, loteamento). Os 5 primeiros digitos sao o setor/subsetor dos
- * Correios, entao o CEP geral do setor (XXXXX-000) cai na mesma regiao.
- *
- * Ordem: CEP do setor pelo ViaCEP -> codigo postal no Nominatim (o exato e o
- * do setor). Quem chama deve tratar o resultado como APROXIMADO: e o centro
- * da regiao, nao o endereco do visitante.
- *
- * @return array{lat: float, lng: float, label: string}|null
- */
-function contorno_geocode_cep_region( string $cep ): ?array {
-	$digits = contorno_cep_digits( $cep );
-
-	if ( '' === $digits ) {
-		return null;
+	if ( 'unavailable' === $address ) {
+		return $out( 'unavailable' );
 	}
 
+	// CEP inexistente: regiao pelo CEP geral do setor (mesmos 5 digitos).
 	$sector = substr( $digits, 0, 5 ) . '000';
 
 	if ( $sector !== $digits ) {
-		$hit = contorno_geocode_cep( $sector );
+		$sector_address = contorno_geo_cep_address( $sector );
 
-		if ( null !== $hit ) {
-			return $hit;
+		if ( is_array( $sector_address ) ) {
+			// So bairro/cidade: a rua do CEP geral nao e a do visitante.
+			$origin = contorno_geo_locate_address(
+				array(
+					'neighborhood' => $sector_address['neighborhood'],
+					'city'         => $sector_address['city'],
+					'state'        => $sector_address['state'],
+					'postal_code'  => $sector_address['postal_code'],
+				)
+			);
+
+			if ( null !== $origin ) {
+				return $out( 'region', array( 'precision' => 'area' === $origin['precision'] || 'street' === $origin['precision'] ? 'area' : 'city' ) + $origin );
+			}
 		}
 	}
 
-	$cache_key = 'contorno_geo_region_' . $digits;
-	$cached    = get_transient( $cache_key );
+	// Sem CEP de setor: o codigo postal no Google e, por fim, no OSM.
+	$google = contorno_google_geocode( array( 'postal_code' => contorno_format_cep( $digits ) ) );
 
-	if ( is_array( $cached ) ) {
-		return isset( $cached['lat'] ) ? $cached : null;
+	if ( is_array( $google ) ) {
+		return $out( 'region', array( 'lat' => $google['lat'], 'lng' => $google['lng'], 'neighborhood' => '', 'city' => '', 'state' => '', 'precision' => 'area', 'source' => 'google' ) );
 	}
-
-	$result = null;
 
 	foreach ( array_unique( array( $digits, $sector ) ) as $candidate ) {
 		$data = contorno_geo_fetch_json(
@@ -394,20 +605,59 @@ function contorno_geocode_cep_region( string $cep ): ?array {
 		);
 
 		if ( ! empty( $data[0]['lat'] ) && ! empty( $data[0]['lon'] ) ) {
-			$address = (array) ( $data[0]['address'] ?? array() );
-			$city    = (string) ( $address['city'] ?? $address['town'] ?? $address['village'] ?? $address['municipality'] ?? '' );
-			$result  = array(
-				'lat'   => (float) $data[0]['lat'],
-				'lng'   => (float) $data[0]['lon'],
-				'label' => '' !== $city ? contorno_geo_cep_label( (string) ( $address['suburb'] ?? '' ), $city, contorno_geo_state_code( (string) ( $address['ISO3166-2-lvl4'] ?? '' ) ) ) : contorno_format_cep( $candidate ),
+			$place = (array) ( $data[0]['address'] ?? array() );
+
+			// Codigo postal do OSM em outro estado = dado lixo; ignora.
+			if ( contorno_geo_state_code( (string) ( $place['ISO3166-2-lvl4'] ?? '' ) ) !== $state ) {
+				continue;
+			}
+
+			return $out(
+				'region',
+				array(
+					'lat'          => (float) $data[0]['lat'],
+					'lng'          => (float) $data[0]['lon'],
+					'neighborhood' => (string) ( $place['suburb'] ?? '' ),
+					'city'         => (string) ( $place['city'] ?? $place['town'] ?? $place['village'] ?? $place['municipality'] ?? '' ),
+					'state'        => contorno_geo_state_code( (string) ( $place['ISO3166-2-lvl4'] ?? '' ) ),
+					'precision'    => 'area',
+					'source'       => 'nominatim',
+				)
 			);
-			break;
 		}
 	}
 
-	set_transient( $cache_key, null === $result ? array( 'miss' => true ) : $result, null === $result ? HOUR_IN_SECONDS : 30 * DAY_IN_SECONDS );
+	return $out( 'not_found' );
+}
 
-	return $result;
+/**
+ * UF da faixa de CEP dos Correios ('' = faixa inexistente, ex.: 00000-xxx).
+ * Barra CEP impossivel antes de qualquer consulta e confere se um resultado
+ * regional do OSM caiu no estado certo (o OSM tem codigos postais lixo, como
+ * "00000-000" e "99999-999", marcados em lugares aleatorios).
+ */
+function contorno_cep_state( string $digits ): string {
+	$prefix = (int) substr( $digits, 0, 5 );
+	$ranges = array(
+		array( 1000, 19999, 'SP' ), array( 20000, 28999, 'RJ' ), array( 29000, 29999, 'ES' ),
+		array( 30000, 39999, 'MG' ), array( 40000, 48999, 'BA' ), array( 49000, 49999, 'SE' ),
+		array( 50000, 56999, 'PE' ), array( 57000, 57999, 'AL' ), array( 58000, 58999, 'PB' ),
+		array( 59000, 59999, 'RN' ), array( 60000, 63999, 'CE' ), array( 64000, 64999, 'PI' ),
+		array( 65000, 65999, 'MA' ), array( 66000, 68899, 'PA' ), array( 68900, 68999, 'AP' ),
+		array( 69000, 69299, 'AM' ), array( 69300, 69399, 'RR' ), array( 69400, 69899, 'AM' ),
+		array( 69900, 69999, 'AC' ), array( 70000, 72799, 'DF' ), array( 72800, 72999, 'GO' ),
+		array( 73000, 73699, 'DF' ), array( 73700, 76799, 'GO' ), array( 76800, 76999, 'RO' ),
+		array( 77000, 77999, 'TO' ), array( 78000, 78899, 'MT' ), array( 79000, 79999, 'MS' ),
+		array( 80000, 87999, 'PR' ), array( 88000, 89999, 'SC' ), array( 90000, 99999, 'RS' ),
+	);
+
+	foreach ( $ranges as $range ) {
+		if ( $prefix >= $range[0] && $prefix <= $range[1] ) {
+			return $range[2];
+		}
+	}
+
+	return '';
 }
 
 /**
@@ -415,6 +665,37 @@ function contorno_geocode_cep_region( string $cep ): ?array {
  */
 function contorno_geo_state_code( string $iso ): string {
 	return 1 === preg_match( '/^BR-([A-Z]{2})$/', $iso, $match ) ? $match[1] : '';
+}
+
+/**
+ * Nome do local sem ambiguidade para a interface:
+ *   "bairro São Paulo, em Belo Horizonte/MG" | "Belo Horizonte/MG"
+ * O bairro sempre leva a palavra "bairro" — "São Paulo" sozinho seria lido
+ * como a cidade.
+ *
+ * @param array<string,mixed> $origin
+ */
+function contorno_geo_place_label( array $origin ): string {
+	$city  = trim( (string) ( $origin['city'] ?? '' ) );
+	$state = trim( (string) ( $origin['state'] ?? '' ) );
+	$place = '' !== $city ? $city . ( '' !== $state ? '/' . $state : '' ) : '';
+	$hood  = trim( (string) ( $origin['neighborhood'] ?? '' ) );
+
+	if ( '' !== $hood && '' !== $place && 'city' !== ( $origin['precision'] ?? '' ) ) {
+		/* translators: 1: neighborhood, 2: city/UF */
+		return sprintf( __( 'bairro %1$s, em %2$s', 'contorno' ), $hood, $place );
+	}
+
+	return $place;
+}
+
+/**
+ * Local exato o bastante para medir distancia real e filtrar pelo raio?
+ *
+ * @param array{status: string, origin: array<string,mixed>|null} $location
+ */
+function contorno_geo_is_precise( array $location ): bool {
+	return 'exact' === $location['status'] && is_array( $location['origin'] ) && 'city' !== ( $location['origin']['precision'] ?? '' );
 }
 
 /**
@@ -465,12 +746,6 @@ function contorno_units_by_cep_prefix( array $units, string $cep, int $min_prefi
 	return array_map( static fn ( array $row ): WP_Post => $row['post'], array_slice( $ranked, 0, $limit ) );
 }
 
-function contorno_geo_cep_label( string $neighborhood, string $city, string $state ): string {
-	$place = trim( $city . ( '' !== $state ? ' - ' . $state : '' ) );
-
-	return '' !== $neighborhood ? $neighborhood . ', ' . $place : $place;
-}
-
 /**
  * Preenche lat/lng das unidades que ainda nao tem coordenadas (ate $limit
  * por chamada, respeitando 1 req/s do Nominatim). Usado pela auto-migracao.
@@ -497,7 +772,11 @@ function contorno_geocode_missing_units( int $limit = 20 ): int {
 		}
 
 		$hit = contorno_geocode_address( $address, $city, contorno_field_text( 'state', $unit->ID ) );
-		sleep( 1 );
+
+		// Nominatim pede no maximo 1 requisicao por segundo.
+		if ( null === $hit || 'nominatim' === $hit['source'] ) {
+			sleep( 1 );
+		}
 
 		if ( null === $hit ) {
 			continue;
