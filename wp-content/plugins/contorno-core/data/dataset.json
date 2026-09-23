@@ -8692,7 +8692,7 @@
         "state": "MG",
         "neighborhood": "",
         "address": "Av. Tancredo Neves, 2225, Castelo. Em frente à Drogaria Araújo.",
-        "postal_code": "30840-535",
+        "postal_code": "31330-472",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "",
@@ -10061,6 +10061,77 @@
         "ctn_slug": "",
         "editorial_position": "none"
       }
+    },
+    {
+      "slug": "bh-prime-falls-shopping",
+      "title": "BH Prime Falls Shopping",
+      "excerpt": "Junto ao Falls Shopping: 1.400 m², iluminação natural e estacionamento com cerca de 70 vagas.",
+      "menuOrder": 70,
+      "terms": {
+        "city": "Belo Horizonte",
+        "kind": "prime"
+      },
+      "fields": {
+        "short_name": "BH Prime Falls Shopping",
+        "kind": "prime",
+        "badge": "",
+        "featured": "",
+        "short_description": "Junto ao Falls Shopping: 1.400 m², iluminação natural e estacionamento com cerca de 70 vagas.",
+        "city": "Belo Horizonte",
+        "state": "MG",
+        "neighborhood": "São Bento",
+        "address": "Rua Kepler, 441 (Falls Shopping) – São Bento – Belo Horizonte - MG",
+        "postal_code": "30360-240",
+        "phone": "3140420177",
+        "whatsapp": "3140420177",
+        "hours": "Segunda a quinta, 05h às 23h\nSexta, 05h às 22h\nSábados e feriados, 07h às 16h\nDomingos, 09h às 13h",
+        "maps_query": "Rua Kepler, 441 - Falls Shopping - Belo Horizonte - MG",
+        "latitude": "-19.9636285",
+        "longitude": "-43.9492036",
+        "image": "",
+        "image_alt": "",
+        "gallery": [],
+        "video_url": "",
+        "differentials": [
+          "Vestiários com escaninhos para terno e blazer",
+          "Iluminação natural",
+          "Estacionamento com cerca de 70 vagas",
+          "Spinning presencial"
+        ],
+        "facilities": [
+          "Cadeira de Massagem",
+          "Vestiários",
+          "Balança de bioimpedância",
+          "Ambiente Climatizado",
+          "Equipamentos de Última Geração",
+          "Sonorização Especial",
+          "Televisões de LED",
+          "Acesso WIFI",
+          "Aulas coletivas"
+        ],
+        "modalities": [
+          "Musculação",
+          "Spinning presencial",
+          "Aulas coletivas"
+        ],
+        "starting_price": "",
+        "checkout_url": "https://unidades.contornodocorpo.com.br/bh-prime-falls-shopping/",
+        "prescricao_url": "",
+        "plans": [],
+        "status": "pre_sale",
+        "presale_label": "",
+        "presale_opening_label": "Condições exclusivas de pré-inauguração",
+        "presale_opening_date": "",
+        "presale_promo_text": "",
+        "classes_enabled": "",
+        "evo_branch_id": "",
+        "classes_url": "",
+        "classes_title": "",
+        "erp_id": "",
+        "sync_source": "manual",
+        "ctn_slug": "",
+        "editorial_position": "none"
+      }
     }
   ],
   "ctns": [
@@ -10220,7 +10291,7 @@
         "neighborhood": "Castelo",
         "address": "Av. Tancredo Neves, 2225, Castelo, Belo Horizonte",
         "address_complement": "Em frente à Drogaria Araújo.",
-        "postal_code": "30840-535",
+        "postal_code": "31330-472",
         "maps_query": "Av. Tancredo Neves, 2225, Castelo - Belo Horizonte",
         "map_embed_url": "https://maps.google.com/maps?q=Av.%20Tancredo%20Neves%2C%202225%2C%20Castelo%20-%20Belo%20Horizonte&t=m&z=14&output=embed&iwloc=near",
         "phone": "",
