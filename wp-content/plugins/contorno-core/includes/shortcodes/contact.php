@@ -300,7 +300,8 @@ contorno_add_shortcode(
 									<?php endif; ?>
 								</span>
 								<span class="contorno-channel-card__label"><?php echo esc_html( $card['label'] ); ?></span>
-								<span class="contorno-channel-card__value"><?php echo esc_html( $card['value'] ); ?></span>
+								<?php /* E-mail longo quebra so depois do "@", nunca no meio do dominio. */ ?>
+								<span class="contorno-channel-card__value"><?php echo str_replace( '@', '@<wbr>', esc_html( $card['value'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 								<span class="contorno-channel-card__text"><?php echo esc_html( $card['text'] ); ?></span>
 								<span class="contorno-channel-card__cta cta-label">
 									<?php echo esc_html( $card['cta'] ); ?>

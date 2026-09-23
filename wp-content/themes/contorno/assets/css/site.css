@@ -621,6 +621,23 @@ ol {
 	color: #fff;
 	font-size: 15px;
 	font-weight: 500;
+	white-space: nowrap;
+}
+
+/* Com "Trabalhe Conosco" o menu tem 6 itens: entre 1024 e 1279px ele
+   aperta o espacamento para nao encostar no logo nem no CTA. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+	.site-header__menu {
+		gap: 1.25rem;
+	}
+
+	.site-header__menu a {
+		font-size: 14px;
+	}
+
+	.site-header .site-logo {
+		height: 2.25rem;
+	}
 }
 
 .site-nav-link {
