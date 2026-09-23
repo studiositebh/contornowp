@@ -3023,7 +3023,7 @@
 }
 
 .contorno-contact-hub__text {
-	max-width: 34rem;
+	max-width: 40rem;
 	margin: 1rem auto 0;
 	font-size: 1rem;
 	line-height: 1.7;
@@ -3296,6 +3296,11 @@
 		margin-top: 1.5rem;
 	}
 
+	/* O e-mail inteiro cabe numa linha na coluna de 1/3 (valor igual nos tres). */
+	.contorno-contact-card__value {
+		font-size: 1.0625rem;
+	}
+
 	.contorno-contact-card__action {
 		align-self: end;
 		margin-top: 1.75rem;
@@ -3304,6 +3309,13 @@
 	.contorno-contact-card__badge {
 		top: 2rem;
 		right: 2rem;
+	}
+}
+
+/* Entre 1200 e 1263px o miolo ainda nao chegou a 75rem: coluna mais estreita. */
+@media (min-width: 1200px) and (max-width: 1263px) {
+	.contorno-contact-card__value {
+		font-size: 1rem;
 	}
 }
 
