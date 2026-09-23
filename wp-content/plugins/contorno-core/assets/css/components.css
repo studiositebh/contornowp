@@ -2970,17 +2970,67 @@
 	color: var(--muted-foreground, #949398);
 }
 
-/* Fale Conosco sem formulario: canais em cartoes (WhatsApp > e-mail > telefone).
-   A linha do builder deixa de ter a coluna do formulario. */
-.contorno-contact-page .vc_row:has(.contorno-channels--cards) {
-	grid-template-columns: minmax(0, 1fr);
+/* --------------------------------------------------------------------
+ * Fale Conosco (layout="cards"): secao propria, sem formulario.
+ * Fundo suave da marca, miolo centralizado (75rem) dentro do container
+ * do site e tres cartoes da mesma familia — WhatsApp > e-mail > telefone.
+ * ------------------------------------------------------------------ */
+
+/* A linha do builder deixa de impor a grade de duas colunas e o padding
+   do antigo formulario: quem controla o respiro e a propria secao. */
+.contorno-contact-page:has(.contorno-contact-hub) {
+	max-width: none;
+	padding: 0;
 }
 
-.contorno-channels--cards .contorno-section-header {
-	margin-bottom: var(--space-8, 2rem);
+.contorno-contact-page:has(.contorno-contact-hub) .contorno-contact-page__grid,
+.contorno-contact-page .vc_row:has(.contorno-contact-hub) {
+	display: block;
+	max-width: none;
+	margin: 0;
+	padding: 0;
 }
 
-.contorno-channels__cards {
+.contorno-contact-page .vc_row:has(.contorno-contact-hub) .wpb_wrapper > * {
+	margin-bottom: 0;
+}
+
+.contorno-contact-hub {
+	padding-block: 4rem 5rem;
+	background: var(--surface-muted, #f0f5f9);
+}
+
+.contorno-contact-hub__inner {
+	max-width: 75rem;
+	margin-inline: auto;
+}
+
+.contorno-contact-hub__head {
+	max-width: 44rem;
+	margin: 0 auto 2.5rem;
+	text-align: center;
+}
+
+.contorno-contact-hub__eyebrow {
+	margin-bottom: 0.875rem;
+}
+
+.contorno-contact-hub__title {
+	margin: 0;
+	font-size: 2.25rem;
+	line-height: 1.1;
+	letter-spacing: var(--tracking-tight, -0.025em);
+}
+
+.contorno-contact-hub__text {
+	max-width: 34rem;
+	margin: 1rem auto 0;
+	font-size: 1rem;
+	line-height: 1.7;
+	color: #5b6068;
+}
+
+.contorno-contact-hub__cards {
 	display: grid;
 	gap: 1rem;
 	margin: 0;
@@ -2988,145 +3038,284 @@
 	list-style: none;
 }
 
-.contorno-channel-card {
-	margin: 0;
-}
+/* Cartao ---------------------------------------------------------- */
 
-.contorno-channel-card__link {
+.contorno-contact-card {
+	position: relative;
 	display: flex;
 	flex-direction: column;
-	height: 100%;
+	min-width: 0;
+	margin: 0;
 	padding: 1.5rem;
 	border: 1px solid var(--border, #e6e8ea);
-	border-radius: var(--radius-2xl, 1.25rem);
+	border-radius: var(--radius-xl, 1rem);
 	background: #fff;
-	color: var(--foreground, #000);
-	transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+	box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+	transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }
 
-.contorno-channel-card__link:hover,
-.contorno-channel-card__link:focus-visible {
+.contorno-contact-card:hover {
 	transform: translateY(-2px);
-	border-color: var(--brand, #10b8b1);
-	box-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.35);
-	color: var(--foreground, #000);
+	border-color: rgb(16 184 177 / 0.35);
+	box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 18px 36px -24px rgb(15 23 42 / 0.28);
 }
 
-.contorno-channel-card__icon {
+.contorno-contact-card:focus-within {
+	border-color: rgb(16 184 177 / 0.55);
+}
+
+/* WhatsApp: mesmo cartao, destaque por acento (fio superior, borda, icone,
+   selo e o unico CTA preenchido) — sem superficie verde solida. */
+.contorno-contact-card.is-whatsapp {
+	border-color: rgb(37 211 102 / 0.45);
+	box-shadow: inset 0 3px 0 #25d366, 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.contorno-contact-card.is-whatsapp:hover,
+.contorno-contact-card.is-whatsapp:focus-within {
+	border-color: rgb(37 211 102 / 0.7);
+	box-shadow: inset 0 3px 0 #25d366, 0 18px 36px -24px rgb(18 140 74 / 0.4);
+}
+
+.contorno-contact-card__icon {
 	display: inline-flex;
+	flex: none;
 	align-items: center;
 	justify-content: center;
 	width: 3rem;
 	height: 3rem;
-	margin-bottom: 1.25rem;
-	border-radius: var(--radius-full, 999px);
+	border-radius: 0.875rem;
 	background: rgb(16 184 177 / 0.1);
-	color: var(--brand, #10b8b1);
-}
-
-.contorno-channel-card__icon svg {
-	width: 1.4rem;
-	height: 1.4rem;
-}
-
-.contorno-channel-card__label {
-	font-size: var(--text-xs, 0.75rem);
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.14em;
-	color: var(--muted-foreground, #949398);
-}
-
-.contorno-channel-card__value {
-	margin-top: 0.35rem;
-	font-size: var(--text-lg, 1.125rem);
-	font-weight: 700;
-	line-height: 1.35;
-	overflow-wrap: break-word;
-}
-
-.contorno-channel-card__text {
-	margin-top: 0.5rem;
-	margin-bottom: 1.5rem;
-	font-size: var(--text-sm, 0.875rem);
-	line-height: 1.6;
-	color: var(--muted-foreground, #6b6e73);
-}
-
-.contorno-channel-card__cta {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.5rem;
-	margin-top: auto;
-	font-size: var(--text-sm, 0.875rem);
-	font-weight: 600;
 	color: var(--brand-ink, #018075);
 }
 
-.contorno-channel-card__arrow {
-	width: 1rem;
-	height: 1rem;
+.contorno-contact-card__icon svg {
+	width: 1.375rem;
+	height: 1.375rem;
 }
 
-/* WhatsApp: canal principal, em destaque. */
-.contorno-channel-card.is-whatsapp .contorno-channel-card__link {
-	border-color: #25d366;
-	background: #25d366;
-	color: #fff;
-}
-
-.contorno-channel-card.is-whatsapp .contorno-channel-card__link:hover,
-.contorno-channel-card.is-whatsapp .contorno-channel-card__link:focus-visible {
-	border-color: #1ebe5b;
-	background: #1ebe5b;
-	color: #fff;
-	box-shadow: 0 18px 40px -20px rgb(37 211 102 / 0.7);
-}
-
-.contorno-channel-card.is-whatsapp .contorno-channel-card__icon {
-	background: rgb(255 255 255 / 0.2);
-	color: #fff;
-}
-
-.contorno-channel-card.is-whatsapp .contorno-channel-card__label,
-.contorno-channel-card.is-whatsapp .contorno-channel-card__text {
-	color: rgb(255 255 255 / 0.88);
-}
-
-.contorno-channel-card.is-whatsapp .contorno-channel-card__value {
-	font-size: var(--text-2xl, 1.5rem);
-}
-
-.contorno-channel-card.is-whatsapp .contorno-channel-card__cta {
-	align-self: flex-start;
-	padding: 0.7rem 1.25rem;
-	border-radius: var(--radius-full, 999px);
-	background: #fff;
+.contorno-contact-card.is-whatsapp .contorno-contact-card__icon {
+	background: rgb(37 211 102 / 0.12);
 	color: #128c4a;
 }
 
+.contorno-contact-card__badge {
+	position: absolute;
+	top: 1.5rem;
+	right: 1.5rem;
+	padding: 0.3rem 0.65rem;
+	border-radius: var(--radius-full, 999px);
+	background: rgb(37 211 102 / 0.12);
+	font-size: 0.6875rem;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #0f7a40;
+}
+
+.contorno-contact-card__body {
+	flex: 1 1 auto;
+	margin-top: 1.25rem;
+}
+
+.contorno-contact-card__label {
+	margin: 0;
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: var(--tracking-eyebrow, 0.18em);
+	text-transform: uppercase;
+	color: #6b7078;
+}
+
+.contorno-contact-card__value {
+	margin: 0.4rem 0 0;
+	font-size: 1.25rem;
+	font-weight: 700;
+	line-height: 1.3;
+	color: var(--foreground, #000);
+	overflow-wrap: break-word;
+}
+
+.contorno-contact-card__text {
+	margin: 0.65rem 0 0;
+	font-size: 0.9375rem;
+	line-height: 1.6;
+	color: #5b6068;
+}
+
+.contorno-contact-card__action {
+	margin-top: 1.5rem;
+}
+
+/* CTA no mesmo desenho dos botoes do site (raio 10px, caixa alta). */
+.contorno-contact-card__cta {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	width: 100%;
+	min-height: 3rem;
+	padding: 0.75rem 1.25rem;
+	border: 1px solid var(--brand, #10b8b1);
+	border-radius: var(--radius-md, 10px);
+	background: transparent;
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: var(--tracking-cta, 0.12em);
+	text-transform: uppercase;
+	color: var(--brand-ink, #018075);
+	transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+
+/* O link cobre o cartao inteiro; o foco visivel continua no botao. */
+.contorno-contact-card__cta::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+}
+
+.contorno-contact-card:hover .contorno-contact-card__cta {
+	background: rgb(16 184 177 / 0.08);
+	color: var(--brand-ink, #018075);
+}
+
+.contorno-contact-card__cta:focus-visible {
+	outline: 2px solid var(--brand-ink, #018075);
+	outline-offset: 3px;
+}
+
+.contorno-contact-card__arrow {
+	width: 1rem;
+	height: 1rem;
+	transition: transform 200ms ease;
+}
+
+.contorno-contact-card:hover .contorno-contact-card__arrow {
+	transform: translateX(3px);
+}
+
+.contorno-contact-card.is-whatsapp .contorno-contact-card__cta {
+	border-color: #128c4a;
+	background: #128c4a;
+	color: #fff;
+}
+
+.contorno-contact-card.is-whatsapp:hover .contorno-contact-card__cta {
+	border-color: #0f7a40;
+	background: #0f7a40;
+	color: #fff;
+}
+
+.contorno-contact-card.is-whatsapp .contorno-contact-card__cta:focus-visible {
+	outline-color: #128c4a;
+}
+
+/* Tablet: WhatsApp em linha inteira (horizontal), e-mail e telefone abaixo. */
 @media (min-width: 768px) {
-	.contorno-channels__cards {
+	.contorno-contact-hub {
+		padding-block: 5.5rem 7rem;
+	}
+
+	.contorno-contact-hub__head {
+		margin-bottom: 3.5rem;
+	}
+
+	.contorno-contact-hub__title {
+		font-size: 3rem;
+	}
+
+	.contorno-contact-hub__text {
+		font-size: 1.0625rem;
+	}
+
+	.contorno-contact-hub__cards {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 1.25rem;
 	}
 
-	.contorno-channel-card.is-whatsapp {
-		grid-column: 1 / -1;
+	.contorno-contact-card {
+		padding: 1.75rem;
+	}
+
+	.contorno-contact-card__badge {
+		top: 1.75rem;
+		right: 1.75rem;
 	}
 }
 
-@media (min-width: 1280px) {
-	.contorno-channels__cards {
-		grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr));
+@media (min-width: 768px) and (max-width: 1199px) {
+	.contorno-contact-card.is-whatsapp {
+		grid-column: 1 / -1;
+		flex-direction: row;
+		align-items: center;
+		gap: 1.5rem;
 	}
 
-	.contorno-channel-card.is-whatsapp {
-		grid-column: auto;
+	.contorno-contact-card.is-whatsapp .contorno-contact-card__body {
+		margin-top: 0;
 	}
 
-	.contorno-channel-card__link {
+	.contorno-contact-card.is-whatsapp .contorno-contact-card__action {
+		flex: none;
+		margin-top: 0;
+	}
+
+	.contorno-contact-card.is-whatsapp .contorno-contact-card__cta {
+		width: auto;
+		min-width: 14rem;
+	}
+}
+
+/* Desktop: tres colunas com subgrid — icone, rotulo, valor, texto e CTA
+   ficam na mesma linha nos tres cartoes, sem margens manuais. */
+@media (min-width: 1200px) {
+	.contorno-contact-hub {
+		padding-block: 6.5rem 8.5rem;
+	}
+
+	.contorno-contact-hub__cards {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1.5rem;
+	}
+
+	.contorno-contact-card {
+		display: grid;
+		grid-row: span 5;
+		grid-template-rows: subgrid;
+		row-gap: 0;
 		padding: 2rem;
+	}
+
+	.contorno-contact-card__body {
+		display: contents;
+	}
+
+	.contorno-contact-card__label {
+		margin-top: 1.5rem;
+	}
+
+	.contorno-contact-card__action {
+		align-self: end;
+		margin-top: 1.75rem;
+	}
+
+	.contorno-contact-card__badge {
+		top: 2rem;
+		right: 2rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.contorno-contact-card,
+	.contorno-contact-card__arrow {
+		transition: none;
+	}
+
+	.contorno-contact-card:hover,
+	.contorno-contact-card:hover .contorno-contact-card__arrow {
+		transform: none;
 	}
 }
 

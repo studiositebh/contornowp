@@ -281,37 +281,66 @@ contorno_add_shortcode(
 				);
 			}
 			?>
-			<div class="contorno-channels contorno-channels--cards motion-reveal" data-contorno-reveal>
-				<?php echo str_replace( array( '<h2 class="contorno-section-header__title">', '</h2>' ), array( '<h1 class="contorno-section-header__title contorno-channels__title">', '</h1>' ), contorno_section_header( (string) $a['eyebrow'], (string) $a['title'], (string) $a['text'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php
+			/*
+			 * Secao propria (fundo suave + container do site + miolo centralizado):
+			 * a linha do builder ao redor e neutralizada no CSS para a pagina nao
+			 * herdar a grade de duas colunas do antigo formulario.
+			 */
+			?>
+			<section class="contorno-contact-hub contorno-channels--cards" aria-labelledby="contorno-contact-hub-title">
+				<div class="site-container">
+					<div class="contorno-contact-hub__inner">
+						<header class="contorno-contact-hub__head motion-reveal" data-contorno-reveal>
+							<?php if ( '' !== trim( (string) $a['eyebrow'] ) ) : ?>
+								<p class="eyebrow contorno-contact-hub__eyebrow"><?php echo esc_html( (string) $a['eyebrow'] ); ?></p>
+							<?php endif; ?>
+							<h1 class="contorno-contact-hub__title" id="contorno-contact-hub-title"><?php echo esc_html( (string) $a['title'] ); ?></h1>
+							<?php if ( '' !== trim( (string) $a['text'] ) ) : ?>
+								<p class="contorno-contact-hub__text"><?php echo esc_html( (string) $a['text'] ); ?></p>
+							<?php endif; ?>
+						</header>
 
-				<ul class="contorno-channels__cards">
-					<?php foreach ( $cards as $card ) : ?>
-						<li class="contorno-channel-card is-<?php echo esc_attr( $card['key'] ); ?>">
-							<a
-								class="contorno-channel-card__link"
-								href="<?php echo 'email' === $card['key'] || 'phone' === $card['key'] ? esc_attr( $card['url'] ) : esc_url( $card['url'] ); ?>"
-								<?php echo $card['external'] ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
-							>
-								<span class="contorno-channel-card__icon" aria-hidden="true">
+						<ul class="contorno-contact-hub__cards motion-reveal" data-contorno-reveal>
+							<?php foreach ( $cards as $card ) : ?>
+								<li class="contorno-contact-card is-<?php echo esc_attr( $card['key'] ); ?>">
+									<span class="contorno-contact-card__icon" aria-hidden="true">
+										<?php if ( 'whatsapp' === $card['key'] ) : ?>
+											<svg viewBox="0 0 24 24" fill="currentColor" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.174.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.174-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.05-.52-.099-.148-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.695.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413"/></svg>
+										<?php else : ?>
+											<?php echo contorno_icon( 'email' === $card['key'] ? 'mail' : 'phone', 'contorno-contact-card__svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+										<?php endif; ?>
+									</span>
+
 									<?php if ( 'whatsapp' === $card['key'] ) : ?>
-										<svg viewBox="0 0 24 24" fill="currentColor" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.174.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.174-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.05-.52-.099-.148-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.695.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413"/></svg>
-									<?php else : ?>
-										<?php echo contorno_icon( 'email' === $card['key'] ? 'mail' : 'phone', 'contorno-channel-card__svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+										<span class="contorno-contact-card__badge"><?php esc_html_e( 'Mais rápido', 'contorno' ); ?></span>
 									<?php endif; ?>
-								</span>
-								<span class="contorno-channel-card__label"><?php echo esc_html( $card['label'] ); ?></span>
-								<?php /* E-mail longo quebra so depois do "@", nunca no meio do dominio. */ ?>
-								<span class="contorno-channel-card__value"><?php echo str_replace( '@', '@<wbr>', esc_html( $card['value'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-								<span class="contorno-channel-card__text"><?php echo esc_html( $card['text'] ); ?></span>
-								<span class="contorno-channel-card__cta cta-label">
-									<?php echo esc_html( $card['cta'] ); ?>
-									<?php echo contorno_icon( 'arrow-right', 'contorno-channel-card__arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-								</span>
-							</a>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-			</div>
+
+									<div class="contorno-contact-card__body">
+										<p class="contorno-contact-card__label"><?php echo esc_html( $card['label'] ); ?></p>
+										<?php /* E-mail longo quebra so depois do "@", nunca no meio do dominio. */ ?>
+										<p class="contorno-contact-card__value"><?php echo str_replace( '@', '@<wbr>', esc_html( $card['value'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+										<p class="contorno-contact-card__text"><?php echo esc_html( $card['text'] ); ?></p>
+									</div>
+
+									<div class="contorno-contact-card__action">
+										<?php /* O link do CTA cobre o card inteiro (::after), mas o foco fica no botao. */ ?>
+										<a
+											class="contorno-contact-card__cta cta-label"
+											href="<?php echo 'whatsapp' === $card['key'] ? esc_url( $card['url'] ) : esc_attr( $card['url'] ); ?>"
+											aria-label="<?php echo esc_attr( $card['cta'] . ': ' . $card['value'] ); ?>"
+											<?php echo $card['external'] ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
+										>
+											<span><?php echo esc_html( $card['cta'] ); ?></span>
+											<?php echo contorno_icon( 'arrow-right', 'contorno-contact-card__arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+										</a>
+									</div>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					</div>
+				</div>
+			</section>
 			<?php
 
 			return (string) ob_get_clean();
