@@ -196,9 +196,9 @@
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
         "city": "Barbacena",
         "state": "MG",
-        "neighborhood": "Rua Coronel José Máximo, 15 São Sebastião",
+        "neighborhood": "São Sebastião",
         "address": "Rua Coronel José Máximo, 15 São Sebastião – Barbacena – MG",
-        "postal_code": "",
+        "postal_code": "36202-284",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda a sexta, 05h30 às 22h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -333,7 +333,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 2,
       "terms": {
-        "city": "Barreiro, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -342,9 +342,9 @@
         "badge": "",
         "featured": "1",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Barreiro, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Av. Sinfrônio Brochado, 735",
+        "neighborhood": "Barreiro",
         "address": "Av. Sinfrônio Brochado, 735 - Barreiro, Belo Horizonte - MG, 30640-000, Brasil",
         "postal_code": "30640-000",
         "phone": "3140420177",
@@ -488,7 +488,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 3,
       "terms": {
-        "city": "Angola, Betim",
+        "city": "Betim",
         "kind": "standard"
       },
       "fields": {
@@ -497,9 +497,9 @@
         "badge": "",
         "featured": "1",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Angola, Betim",
+        "city": "Betim",
         "state": "MG",
-        "neighborhood": "R. José da Conceição, 189",
+        "neighborhood": "Angola",
         "address": "R. José da Conceição, 189 - Angola, Betim - MG, 32604-158, Brasil",
         "postal_code": "32604-158",
         "phone": "3140420177",
@@ -636,7 +636,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 4,
       "terms": {
-        "city": "Buritis, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -645,9 +645,9 @@
         "badge": "",
         "featured": "1",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Buritis, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "R. Eli Seabra Filho, 546",
+        "neighborhood": "Buritis",
         "address": "R. Eli Seabra Filho, 546 - Buritis, Belo Horizonte - MG, 30575-740, Brasil",
         "postal_code": "30575-740",
         "phone": "3140420177",
@@ -1273,7 +1273,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 8,
       "terms": {
-        "city": "Santo Antônio, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -1282,9 +1282,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Santo Antônio, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Rua Carangola, 153",
+        "neighborhood": "Santo Antônio",
         "address": "Rua Carangola, 153 - Santo Antônio, Belo Horizonte - MG, Brasil",
         "postal_code": "",
         "phone": "3140420177",
@@ -1419,7 +1419,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 9,
       "terms": {
-        "city": "Planalto, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -1428,9 +1428,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Planalto, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Rua Doutor Cristiano Guimarães, 1957",
+        "neighborhood": "Planalto",
         "address": "Rua Doutor Cristiano Guimarães, 1957 - Planalto, Belo Horizonte - MG, Brasil",
         "postal_code": "",
         "phone": "3140420177",
@@ -1740,7 +1740,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 11,
       "terms": {
-        "city": "Nova Suíça, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -1749,9 +1749,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Nova Suíça, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Rua Cariri, 22",
+        "neighborhood": "Nova Suíça",
         "address": "Rua Cariri, 22 - Nova Suíça, Belo Horizonte - MG, Brasil",
         "postal_code": "",
         "phone": "3140420177",
@@ -2071,7 +2071,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 13,
       "terms": {
-        "city": "Lourdes, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -2080,9 +2080,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Lourdes, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Rua Espírito Santo, 1420",
+        "neighborhood": "Lourdes",
         "address": "Rua Espírito Santo, 1420 - Lourdes, Belo Horizonte - MG, Brasil",
         "postal_code": "",
         "phone": "3140420177",
@@ -2727,7 +2727,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 17,
       "terms": {
-        "city": "Funcionários, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -2736,9 +2736,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Funcionários, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Rua dos Aimorés, 20",
+        "neighborhood": "Funcionários",
         "address": "Rua dos Aimorés, 20 - Funcionários, Belo Horizonte - MG, Brasil",
         "postal_code": "",
         "phone": "3140420177",
@@ -2885,9 +2885,9 @@
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
         "city": "Congonhas",
         "state": "MG",
-        "neighborhood": "Rua Magalhães Pinto, 140",
+        "neighborhood": "Centro",
         "address": "Rua Magalhães Pinto, 140 - Congonhas, MG, Brasil",
-        "postal_code": "",
+        "postal_code": "36410-028",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda a sexta, 05:30h às 22h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -3064,7 +3064,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 19,
       "terms": {
-        "city": "Cidade Nova, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -3073,9 +3073,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Cidade Nova, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "R. Júlio Pereira da Silva, 89",
+        "neighborhood": "Cidade Nova",
         "address": "R. Júlio Pereira da Silva, 89 - Cidade Nova, Belo Horizonte - MG, 31170-360, Brasil",
         "postal_code": "31170-360",
         "phone": "3140420177",
@@ -3382,7 +3382,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 21,
       "terms": {
-        "city": "Castelo, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -3391,11 +3391,11 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Castelo, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Av. Miguel Perrela, 510",
+        "neighborhood": "Castelo",
         "address": "Av. Miguel Perrela, 510 - Castelo, Belo Horizonte - MG, Brasil",
-        "postal_code": "",
+        "postal_code": "31330-290",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda a quinta, 05h às 23h\nSexta: 05h às 22h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -3537,7 +3537,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 22,
       "terms": {
-        "city": "Barreiro, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -3546,9 +3546,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Barreiro, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Av. Sinfrônio Brochado, 1210",
+        "neighborhood": "Barreiro",
         "address": "Av. Sinfrônio Brochado, 1210 - Barreiro, Belo Horizonte - MG, 30640-000",
         "postal_code": "30640-000",
         "phone": "3140420177",
@@ -3723,7 +3723,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 23,
       "terms": {
-        "city": "Chapada, Conselheiro Lafaiete",
+        "city": "Conselheiro Lafaiete",
         "kind": "standard"
       },
       "fields": {
@@ -3732,9 +3732,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Chapada, Conselheiro Lafaiete",
+        "city": "Conselheiro Lafaiete",
         "state": "MG",
-        "neighborhood": "R. Duque de Caxias, 568",
+        "neighborhood": "Chapada",
         "address": "R. Duque de Caxias, 568 - Chapada, Conselheiro Lafaiete - MG, 36401-174",
         "postal_code": "36401-174",
         "phone": "3140420177",
@@ -3862,7 +3862,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 24,
       "terms": {
-        "city": "Santo Agostinho, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "prime"
       },
       "fields": {
@@ -3871,11 +3871,11 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Santo Agostinho, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Rua Araguari, 1269",
+        "neighborhood": "Santo Agostinho",
         "address": "Rua Araguari, 1269 - Santo Agostinho, Belo Horizonte - MG, Brasil",
-        "postal_code": "",
+        "postal_code": "30190-111",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda a sexta, 05h30 às 22h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -4007,7 +4007,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 25,
       "terms": {
-        "city": "Prado, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -4016,9 +4016,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Prado, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Av. Francisco Sá, 753",
+        "neighborhood": "Prado",
         "address": "Av. Francisco Sá, 753 - Prado, Belo Horizonte - MG, 30411-174",
         "postal_code": "30411-174",
         "phone": "3140420177",
@@ -4499,7 +4499,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 28,
       "terms": {
-        "city": "Av. dos Ex-Combatentes, 360 Santa Luzia, Ubá",
+        "city": "Ubá",
         "kind": "standard"
       },
       "fields": {
@@ -4508,9 +4508,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Av. dos Ex-Combatentes, 360 Santa Luzia, Ubá",
+        "city": "Ubá",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Santa Luzia",
         "address": "Av. dos Ex-Combatentes, 360 Santa Luzia, Ubá – MG",
         "postal_code": "",
         "phone": "3140420177",
@@ -4646,7 +4646,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 29,
       "terms": {
-        "city": "Rua Moacir José Leite, 100 Santa Clara, Divinópolis",
+        "city": "Divinópolis",
         "kind": "standard"
       },
       "fields": {
@@ -4655,11 +4655,11 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Rua Moacir José Leite, 100 Santa Clara, Divinópolis",
+        "city": "Divinópolis",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Santa Clara",
         "address": "Rua Moacir José Leite, 100 Santa Clara, Divinópolis – MG",
-        "postal_code": "",
+        "postal_code": "35500-119",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda a sexta, 05h00 às 22h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -4788,7 +4788,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 30,
       "terms": {
-        "city": "Centro, Sete Lagoas",
+        "city": "Sete Lagoas",
         "kind": "standard"
       },
       "fields": {
@@ -4797,9 +4797,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Centro, Sete Lagoas",
+        "city": "Sete Lagoas",
         "state": "MG",
-        "neighborhood": "Av. Antônio Olinto, 175",
+        "neighborhood": "Centro",
         "address": "Av. Antônio Olinto, 175 - Centro, Sete Lagoas - MG, 35700-002, Brasil",
         "postal_code": "35700-002",
         "phone": "3140420177",
@@ -5107,7 +5107,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 32,
       "terms": {
-        "city": "Inconfidentes, Contagem (União Street Mall)",
+        "city": "Contagem",
         "kind": "standard"
       },
       "fields": {
@@ -5116,9 +5116,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Inconfidentes, Contagem (União Street Mall)",
+        "city": "Contagem",
         "state": "MG",
-        "neighborhood": "Praça Raimunda R. Magela, 95",
+        "neighborhood": "Inconfidentes",
         "address": "Praça Raimunda R. Magela, 95 - Inconfidentes, Contagem (União Street Mall) - MG, 32260-005, Brasil",
         "postal_code": "32260-005",
         "phone": "3140420177",
@@ -5555,7 +5555,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 35,
       "terms": {
-        "city": "Av. Major Gote, 600, Centro, Patos de Minas",
+        "city": "Patos de Minas",
         "kind": "standard"
       },
       "fields": {
@@ -5564,11 +5564,11 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Av. Major Gote, 600, Centro, Patos de Minas",
+        "city": "Patos de Minas",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Centro",
         "address": "Av. Major Gote, 600, Centro, Patos de Minas - MG",
-        "postal_code": "",
+        "postal_code": "38700-107",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda à sexta, 05h às 23h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -5696,7 +5696,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 36,
       "terms": {
-        "city": "Av. Jovino Fernandes Salles, 1121, Residencial Novo Horizonte, Alfenas",
+        "city": "Alfenas",
         "kind": "standard"
       },
       "fields": {
@@ -5705,11 +5705,11 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Av. Jovino Fernandes Salles, 1121, Residencial Novo Horizonte, Alfenas",
+        "city": "Alfenas",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Residencial Novo Horizonte",
         "address": "Av. Jovino Fernandes Salles, 1121, Residencial Novo Horizonte, Alfenas - MG",
-        "postal_code": "",
+        "postal_code": "37133-690",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda à quinta, 05h00 às 23h\nSexta, 05h00 às 22h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -5841,7 +5841,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 37,
       "terms": {
-        "city": "Av. Barão Homem de Melo, 2428, Estoril, BH",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -5850,9 +5850,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Av. Barão Homem de Melo, 2428, Estoril, BH",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Estoril",
         "address": "Av. Barão Homem de Melo, 2428, Estoril, BH - MG",
         "postal_code": "",
         "phone": "3140420177",
@@ -5988,7 +5988,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 38,
       "terms": {
-        "city": "Rua Professora Gabriela Varela, 615, Floramar, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -5997,9 +5997,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Rua Professora Gabriela Varela, 615, Floramar, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Floramar",
         "address": "Rua Professora Gabriela Varela, 615, Floramar, Belo Horizonte - MG",
         "postal_code": "",
         "phone": "3140420177",
@@ -6133,7 +6133,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 39,
       "terms": {
-        "city": "Rua Jacuí, 2844, Ipiranga, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -6142,9 +6142,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Rua Jacuí, 2844, Ipiranga, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Ipiranga",
         "address": "Rua Jacuí, 2844, Ipiranga, Belo Horizonte - MG",
         "postal_code": "",
         "phone": "3140420177",
@@ -6285,7 +6285,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 40,
       "terms": {
-        "city": "Castelo, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -6294,9 +6294,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Castelo, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Av. dos Engenheiros, 560",
+        "neighborhood": "Castelo",
         "address": "Av. dos Engenheiros, 560 - Castelo, Belo Horizonte - MG",
         "postal_code": "",
         "phone": "3140420177",
@@ -6723,7 +6723,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 43,
       "terms": {
-        "city": "Ouro Preto(Pampulha), Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -6732,9 +6732,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Ouro Preto(Pampulha), Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Av. Fleming, 1005",
+        "neighborhood": "Ouro Preto",
         "address": "Av. Fleming, 1005 - Ouro Preto(Pampulha), Belo Horizonte - MG",
         "postal_code": "31340-000",
         "phone": "3140420177",
@@ -7302,7 +7302,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 47,
       "terms": {
-        "city": "Praça Ozanan Coelho, 166, Bairro Siderurgia, Ouro Branco",
+        "city": "Ouro Branco",
         "kind": "standard"
       },
       "fields": {
@@ -7311,11 +7311,11 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Praça Ozanan Coelho, 166, Bairro Siderurgia, Ouro Branco",
+        "city": "Ouro Branco",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Siderurgia",
         "address": "Praça Ozanan Coelho, 166, Bairro Siderurgia, Ouro Branco - MG",
-        "postal_code": "36420-000",
+        "postal_code": "36492-180",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "Segunda à sexta, 05h às 22h\nSábados e feriados, 08h às 14h\nDomingos, 09h às 13h",
@@ -7595,7 +7595,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 49,
       "terms": {
-        "city": "Av. Dr. José Grossi, 54, Bairro Guarapiranga (Shopping Boulevard Colina), Ponte Nova",
+        "city": "Ponte Nova",
         "kind": "standard"
       },
       "fields": {
@@ -7604,9 +7604,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Av. Dr. José Grossi, 54, Bairro Guarapiranga (Shopping Boulevard Colina), Ponte Nova",
+        "city": "Ponte Nova",
         "state": "MG",
-        "neighborhood": "",
+        "neighborhood": "Guarapiranga",
         "address": "Av. Dr. José Grossi, 54, Bairro Guarapiranga (Shopping Boulevard Colina), Ponte Nova - MG",
         "postal_code": "35430-213",
         "phone": "3140420177",
@@ -7887,7 +7887,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 51,
       "terms": {
-        "city": "Varginha (Junto ao Mineirão atacarejo).",
+        "city": "Varginha",
         "kind": "ctn-prime"
       },
       "fields": {
@@ -7896,9 +7896,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Varginha (Junto ao Mineirão atacarejo).",
+        "city": "Varginha",
         "state": "MG",
-        "neighborhood": "Rua Celina Ferreiro Ottoni, N.888. Jardim Mariana",
+        "neighborhood": "Jardim Mariana",
         "address": "Rua Celina Ferreiro Ottoni, N.888. Jardim Mariana - Varginha (Junto ao Mineirão atacarejo).",
         "postal_code": "",
         "phone": "3140420177",
@@ -8176,7 +8176,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 53,
       "terms": {
-        "city": "Próximo a Drogaria Araújo.",
+        "city": "Contagem",
         "kind": "standard"
       },
       "fields": {
@@ -8185,9 +8185,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Próximo a Drogaria Araújo.",
+        "city": "Contagem",
         "state": "MG",
-        "neighborhood": "Contagem/MG",
+        "neighborhood": "Cabral",
         "address": "Rua Alameda dos Sabias 516, Bairro Cabral - Contagem/MG - Próximo a Drogaria Araújo.",
         "postal_code": "32146-024",
         "phone": "3140420177",
@@ -9040,7 +9040,7 @@
         "state": "MG",
         "neighborhood": "Luxemburgo",
         "address": "Av. Raja Gabaglia, 1585 – Luxemburgo – Belo Horizonte",
-        "postal_code": "30440-470",
+        "postal_code": "30380-435",
         "phone": "3140420177",
         "whatsapp": "3140420177",
         "hours": "",
@@ -9288,7 +9288,7 @@
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
         "city": "Betim",
         "state": "MG",
-        "neighborhood": "Jardim Alterosa",
+        "neighborhood": "Jardim das Alterosas 1ª Seção",
         "address": "Av. Campos de Ourique, 1445 - Jardim Alterosa – Betim - MG",
         "postal_code": "32670-708",
         "phone": "3140420177",
@@ -10018,7 +10018,7 @@
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 0,
       "terms": {
-        "city": "Santa Efigênia, Belo Horizonte",
+        "city": "Belo Horizonte",
         "kind": "standard"
       },
       "fields": {
@@ -10027,9 +10027,9 @@
         "badge": "",
         "featured": "",
         "short_description": "Estrutura completa para treinar com conforto e consistência.",
-        "city": "Santa Efigênia, Belo Horizonte",
+        "city": "Belo Horizonte",
         "state": "MG",
-        "neighborhood": "Av. dos Andradas, 3000",
+        "neighborhood": "Santa Efigênia",
         "address": "Av. dos Andradas, 3000 - Santa Efigênia, Belo Horizonte - MG, Brasil",
         "postal_code": "30110-014",
         "phone": "3140420177",
