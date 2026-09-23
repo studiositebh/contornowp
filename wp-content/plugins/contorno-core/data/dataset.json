@@ -9873,7 +9873,10 @@
       }
     },
     {
-      "slug": "sao-bento-prime",
+      "slug": "bh-prime-falls-shopping",
+      "previousSlugs": [
+        "sao-bento-prime"
+      ],
       "title": "BH Prime Falls Shopping",
       "excerpt": "Junto ao Falls Shopping: 1.400 m², iluminação natural e estacionamento com cerca de 70 vagas.",
       "menuOrder": 68,
@@ -9926,7 +9929,7 @@
           "Spinning presencial",
           "Aulas coletivas"
         ],
-        "starting_price": 99.9,
+        "starting_price": "",
         "checkout_url": "https://unidades.contornodocorpo.com.br/bh-prime-falls-shopping/",
         "prescricao_url": "",
         "plans": [],
@@ -11476,10 +11479,5 @@
     "/units/xml/xangri-la/gallery-07.jpg",
     "/units/xml/xangri-la/hero-01.jpg"
   ],
-  "retiredUnits": [
-    {
-      "slug": "bh-prime-falls-shopping",
-      "reason": "duplicata de sao-bento-prime (mesma unidade: Rua Kepler, 441 - Falls Shopping)"
-    }
-  ]
+  "retiredUnits": []
 }

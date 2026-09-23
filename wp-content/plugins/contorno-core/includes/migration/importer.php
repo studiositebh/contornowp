@@ -425,6 +425,28 @@ final class Contorno_Migration {
 
 			$post_id = isset( $existing[0] ) ? (int) $existing[0]->ID : 0;
 
+			// Slug renomeado: reaproveita o MESMO post (ID, anexos, metadados,
+			// historico) em vez de criar outro. O redirect 301 do slug antigo
+			// fica em includes/redirects.php.
+			if ( ! $post_id ) {
+				foreach ( (array) ( $entity['previousSlugs'] ?? array() ) as $previous ) {
+					$previous_posts = get_posts(
+						array(
+							'post_type'      => $post_type,
+							'name'           => sanitize_title( (string) $previous ),
+							'post_status'    => 'any',
+							'posts_per_page' => 1,
+						)
+					);
+
+					if ( isset( $previous_posts[0] ) ) {
+						$post_id = (int) $previous_posts[0]->ID;
+						$this->report->log( sprintf( 'Slug renomeado: %s/%s -> %s (post %d)', $post_type, sanitize_title( (string) $previous ), $slug, $post_id ) );
+						break;
+					}
+				}
+			}
+
 			if ( $this->dry_run ) {
 				$this->report->log( sprintf( '%s %s: %s', $post_id ? 'Atualizaria' : 'Criaria', $post_type, $slug ) );
 				$this->report->bump( $counter );

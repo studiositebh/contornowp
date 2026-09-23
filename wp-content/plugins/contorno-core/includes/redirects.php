@@ -40,6 +40,12 @@ function contorno_redirect_map(): array {
 			'to'   => '/matricula/confirmacao/',
 			'keep' => array(),
 		),
+
+		// Unidade renomeada para o nome oficial (mesmo post; ERP 33063).
+		'/unidades/sao-bento-prime' => array(
+			'to'   => '/unidades/bh-prime-falls-shopping/',
+			'keep' => array(),
+		),
 	);
 
 	/**
