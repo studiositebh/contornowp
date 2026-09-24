@@ -89,10 +89,74 @@ final class Contorno_Evo_Settings {
 		update_option( self::OPTION, $clean, false );
 	}
 
+	/**
+	 * Hosts aceitos como API da EVO.
+	 *
+	 * O token da EVO viaja no cabecalho Authorization de toda chamada. Se a
+	 * base URL pudesse apontar para qualquer lugar, bastaria salvar
+	 * "https://coletor.exemplo" nas configuracoes para que o proximo
+	 * "Testar conexao" ENTREGASSE o token ao destino — e, com um host
+	 * interno (127.0.0.1, 10.x, 169.254.169.254), o WordPress viraria proxy
+	 * para a rede do servidor (SSRF). Por isso o destino e uma lista fechada,
+	 * e nao "qualquer https://".
+	 *
+	 * @return array<int,string>
+	 */
+	public static function allowed_hosts(): array {
+		$default = (string) wp_parse_url( CONTORNO_EVO_DEFAULT_BASE_URL, PHP_URL_HOST );
+
+		/**
+		 * Hosts adicionais da EVO (sufixo de dominio ou host exato).
+		 *
+		 * @param array<int,string> $hosts
+		 */
+		return array_values(
+			array_unique(
+				array_filter(
+					array_map(
+						static fn ( $host ): string => strtolower( trim( (string) $host ) ),
+						(array) apply_filters(
+							'contorno_evo_allowed_hosts',
+							array( $default, 'w12app.com.br', 'abcevo.com' )
+						)
+					)
+				)
+			)
+		);
+	}
+
+	public static function host_is_allowed( string $host ): bool {
+		$host = strtolower( trim( $host ) );
+
+		if ( '' === $host ) {
+			return false;
+		}
+
+		foreach ( self::allowed_hosts() as $allowed ) {
+			if ( $host === $allowed || str_ends_with( $host, '.' . $allowed ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public static function sanitize_base_url( string $url ): string {
 		$url = untrailingslashit( trim( $url ) );
 
 		if ( '' === $url || ! preg_match( '#^https://#i', $url ) ) {
+			return CONTORNO_EVO_DEFAULT_BASE_URL;
+		}
+
+		$parts = wp_parse_url( $url );
+
+		// Porta fora do padrao, credenciais embutidas (user:pass@) ou host
+		// fora da lista: volta para a base oficial em vez de obedecer.
+		if ( ! is_array( $parts )
+			|| ! self::host_is_allowed( (string) ( $parts['host'] ?? '' ) )
+			|| isset( $parts['user'], $parts['pass'] )
+			|| ( isset( $parts['port'] ) && 443 !== (int) $parts['port'] )
+		) {
 			return CONTORNO_EVO_DEFAULT_BASE_URL;
 		}
 

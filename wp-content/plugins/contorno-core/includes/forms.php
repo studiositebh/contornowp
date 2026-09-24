@@ -312,6 +312,88 @@ add_action(
 );
 
 /**
+ * Processa o POST da Matricula (caminho sem JavaScript).
+ *
+ * Com JavaScript, assets/js/enrollment.js valida e navega sozinho; este
+ * handler nunca roda. Sem JavaScript o formulario POSTava para a propria
+ * pagina e o navegador reexibia o formulario — e, antes de o formulario
+ * ganhar method="post", enviava nome, e-mail e telefone na QUERY STRING,
+ * onde eles ficam no log de acesso do servidor, no histórico do navegador e
+ * no cabecalho Referer da proxima pagina.
+ *
+ * Regra do destino: o checkout NAO vem da requisicao. Ele e resolvido no
+ * servidor a partir do plano cadastrado (contorno_plan_checkout_url), como
+ * no caminho com JavaScript. Nao existe parametro que escolha para onde
+ * redirecionar — nao ha open redirect a explorar.
+ */
+add_action(
+	'template_redirect',
+	static function (): void {
+		if ( ! isset( $_POST['contorno_form'] ) || CONTORNO_ENROLL_ACTION !== $_POST['contorno_form'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			return;
+		}
+
+		$nonce = isset( $_POST['contorno_nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['contorno_nonce'] ) ) : '';
+
+		$back = static function ( string $code ): void {
+			$page = get_page_by_path( 'matricula' );
+			$url  = $page instanceof WP_Post ? (string) get_permalink( $page ) : home_url( '/matricula/' );
+
+			wp_safe_redirect( add_query_arg( array( 'contorno_status' => 'erro', 'contorno_erro' => $code ), $url ) );
+			exit;
+		};
+
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, CONTORNO_ENROLL_ACTION ) ) {
+			$back( 'nonce' );
+		}
+
+		if ( contorno_rate_limit_hit( 'enroll' ) ) {
+			$back( 'limite' );
+		}
+
+		// Honeypot + validacao: reaproveita a mesma regra do Fale Conosco,
+		// exceto a mensagem, que este formulario nao tem.
+		$post = wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- sanitizado abaixo.
+
+		if ( '' !== trim( (string) ( $post['website'] ?? '' ) ) ) {
+			$back( 'dados' );
+		}
+
+		$name  = trim( sanitize_text_field( (string) ( $post['name'] ?? '' ) ) );
+		$email = sanitize_email( (string) ( $post['email'] ?? '' ) );
+		$phone = (string) preg_replace( '/\D/', '', (string) ( $post['phone'] ?? '' ) );
+
+		if ( mb_strlen( $name ) < 2 || ! is_email( $email ) || strlen( $phone ) < 10 || empty( $post['acceptedTerms'] ) ) {
+			$back( 'dados' );
+		}
+
+		contorno_rate_limit_mark( 'enroll' );
+
+		$context  = contorno_enrollment_context( $post );
+		$unit     = $context['unit'];
+		$checkout = $context['plan'] ? contorno_plan_checkout_url( $context['plan'], $unit instanceof WP_Post ? $unit->ID : null ) : '';
+
+		if ( '' !== $checkout ) {
+			// Destino externo (EVO) — por isso wp_redirect, e nao
+			// wp_safe_redirect. A URL vem do cadastro do plano, nunca da
+			// requisicao; esc_url_raw derruba javascript:/data:.
+			$safe = esc_url_raw( $checkout, array( 'http', 'https' ) );
+
+			if ( '' !== $safe ) {
+				wp_redirect( $safe );
+				exit;
+			}
+		}
+
+		$confirmation = get_page_by_path( 'matricula/confirmacao' );
+
+		wp_safe_redirect( $confirmation instanceof WP_Post ? (string) get_permalink( $confirmation ) : home_url( '/matricula/confirmacao/' ) );
+		exit;
+	},
+	5
+);
+
+/**
  * CPT privado de leads — registrado apenas quando o armazenamento e ligado.
  */
 add_action(

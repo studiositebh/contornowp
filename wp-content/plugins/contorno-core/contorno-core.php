@@ -60,6 +60,7 @@ $contorno_core_modules = array(
 	'includes/data/ctn.php',
 	'includes/helpers.php',
 	'includes/assets.php',
+	'includes/security.php',
 	'includes/seo.php',
 	'includes/forms.php',
 	'includes/redirects.php',

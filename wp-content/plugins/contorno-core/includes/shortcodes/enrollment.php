@@ -37,10 +37,11 @@ const CONTORNO_ENROLL_ACTION = 'contorno_enroll';
  *
  * @return array{unit:?WP_Post,plan:array<string,mixed>|null}
  */
-function contorno_enrollment_context(): array {
-	$slug     = isset( $_GET['unidade'] ) ? sanitize_title( wp_unslash( (string) $_GET['unidade'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$ctn_slug = isset( $_GET['ctn'] ) ? sanitize_title( wp_unslash( (string) $_GET['ctn'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$plan_id  = isset( $_GET['plano'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['plano'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+function contorno_enrollment_context( ?array $source = null ): array {
+	$source   = null === $source ? $_GET : $source; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$slug     = isset( $source['unidade'] ) ? sanitize_title( wp_unslash( (string) $source['unidade'] ) ) : '';
+	$ctn_slug = isset( $source['ctn'] ) ? sanitize_title( wp_unslash( (string) $source['ctn'] ) ) : '';
+	$plan_id  = isset( $source['plano'] ) ? sanitize_text_field( wp_unslash( (string) $source['plano'] ) ) : '';
 
 	// Planos CTN passam pela mesma captura: o "unit" do contexto vira o post
 	// da CTN, e os planos (e o checkout) saem do registro dela.
@@ -195,6 +196,7 @@ contorno_add_shortcode(
 			<div class="contorno-enroll__card motion-reveal" data-contorno-reveal>
 				<form
 					class="contorno-enroll__form"
+					method="post"
 					novalidate
 					data-contorno-enroll
 					data-checkout="<?php echo esc_url( $checkout ); ?>"

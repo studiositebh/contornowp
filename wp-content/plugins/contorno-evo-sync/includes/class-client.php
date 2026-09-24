@@ -185,11 +185,16 @@ final class Contorno_Evo_Client {
 			++$attempt;
 			$this->throttle();
 
-			$response = wp_remote_get(
+			// wp_safe_remote_get (e nao wp_remote_get): valida a URL contra
+			// IPs privados/loopback e portas fora do padrao. Segunda barreira
+			// depois da lista de hosts de Contorno_Evo_Settings.
+			// redirection = 0: o cabecalho Authorization leva o token, e um
+			// 302 da EVO o reenviaria para o destino do redirecionamento.
+			$response = wp_safe_remote_get(
 				$url,
 				array(
 					'timeout'     => self::TIMEOUT,
-					'redirection' => 2,
+					'redirection' => 0,
 					'user-agent'  => 'ContornoEvoSync/' . CONTORNO_EVO_VERSION . ' (WordPress; ' . home_url() . ')',
 					'headers'     => array(
 						'Accept'        => 'application/json',

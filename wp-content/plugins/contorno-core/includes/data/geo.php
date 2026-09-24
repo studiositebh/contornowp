@@ -524,6 +524,13 @@ function contorno_geo_locate_cep( string $cep ): array {
 		return $cached;
 	}
 
+	// A partir daqui a busca sai para a rede (ViaCEP + Google/Nominatim) e
+	// grava um transient novo. E o unico ponto do site em que uma visita
+	// anonima provoca chamada externa paga, entao passa pelo orcamento.
+	if ( ! contorno_geo_budget_allows() ) {
+		return array( 'status' => 'unavailable', 'cep' => $digits, 'origin' => null );
+	}
+
 	$result = contorno_geo_locate_cep_uncached( $digits );
 
 	// Com chave cadastrada, um ponto que veio da reserva (Google fora do ar
@@ -535,6 +542,71 @@ function contorno_geo_locate_cep( string $cep ): array {
 	}
 
 	return $result;
+}
+
+/* ---------- Orcamento de geocodificacao (anti-abuso) ---------- */
+
+/**
+ * Quantas geocodificacoes NOVAS (que saem para a rede) sao permitidas.
+ *
+ * Um CEP ja consultado vem do transient e nunca passa por aqui, entao o
+ * visitante normal — que pesquisa um punhado de CEPs — nunca encosta no
+ * limite. O que isto barra e a enumeracao: `?q=30000001`, `?q=30000002`, …
+ * Cada CEP inedito custa uma consulta paga no Google e grava duas linhas em
+ * wp_options; sem teto, um unico cliente esgota o orcamento do Google Cloud
+ * e incha o banco.
+ *
+ * Estourado o limite, a busca devolve 'unavailable' — a mesma resposta de
+ * "servico fora do ar", que a listagem ja trata caindo para as unidades da
+ * mesma faixa de CEP. Ninguem ve erro.
+ */
+const CONTORNO_GEO_BUDGET_PER_IP     = 15;
+const CONTORNO_GEO_BUDGET_PER_IP_TTL = HOUR_IN_SECONDS;
+const CONTORNO_GEO_BUDGET_GLOBAL     = 500;
+const CONTORNO_GEO_BUDGET_GLOBAL_TTL = HOUR_IN_SECONDS;
+
+/**
+ * Incrementa um contador em transient e devolve o valor novo.
+ */
+function contorno_geo_budget_bump( string $key, int $ttl ): int {
+	$count = (int) get_transient( $key );
+	++$count;
+	set_transient( $key, $count, $ttl );
+
+	return $count;
+}
+
+/**
+ * Ha orcamento para mais uma geocodificacao nesta requisicao?
+ *
+ * WP-CLI, cron e usuarios que podem editar unidades ficam de fora: o
+ * `wp contorno geocode` e a auto-migracao precisam percorrer o catalogo.
+ */
+function contorno_geo_budget_allows(): bool {
+	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || wp_doing_cron() || current_user_can( 'edit_posts' ) ) {
+		return true;
+	}
+
+	/**
+	 * Permite afrouxar ou endurecer o teto sem editar o plugin.
+	 *
+	 * @param int $per_ip  Geocodificacoes novas por IP por hora.
+	 * @param int $global  Geocodificacoes novas no site inteiro por hora.
+	 */
+	$per_ip = (int) apply_filters( 'contorno_geo_budget_per_ip', CONTORNO_GEO_BUDGET_PER_IP );
+	$global = (int) apply_filters( 'contorno_geo_budget_global', CONTORNO_GEO_BUDGET_GLOBAL );
+
+	if ( contorno_geo_budget_bump( 'contorno_geo_budget_all', CONTORNO_GEO_BUDGET_GLOBAL_TTL ) > $global ) {
+		return false;
+	}
+
+	$ip_key = contorno_rate_limit_key( 'geo' );
+
+	if ( '' === $ip_key ) {
+		return true; // Sem IP identificavel o teto global ja segura.
+	}
+
+	return contorno_geo_budget_bump( $ip_key, CONTORNO_GEO_BUDGET_PER_IP_TTL ) <= $per_ip;
 }
 
 /**
