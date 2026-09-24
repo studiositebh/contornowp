@@ -56,10 +56,20 @@ xmlrpc="$("${CURL[@]}" -X POST \
 	-d '<methodCall><methodName>system.listMethods</methodName><params></params></methodCall>' \
 	"$BASE_URL/xmlrpc.php")"
 
-if grep -q 'system.multicall' <<<"$xmlrpc"; then
-	fail "system.multicall ainda exposto em /xmlrpc.php"
+xmlrpc_status="$(status_of "$BASE_URL/xmlrpc.php")"
+if [[ "$xmlrpc_status" == "403" || "$xmlrpc_status" == "404" ]]; then
+	pass "/xmlrpc.php recusa a requisicao ($xmlrpc_status)"
 else
-	pass "/xmlrpc.php nao lista mais system.multicall"
+	fail "/xmlrpc.php responde $xmlrpc_status; esperado 403"
+fi
+
+# O que realmente importa: nenhum metodo do WordPress continua chamavel.
+# system.multicall so amplifica um ataque de senha se houver um metodo de
+# autenticacao (wp.getUsersBlogs) para envolver.
+if grep -qE 'wp\.getUsersBlogs|metaWeblog\.|blogger\.' <<<"$xmlrpc"; then
+	fail "metodos autenticados do WordPress ainda expostos em /xmlrpc.php"
+else
+	pass "nenhum metodo autenticado do WordPress exposto (sem amplificacao de senha)"
 fi
 
 if grep -qi 'pingback.ping' <<<"$xmlrpc"; then
@@ -130,9 +140,11 @@ fi
 # ---------------------------------------------------------------------------
 section "FIX-08  /matricula/ nao envia dados pessoais na query string"
 
+# A tag <form> ocupa varias linhas no HTML; achata antes de casar.
 matricula="$("${CURL[@]}" "$BASE_URL/matricula/")"
+matricula_flat="$(tr '\n' ' ' <<<"$matricula")"
 
-if grep -qE '<form[^>]*class="contorno-enroll__form"[^>]*method="post"' <<<"$matricula"; then
+if grep -qE '<form[^>]*contorno-enroll__form[^>]*method="post"' <<<"$matricula_flat"; then
 	pass 'formulario de matricula usa method="post"'
 else
 	fail 'formulario de matricula sem method="post" — nome/e-mail/telefone iriam para a URL'

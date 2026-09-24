@@ -100,6 +100,33 @@ add_action(
  * add_filter( 'contorno_disable_xmlrpc', '__return_false' ).
  * ========================================================== */
 
+// Fecha /xmlrpc.php antes de o servidor XML-RPC montar a resposta.
+//
+// Os filtros abaixo tiram todos os metodos do WordPress, mas nao os tres
+// system.* — IXR_Server::setCallbacks() os registra DEPOIS do filtro
+// xmlrpc_methods, e nao ha gancho para remove-los. Eles ficam inofensivos
+// (system.multicall so despacha para o que esta registrado, e nao sobra
+// nada), mas o endpoint continuaria de pe. Recusar a requisicao inteira e
+// mais simples de verificar.
+add_action(
+	'plugins_loaded',
+	static function (): void {
+		if ( ! defined( 'XMLRPC_REQUEST' ) || ! XMLRPC_REQUEST ) {
+			return;
+		}
+
+		if ( ! (bool) apply_filters( 'contorno_disable_xmlrpc', true ) ) {
+			return;
+		}
+
+		status_header( 403 );
+		header( 'Content-Type: text/plain; charset=utf-8' );
+		echo 'XML-RPC desativado.';
+		exit;
+	},
+	0
+);
+
 add_filter(
 	'xmlrpc_enabled',
 	static function ( bool $enabled ): bool {
