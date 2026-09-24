@@ -398,12 +398,15 @@ final class Contorno_Migration {
 	 * @param array<int,array<string,mixed>> $entities
 	 */
 	private function import_entities( array $entities, string $post_type, string $counter ): void {
-		$media_fields = array();
+		$media_fields      = array();
+		$attribute_fields  = array();
 
 		foreach ( contorno_flat_fields( $post_type ) as $name => $definition ) {
 			$type = (string) ( $definition['type'] ?? 'text' );
 			if ( in_array( $type, array( 'media', 'media_list' ), true ) ) {
 				$media_fields[] = $name;
+			} elseif ( 'attributes' === $type ) {
+				$attribute_fields[] = $name;
 			}
 		}
 
@@ -483,6 +486,18 @@ final class Contorno_Migration {
 			foreach ( $fields as $name => $value ) {
 				$name = (string) $name;
 
+				if ( in_array( $name, $attribute_fields, true ) ) {
+					$mapped = $this->map_attributes( $post_id, $name, (array) $value, $slug );
+
+					// null = nao mexer (valor desconhecido, ou selecao feita no painel).
+					if ( null === $mapped ) {
+						continue;
+					}
+
+					contorno_update_field( $post_id, $name, $mapped );
+					continue;
+				}
+
 				if ( in_array( $name, $media_fields, true ) ) {
 					$value = $this->map_assets_deep( $value );
 				} elseif ( 'plans' === $name || 'brands' === $name || 'equipment' === $name ) {
@@ -518,6 +533,58 @@ final class Contorno_Migration {
 		}
 
 		$this->report->log( sprintf( '%s: %d processados.', $post_type, $this->report->counts[ $counter ] ) );
+	}
+
+	/**
+	 * Converte os atributos do dataset em chaves do catalogo.
+	 *
+	 * Tres decisoes deliberadas:
+	 *  - o dataset continua trazendo ROTULOS; quem traduz para chave e o
+	 *    catalogo (aliases inclusos), entao o exportador do React nao precisa
+	 *    conhecer as chaves;
+	 *  - rotulo desconhecido NAO vira atributo novo automaticamente: e avisado
+	 *    e o campo daquela unidade fica como esta;
+	 *  - se a unidade JA tem atributos gravados, o migrate nao sobrescreve a
+	 *    selecao feita no painel — so com --force. Sem essa regra, um
+	 *    `wp contorno migrate` desfaria em silencio o trabalho de quem
+	 *    administra.
+	 *
+	 * @param array<int,mixed> $values
+	 *
+	 * @return string[]|null Chaves, ou null para nao tocar no campo.
+	 */
+	private function map_attributes( int $post_id, string $field, array $values, string $slug ): ?array {
+		$type = contorno_attribute_type_for_field( $field );
+
+		if ( '' === $type ) {
+			return null;
+		}
+
+		$existing = contorno_field_list( $field, $post_id );
+
+		if ( array() !== $existing && ! $this->force ) {
+			return null;
+		}
+
+		$keys = array();
+
+		foreach ( $values as $value ) {
+			if ( ! is_string( $value ) || '' === trim( $value ) ) {
+				continue;
+			}
+
+			$attribute = contorno_attribute_resolve( $type, trim( $value ) );
+
+			if ( null === $attribute ) {
+				$this->report->warn( sprintf( '%s / %s: "%s" não está no catálogo de atributos — campo mantido como estava.', $slug, $field, trim( $value ) ) );
+
+				return null;
+			}
+
+			$keys[] = (string) $attribute['key'];
+		}
+
+		return array_values( array_unique( $keys ) );
 	}
 
 	/**

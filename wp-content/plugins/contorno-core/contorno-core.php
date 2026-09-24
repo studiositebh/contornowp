@@ -52,6 +52,8 @@ $contorno_core_modules = array(
 	'includes/meta/registry.php',
 	'includes/meta/fields.php',
 	'includes/meta/metaboxes.php',
+	'includes/attributes/catalog.php',
+	'includes/attributes/migrate.php',
 	'includes/data/evo.php',
 	'includes/data/presale.php',
 	'includes/data/units.php',
@@ -69,6 +71,7 @@ $contorno_core_modules = array(
 	'includes/builder/wpbakery-phase2.php',
 	'includes/admin/migration-page.php',
 	'includes/admin/location-page.php',
+	'includes/admin/attributes-page.php',
 	'includes/cli/commands.php',
 );
 

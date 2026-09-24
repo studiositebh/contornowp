@@ -1,0 +1,520 @@
+{
+    "version": 1,
+    "generatedAt": "2026-09-24",
+    "source": "data/dataset.json",
+    "items": [
+        {
+            "key": "ambiente-climatizado",
+            "type": "highlight",
+            "label": "Ambiente Climatizado",
+            "icon": "sparkles",
+            "order": 10,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "balanca-de-bioimpedancia",
+            "type": "highlight",
+            "label": "Balança de bioimpedância",
+            "icon": "sparkles",
+            "order": 20,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "cadeira-de-massagem",
+            "type": "highlight",
+            "label": "Cadeira de Massagem",
+            "icon": "sparkles",
+            "order": 30,
+            "active": true,
+            "aliases": [
+                "Cadeira de massagem"
+            ]
+        },
+        {
+            "key": "equipamentos-de-ultima-geracao",
+            "type": "highlight",
+            "label": "Equipamentos de Última Geração",
+            "icon": "dumbbell",
+            "order": 40,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "sonorizacao-especial",
+            "type": "highlight",
+            "label": "Sonorização Especial",
+            "icon": "sparkles",
+            "order": 50,
+            "active": true,
+            "aliases": [
+                "Sonorização especial"
+            ]
+        },
+        {
+            "key": "vestiarios",
+            "type": "highlight",
+            "label": "Vestiários",
+            "icon": "shower",
+            "order": 60,
+            "active": true,
+            "aliases": [
+                "Vestiarios"
+            ]
+        },
+        {
+            "key": "escaninhos-rotativos",
+            "type": "highlight",
+            "label": "Escaninhos Rotativos",
+            "icon": "sparkles",
+            "order": 70,
+            "active": true,
+            "aliases": [
+                "Escaninhos rotativos"
+            ]
+        },
+        {
+            "key": "televisoes-de-led",
+            "type": "highlight",
+            "label": "Televisões de LED",
+            "icon": "sparkles",
+            "order": 80,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "acesso-wifi",
+            "type": "highlight",
+            "label": "Acesso WIFI",
+            "icon": "wifi",
+            "order": 90,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "aulas-coletivas",
+            "type": "highlight",
+            "label": "Aulas Coletivas",
+            "icon": "users",
+            "order": 100,
+            "active": true,
+            "aliases": [
+                "Aulas coletivas"
+            ]
+        },
+        {
+            "key": "estacionamento-gratis-para-alunos",
+            "type": "highlight",
+            "label": "Estacionamento Grátis para alunos",
+            "icon": "car",
+            "order": 110,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "aceitamos-gympass-wellhub",
+            "type": "highlight",
+            "label": "Aceitamos Gympass/Wellhub",
+            "icon": "sparkles",
+            "order": 120,
+            "active": true,
+            "aliases": [
+                "Aceitamos GymPass/Wellhub"
+            ]
+        },
+        {
+            "key": "1-200-m2",
+            "type": "highlight",
+            "label": "1.200 m²",
+            "icon": "sparkles",
+            "order": 130,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "1-500-m2",
+            "type": "highlight",
+            "label": "1.500 m²",
+            "icon": "sparkles",
+            "order": 140,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "2h-de-estacionamento-gratis-para-alunos",
+            "type": "highlight",
+            "label": "2h de Estacionamento Grátis para alunos",
+            "icon": "car",
+            "order": 150,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "wi-fi",
+            "type": "highlight",
+            "label": "Wi-fi",
+            "icon": "wifi",
+            "order": 160,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "1-400-m2",
+            "type": "highlight",
+            "label": "1.400 m²",
+            "icon": "sparkles",
+            "order": 170,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "800-m2",
+            "type": "highlight",
+            "label": "800 m²",
+            "icon": "sparkles",
+            "order": 180,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "1-100-m2",
+            "type": "highlight",
+            "label": "1.100 m²",
+            "icon": "sparkles",
+            "order": 190,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "1-150-m2",
+            "type": "highlight",
+            "label": "1.150 m²",
+            "icon": "sparkles",
+            "order": 200,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "1-685-m2",
+            "type": "highlight",
+            "label": "1.685 m²",
+            "icon": "sparkles",
+            "order": 210,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "1h45-de-estacionamento-gratis-para-alunos",
+            "type": "highlight",
+            "label": "1h45 de Estacionamento Grátis para alunos",
+            "icon": "car",
+            "order": 220,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "2h-de-estacionamento-gratis-para-alunos-da-unidade",
+            "type": "highlight",
+            "label": "2h de Estacionamento Grátis para alunos da unidade",
+            "icon": "car",
+            "order": 230,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "3h-de-estacionamento-gratis-para-alunos",
+            "type": "highlight",
+            "label": "3h de Estacionamento Grátis para alunos",
+            "icon": "car",
+            "order": 240,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "6-500-m2",
+            "type": "highlight",
+            "label": "6.500 m²",
+            "icon": "sparkles",
+            "order": 250,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "ducha-aquecida",
+            "type": "highlight",
+            "label": "Ducha aquecida",
+            "icon": "sparkles",
+            "order": 260,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "equipamentos-modernos",
+            "type": "highlight",
+            "label": "Equipamentos modernos",
+            "icon": "dumbbell",
+            "order": 270,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "estacionamento",
+            "type": "highlight",
+            "label": "Estacionamento",
+            "icon": "car",
+            "order": 280,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "professores-formados",
+            "type": "highlight",
+            "label": "Professores formados",
+            "icon": "sparkles",
+            "order": 290,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "escaninhos-rotativos",
+            "type": "differential",
+            "label": "Escaninhos Rotativos",
+            "icon": "sparkles",
+            "order": 10,
+            "active": true,
+            "aliases": [
+                "Escaninhos rotativos"
+            ]
+        },
+        {
+            "key": "ambiente-climatizado",
+            "type": "differential",
+            "label": "Ambiente Climatizado",
+            "icon": "sparkles",
+            "order": 20,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "equipamentos-de-ultima-geracao",
+            "type": "differential",
+            "label": "Equipamentos de Última Geração",
+            "icon": "dumbbell",
+            "order": 30,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "aulas-coletivas",
+            "type": "differential",
+            "label": "Aulas Coletivas",
+            "icon": "users",
+            "order": 40,
+            "active": true,
+            "aliases": [
+                "Aulas coletivas"
+            ]
+        },
+        {
+            "key": "acesso-wifi",
+            "type": "differential",
+            "label": "Acesso WIFI",
+            "icon": "wifi",
+            "order": 50,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "equipamentos-modernos",
+            "type": "differential",
+            "label": "Equipamentos modernos",
+            "icon": "dumbbell",
+            "order": 60,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "atendimento-humanizado",
+            "type": "differential",
+            "label": "Atendimento humanizado",
+            "icon": "sparkles",
+            "order": 70,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "estrutura-completa",
+            "type": "differential",
+            "label": "Estrutura completa",
+            "icon": "dumbbell",
+            "order": 80,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "estacionamento-gratis-para-alunos",
+            "type": "differential",
+            "label": "Estacionamento Grátis para alunos",
+            "icon": "car",
+            "order": 90,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "sonorizacao-especial",
+            "type": "differential",
+            "label": "Sonorização Especial",
+            "icon": "sparkles",
+            "order": 100,
+            "active": true,
+            "aliases": [
+                "Sonorização especial"
+            ]
+        },
+        {
+            "key": "televisoes-de-led",
+            "type": "differential",
+            "label": "Televisões de LED",
+            "icon": "sparkles",
+            "order": 110,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "aceitamos-gympass-wellhub",
+            "type": "differential",
+            "label": "Aceitamos GymPass/Wellhub",
+            "icon": "sparkles",
+            "order": 120,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "cadeira-de-massagem",
+            "type": "differential",
+            "label": "Cadeira de massagem",
+            "icon": "sparkles",
+            "order": 130,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "ducha-aquecida",
+            "type": "differential",
+            "label": "Ducha aquecida",
+            "icon": "sparkles",
+            "order": 140,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "estacionamento-com-cerca-de-70-vagas",
+            "type": "differential",
+            "label": "Estacionamento com cerca de 70 vagas",
+            "icon": "car",
+            "order": 150,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "iluminacao-natural",
+            "type": "differential",
+            "label": "Iluminação natural",
+            "icon": "sparkles",
+            "order": 160,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "professores-formados",
+            "type": "differential",
+            "label": "Professores formados",
+            "icon": "sparkles",
+            "order": 170,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "spinning-presencial",
+            "type": "differential",
+            "label": "Spinning presencial",
+            "icon": "sparkles",
+            "order": 180,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "vestiarios",
+            "type": "differential",
+            "label": "Vestiários",
+            "icon": "shower",
+            "order": 190,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "vestiarios-com-escaninhos-para-terno-e-blazer",
+            "type": "differential",
+            "label": "Vestiários com escaninhos para terno e blazer",
+            "icon": "shower",
+            "order": 200,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "wi-fi",
+            "type": "differential",
+            "label": "Wi-fi",
+            "icon": "wifi",
+            "order": 210,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "aulas-coletivas",
+            "type": "modality",
+            "label": "Aulas coletivas",
+            "icon": "users",
+            "order": 10,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "musculacao",
+            "type": "modality",
+            "label": "Musculação",
+            "icon": "dumbbell",
+            "order": 20,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "cardio",
+            "type": "modality",
+            "label": "Cardio",
+            "icon": "heart-pulse",
+            "order": 30,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "funcional",
+            "type": "modality",
+            "label": "Funcional",
+            "icon": "activity",
+            "order": 40,
+            "active": true,
+            "aliases": []
+        },
+        {
+            "key": "spinning-presencial",
+            "type": "modality",
+            "label": "Spinning presencial",
+            "icon": "sparkles",
+            "order": 50,
+            "active": true,
+            "aliases": []
+        }
+    ]
+}

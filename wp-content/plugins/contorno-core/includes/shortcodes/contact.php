@@ -224,16 +224,10 @@ contorno_add_shortcode(
 		$email    = contorno_brand_get( 'email' );
 		$whatsapp = contorno_whatsapp_link();
 
-		$digits = preg_replace( '/\D/', '', $phone );
-		$digits = is_string( $digits ) ? $digits : '';
+		$digits = contorno_phone_digits( $phone );
 
-		// Formato brasileiro de exibicao — porte de formatBrazilianPhone.
-		$display = $phone;
-		if ( 10 === strlen( $digits ) ) {
-			$display = sprintf( '(%s) %s-%s', substr( $digits, 0, 2 ), substr( $digits, 2, 4 ), substr( $digits, 6 ) );
-		} elseif ( 11 === strlen( $digits ) ) {
-			$display = sprintf( '(%s) %s-%s', substr( $digits, 0, 2 ), substr( $digits, 2, 5 ), substr( $digits, 7 ) );
-		}
+		// Formato brasileiro de exibicao — mesma mascara usada nas unidades e no rodape.
+		$display = contorno_format_phone( $phone );
 
 		ob_start();
 

@@ -40,6 +40,189 @@ function contorno_show_site_header(): bool {
 }
 
 /**
+ * Mascara um telefone brasileiro para exibicao: (31) 4042-0177 / (31) 99999-0177.
+ *
+ * Aceita o numero com ou sem pontuacao e com o DDI 55 na frente. Quando nao
+ * sobram 10 ou 11 digitos (0800, numeros curtos), devolve o texto original.
+ */
+function contorno_format_phone( string $phone ): string {
+	if ( '' === trim( $phone ) ) {
+		return '';
+	}
+
+	$digits = contorno_phone_digits( $phone );
+
+	if ( ( 12 === strlen( $digits ) || 13 === strlen( $digits ) ) && str_starts_with( $digits, '55' ) ) {
+		$digits = substr( $digits, 2 );
+	}
+
+	// 0800/0300 nao tem DDD — fica como o cliente cadastrou.
+	if ( str_starts_with( $digits, '0' ) ) {
+		return $phone;
+	}
+
+	if ( 11 === strlen( $digits ) ) {
+		return sprintf( '(%s) %s-%s', substr( $digits, 0, 2 ), substr( $digits, 2, 5 ), substr( $digits, 7 ) );
+	}
+
+	if ( 10 === strlen( $digits ) ) {
+		return sprintf( '(%s) %s-%s', substr( $digits, 0, 2 ), substr( $digits, 2, 4 ), substr( $digits, 6 ) );
+	}
+
+	return $phone;
+}
+
+/**
+ * Apenas os digitos de um telefone — para href tel: e wa.me.
+ */
+function contorno_phone_digits( string $phone ): string {
+	return (string) preg_replace( '/\D+/', '', $phone );
+}
+
+/**
+ * Chave de comparacao: sem acento, sem pontuacao, caixa baixa.
+ *
+ * Usada para descobrir se bairro/cidade/UF ja aparecem no endereco livre que o
+ * cliente cadastrou — os campos do dataset vieram de planilhas diferentes e
+ * repetem informacao com grafias distintas.
+ */
+function contorno_compare_key( string $value ): string {
+	$value = function_exists( 'remove_accents' ) ? remove_accents( $value ) : $value;
+
+	return (string) preg_replace( '/[^a-z0-9]+/', '', strtolower( $value ) );
+}
+
+/**
+ * Quebra o endereco da unidade em ate tres linhas, sem repetir bairro/cidade/UF.
+ *
+ * Entrada tipica do dataset:
+ * "Rua Kepler, 441 (Falls Shopping) – São Bento – Belo Horizonte - MG" + campos
+ * separados de bairro, cidade, UF e CEP. Saida:
+ *   Rua Kepler, 441 (Falls Shopping)
+ *   São Bento • Belo Horizonte/MG
+ *   CEP: 30360-240
+ *
+ * @return string[] Linhas ja prontas para exibicao.
+ */
+function contorno_address_lines( string $address, string $neighborhood = '', string $city = '', string $state = '', string $postal_code = '' ): array {
+	$address      = trim( $address );
+	$neighborhood = trim( $neighborhood );
+	$city         = trim( $city );
+	$state        = trim( $state );
+	$postal_code  = trim( $postal_code );
+
+	// Separadores usados pelo cadastro: virgula, ponto e virgula e travessao/hifen cercado de espacos.
+	$segments = preg_split( '/\s*[,;]\s*|\s+[–—-]\s+/u', $address );
+	$segments = is_array( $segments ) ? array_values( array_filter( array_map( 'trim', $segments ), static fn( $part ) => '' !== $part ) ) : array();
+
+	// Ruido que nunca entra na primeira linha: "Brasil" e o proprio CEP.
+	$segments = array_values(
+		array_filter(
+			$segments,
+			static function ( string $part ): bool {
+				$key = contorno_compare_key( $part );
+
+				return '' !== $key && 'brasil' !== $key && 'brazil' !== $key && 1 !== preg_match( '/^\d{5}-?\d{3}$/', $part );
+			}
+		)
+	);
+
+	// Descarta, do fim para o comeco, os trechos que so repetem bairro/cidade/UF.
+	$tail = array_filter(
+		array(
+			contorno_compare_key( $state ),
+			contorno_compare_key( $city ),
+			contorno_compare_key( $city . $state ),
+			contorno_compare_key( $neighborhood ),
+			// Parte do cadastro abrevia a capital.
+			'belohorizonte' === contorno_compare_key( $city ) ? 'bh' : '',
+		)
+	);
+
+	while ( array() !== $segments ) {
+		$last = contorno_compare_key( (string) end( $segments ) );
+
+		if ( '' === $last || in_array( $last, $tail, true ) ) {
+			array_pop( $segments );
+			continue;
+		}
+
+		break;
+	}
+
+	$street     = implode( ', ', $segments );
+	$street_key = contorno_compare_key( '' !== $street ? $street : $address );
+
+	if ( '' === $street ) {
+		$street = $address;
+	}
+
+	// A segunda linha so recebe o que ainda nao foi dito na primeira.
+	$locality = array();
+
+	if ( '' !== $neighborhood && ! str_contains( $street_key, contorno_compare_key( $neighborhood ) ) ) {
+		$locality[] = $neighborhood;
+	}
+
+	if ( '' !== $city && ! str_contains( $street_key, contorno_compare_key( $city ) ) ) {
+		$locality[] = '' !== $state ? $city . '/' . $state : $city;
+	}
+
+	return array_values(
+		array_filter(
+			array(
+				$street,
+				implode( ' • ', $locality ),
+				'' !== $postal_code ? 'CEP: ' . $postal_code : '',
+			),
+			static fn( string $line ): bool => '' !== trim( $line )
+		)
+	);
+}
+
+/**
+ * Quebra o horario da unidade em pares "dia" + "faixa de horario".
+ *
+ * O dataset guarda uma linha por dia separada por quebra de linha
+ * ("Segunda a quinta, 05h às 23h"), o que virava um paragrafo corrido no HTML.
+ *
+ * @return array<int, array{term: string, value: string}>
+ */
+function contorno_hours_lines( string $hours ): array {
+	$hours = (string) preg_replace( '#<br\s*/?>#i', "\n", $hours );
+	$parts = preg_split( '/[\r\n]+|\s*\|\s*/u', $hours );
+	$parts = is_array( $parts ) ? $parts : array();
+
+	$lines = array();
+
+	foreach ( $parts as $part ) {
+		$part = trim( (string) preg_replace( '/\s+/u', ' ', $part ) );
+		$part = rtrim( $part, '.;' );
+
+		if ( '' === $part ) {
+			continue;
+		}
+
+		// "Segunda a quinta, 05h às 23h" / "Sexta: 05h às 22h" — o rotulo comeca
+		// por letra, entao faixas puras ("04:00 às 00:00") ficam sem rotulo.
+		if ( 1 === preg_match( '/^([^\d,:][^,:]*)[,:]\s*(.+)$/u', $part, $match ) ) {
+			$lines[] = array(
+				'term'  => trim( $match[1] ),
+				'value' => trim( $match[2] ),
+			);
+			continue;
+		}
+
+		$lines[] = array(
+			'term'  => '',
+			'value' => $part,
+		);
+	}
+
+	return $lines;
+}
+
+/**
  * Extrai o ID de um video do YouTube de um ID puro ou de qualquer URL comum.
  */
 function contorno_youtube_id( string $value ): string {
@@ -126,7 +309,27 @@ function contorno_reveal_close(): string {
  * SVGs traco 1.5 no estilo lucide, para os Destaques Contorno.
  */
 function contorno_icon( string $name, string $classes = 'contorno-icon' ): string {
-	$paths = array(
+	$paths = contorno_icon_paths();
+
+	$path = $paths[ $name ] ?? $paths['sparkles'];
+
+	return sprintf(
+		'<svg class="%s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">%s</svg>',
+		esc_attr( $classes ),
+		$path
+	);
+}
+
+/**
+ * Os traços de cada ícone, por chave.
+ *
+ * E tambem a ALLOWLIST do seletor de icones do catalogo de atributos: quem
+ * administra escolhe uma destas chaves, nunca digita SVG.
+ *
+ * @return array<string,string>
+ */
+function contorno_icon_paths(): array {
+	return array(
 		'dumbbell'    => '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
 		'activity'    => '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
 		'users'       => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
@@ -157,14 +360,6 @@ function contorno_icon( string $name, string $classes = 'contorno-icon' ): strin
 		'check-circle' => '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
 		'zap'         => '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
 		'headphones'  => '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H3z"/><path d="M21 14h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3z"/><path d="M3 14v-3a9 9 0 0 1 18 0v3"/>',
-	);
-
-	$path = $paths[ $name ] ?? $paths['sparkles'];
-
-	return sprintf(
-		'<svg class="%s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">%s</svg>',
-		esc_attr( $classes ),
-		$path
 	);
 }
 

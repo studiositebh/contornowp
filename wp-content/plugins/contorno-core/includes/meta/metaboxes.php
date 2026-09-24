@@ -206,6 +206,15 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 			echo '</div>';
 			break;
 
+		case 'attributes':
+			contorno_render_attributes_field(
+				$input_name,
+				$input_id,
+				(string) ( $definition['attribute_type'] ?? '' ),
+				is_array( $value ) ? array_map( 'strval', $value ) : array()
+			);
+			break;
+
 		case 'list':
 		case 'media_list':
 			$lines = is_array( $value ) ? implode( "\n", array_map( 'strval', $value ) ) : '';
@@ -241,6 +250,110 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 
 	if ( '' !== $help ) {
 		printf( '<p class="description">%s</p>', esc_html( $help ) );
+	}
+
+	echo '</div>';
+}
+
+/**
+ * Campo de atributos: grade de checkboxes vinda do catalogo central.
+ *
+ * Nunca ha digitacao livre. Tres situacoes convivem na mesma grade:
+ *  - atributo ativo do catalogo: checkbox normal;
+ *  - atributo inativo AINDA selecionado nesta unidade: aparece marcado, com
+ *    aviso — desativar no catalogo nao apaga nada de ninguem;
+ *  - valor fora do catalogo (unidade ainda nao migrada): vai como campo
+ *    oculto e e listado abaixo, para nao sumir num salvamento.
+ *
+ * @param string[] $selected Valores gravados na unidade (chaves ou rotulos legados).
+ */
+function contorno_render_attributes_field( string $input_name, string $input_id, string $type, array $selected ): void {
+	if ( '' === $type || ! isset( contorno_attribute_types()[ $type ] ) ) {
+		return;
+	}
+
+	$catalog = contorno_attributes_by_type( $type );
+	$manage  = admin_url( 'admin.php?page=' . CONTORNO_ATTRIBUTES_PAGE . '&tipo=' . rawurlencode( $type ) );
+
+	// Casa o que a unidade tem com o catalogo, preservando o que nao casar.
+	$checked = array();
+	$legacy  = array();
+
+	foreach ( $selected as $value ) {
+		$attribute = contorno_attribute_resolve( $type, (string) $value );
+
+		if ( null === $attribute ) {
+			$legacy[] = (string) $value;
+			continue;
+		}
+
+		$checked[ (string) $attribute['key'] ] = true;
+	}
+
+	echo '<div class="contorno-attributes" data-contorno-attributes>';
+
+	printf(
+		'<p class="contorno-attributes__tools"><input type="search" class="contorno-attributes__search" data-contorno-attributes-search placeholder="%s" aria-label="%s" /><a class="contorno-attributes__manage" href="%s">%s</a></p>',
+		esc_attr__( 'Filtrar…', 'contorno' ),
+		esc_attr__( 'Filtrar atributos', 'contorno' ),
+		esc_url( $manage ),
+		esc_html__( 'Gerenciar atributos', 'contorno' )
+	);
+
+	// Garante que desmarcar tudo grave vazio (checkbox nao enviado nao existe no POST).
+	printf( '<input type="hidden" name="%s[]" value="" />', esc_attr( $input_name ) );
+
+	if ( array() === $catalog ) {
+		printf(
+			'<p class="description">%s</p>',
+			esc_html__( 'Nenhum atributo cadastrado ainda. Cadastre em Contorno → Atributos das unidades.', 'contorno' )
+		);
+	}
+
+	echo '<div class="contorno-attributes__grid">';
+
+	foreach ( $catalog as $index => $attribute ) {
+		$key       = (string) $attribute['key'];
+		$is_on     = isset( $checked[ $key ] );
+		$is_hidden = ! $attribute['active'] && ! $is_on; // Inativo so some para quem ainda nao usa.
+
+		if ( $is_hidden ) {
+			continue;
+		}
+
+		printf(
+			'<label class="contorno-attributes__item%1$s" data-contorno-attributes-item data-search="%2$s"><input type="checkbox" name="%3$s[]" id="%4$s" value="%5$s" %6$s /><span class="contorno-attributes__icon">%7$s</span><span class="contorno-attributes__label">%8$s%9$s</span></label>',
+			$attribute['active'] ? '' : ' is-inactive',
+			esc_attr( contorno_compare_key( (string) $attribute['label'] ) . ' ' . $key ),
+			esc_attr( $input_name ),
+			esc_attr( $input_id . '-' . $index ),
+			esc_attr( $key ),
+			checked( $is_on, true, false ),
+			contorno_icon( (string) $attribute['icon'], 'contorno-attributes__svg' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			esc_html( (string) $attribute['label'] ),
+			$attribute['active'] ? '' : ' <em>' . esc_html__( '(inativo)', 'contorno' ) . '</em>'
+		);
+	}
+
+	echo '</div>';
+
+	if ( array() !== $legacy ) {
+		echo '<div class="contorno-attributes__legacy">';
+		printf(
+			'<p class="description"><strong>%s</strong> %s</p>',
+			esc_html__( 'Fora do catálogo:', 'contorno' ),
+			esc_html__( 'estes valores vieram do cadastro antigo e continuam gravados. Rode a migração dos atributos ou cadastre-os no catálogo.', 'contorno' )
+		);
+		echo '<ul>';
+		foreach ( $legacy as $value ) {
+			printf(
+				'<li><code>%s</code><input type="hidden" name="%s[]" value="%s" /></li>',
+				esc_html( $value ),
+				esc_attr( $input_name ),
+				esc_attr( $value )
+			);
+		}
+		echo '</ul></div>';
 	}
 
 	echo '</div>';
@@ -396,7 +509,13 @@ add_action(
 				continue;
 			}
 
-			contorno_update_field( $post_id, (string) $name, $submitted[ $name ] );
+			$value = $submitted[ $name ];
+
+			if ( 'attributes' === (string) ( $definition['type'] ?? '' ) ) {
+				$value = contorno_attributes_keep_unit_order( $post_id, (string) $name, (array) $value );
+			}
+
+			contorno_update_field( $post_id, (string) $name, $value );
 		}
 	},
 	10,

@@ -137,22 +137,25 @@ function contorno_field_schema(): array {
 			),
 			'conteudo' => array(
 				'label'  => __( 'Destaques e diferenciais', 'contorno' ),
-				'help'   => __( 'Listas simples: um item por linha. Os ícones dos Destaques são escolhidos automaticamente pelo texto do item.', 'contorno' ),
+				'help'   => __( 'Marque o que esta unidade oferece. Os itens vêm do catálogo em Contorno → Atributos das unidades, onde ficam o nome e o ícone de cada um.', 'contorno' ),
 				'fields' => array(
 					'facilities'    => array(
-						'type'  => 'list',
-						'label' => __( 'Destaques Contorno (cards com ícone)', 'contorno' ),
-						'help'  => __( 'Itens curtos, de uma a três palavras. Ex.: "Estacionamento", "Aulas coletivas", "Vestiário".', 'contorno' ),
+						'type'           => 'attributes',
+						'attribute_type' => 'highlight',
+						'label'          => __( 'Destaques Contorno (cards com ícone)', 'contorno' ),
+						'help'           => __( 'Cards com ícone na página da unidade. A ordem exibida é a do catálogo.', 'contorno' ),
 					),
 					'differentials' => array(
-						'type'  => 'list',
-						'label' => __( 'Diferenciais (faixa escura)', 'contorno' ),
-						'help'  => __( 'Frases um pouco mais longas que os Destaques.', 'contorno' ),
+						'type'           => 'attributes',
+						'attribute_type' => 'differential',
+						'label'          => __( 'Diferenciais (faixa escura)', 'contorno' ),
+						'help'           => __( 'Lista da seção "Diferenciais da unidade".', 'contorno' ),
 					),
 					'modalities'    => array(
-						'type'  => 'list',
-						'label' => __( 'Modalidades', 'contorno' ),
-						'help'  => __( 'Usado em buscas e dados estruturados.', 'contorno' ),
+						'type'           => 'attributes',
+						'attribute_type' => 'modality',
+						'label'          => __( 'Modalidades', 'contorno' ),
+						'help'           => __( 'Usado em buscas e dados estruturados.', 'contorno' ),
 					),
 				),
 			),
@@ -566,7 +569,7 @@ function contorno_meta_key( string $field ): string {
  * @return string[]
  */
 function contorno_json_field_types(): array {
-	return array( 'list', 'repeater', 'media_list' );
+	return array( 'list', 'repeater', 'media_list', 'attributes' );
 }
 
 /**

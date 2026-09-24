@@ -13,13 +13,9 @@ $contorno_phone    = (string) ( $contorno_brand['phone'] ?? '(31) 4042-0177' );
 $contorno_email    = (string) ( $contorno_brand['email'] ?? 'contato@contornodocorpo.com.br' );
 $contorno_cta_bg   = function_exists( 'contorno_asset_url' ) ? contorno_asset_url( '/brand/cta-gym.jpg' ) : '';
 
-// "(31) 4042-0177" — mesmo formato de formatBrazilianPhone() do React.
+// "(31) 4042-0177" — mesma mascara usada nas unidades e na pagina de contato.
 $contorno_phone_digits = (string) preg_replace( '/\D+/', '', $contorno_phone );
-$contorno_phone_label  = 10 === strlen( $contorno_phone_digits )
-	? sprintf( '(%s) %s-%s', substr( $contorno_phone_digits, 0, 2 ), substr( $contorno_phone_digits, 2, 4 ), substr( $contorno_phone_digits, 6 ) )
-	: ( 11 === strlen( $contorno_phone_digits )
-		? sprintf( '(%s) %s-%s', substr( $contorno_phone_digits, 0, 2 ), substr( $contorno_phone_digits, 2, 5 ), substr( $contorno_phone_digits, 7 ) )
-		: $contorno_phone );
+$contorno_phone_label  = function_exists( 'contorno_format_phone' ) ? contorno_format_phone( $contorno_phone ) : $contorno_phone;
 
 ?>
 </main>

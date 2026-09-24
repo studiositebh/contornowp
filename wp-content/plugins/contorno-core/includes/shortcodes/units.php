@@ -625,7 +625,7 @@ contorno_add_shortcode(
 		$is_pre_sale = contorno_is_pre_sale( $post_id );
 		$info        = contorno_pre_sale_info_line( $post_id );
 		$gallery     = contorno_field_image_urls( 'gallery', $post_id, 'contorno-card' );
-		$features    = array_slice( contorno_field_list( 'facilities', $post_id ), 0, 4 );
+		$features    = array_slice( contorno_unit_attribute_items( 'facilities', $post_id ), 0, 4 );
 		$title       = contorno_field_text( 'short_name', $post_id, (string) get_the_title( $post_id ) );
 		$location    = trim( implode( ' - ', array_filter( array( contorno_field_text( 'neighborhood', $post_id ), trim( contorno_field_text( 'city', $post_id ) . ( '' !== contorno_field_text( 'state', $post_id ) ? ', ' . contorno_field_text( 'state', $post_id ) : '' ) ) ) ) ) );
 		$enroll_page = get_page_by_path( 'matricula' );
@@ -680,9 +680,8 @@ contorno_add_shortcode(
 					<?php if ( array() !== $features ) : ?>
 						<ul class="unit-hero__features">
 							<?php foreach ( $features as $feature ) : ?>
-								<?php $label = is_array( $feature ) ? (string) ( $feature['label'] ?? '' ) : (string) $feature; ?>
-								<?php if ( '' === trim( $label ) ) : continue; endif; ?>
-								<li><?php echo contorno_icon( contorno_icon_for_label( $label ), 'unit-hero__feature-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( $label ); ?></span></li>
+								<?php if ( '' === trim( (string) $feature['label'] ) ) : continue; endif; ?>
+								<li><?php echo contorno_icon( (string) $feature['icon'], 'unit-hero__feature-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( (string) $feature['label'] ); ?></span></li>
 							<?php endforeach; ?>
 						</ul>
 					<?php endif; ?>
@@ -753,29 +752,33 @@ contorno_add_shortcode(
 			return '';
 		}
 
-		$city_state = trim( contorno_field_text( 'city', $post_id ) . ( '' !== contorno_field_text( 'state', $post_id ) ? ' - ' . contorno_field_text( 'state', $post_id ) : '' ) );
-		$address    = array_filter(
-			array(
-				contorno_field_text( 'address', $post_id ),
-				$city_state,
-				'' !== contorno_field_text( 'postal_code', $post_id ) ? 'CEP: ' . contorno_field_text( 'postal_code', $post_id ) : '',
-			)
+		// O endereco livre do cadastro costuma ja trazer bairro/cidade/UF; o helper
+		// remove a repeticao e devolve as linhas prontas.
+		$address  = contorno_address_lines(
+			contorno_field_text( 'address', $post_id ),
+			contorno_field_text( 'neighborhood', $post_id ),
+			contorno_field_text( 'city', $post_id ),
+			contorno_field_text( 'state', $post_id ),
+			contorno_field_text( 'postal_code', $post_id )
 		);
-		$phone      = contorno_field_text( 'phone', $post_id, contorno_brand_get( 'phone' ) );
-		$whatsapp   = contorno_field_text( 'whatsapp', $post_id, $phone );
-		$maps_url   = contorno_maps_url( $post_id );
+		$hours    = contorno_hours_lines( contorno_field_text( 'hours', $post_id ) );
+		$phone    = contorno_field_text( 'phone', $post_id, contorno_brand_get( 'phone' ) );
+		$whatsapp = contorno_field_text( 'whatsapp', $post_id, $phone );
+		$maps_url = contorno_maps_url( $post_id );
 
 		$rows = array(
 			array(
 				'icon'   => 'clock',
 				'label'  => __( 'Horário de funcionamento', 'contorno' ),
-				'lines'  => array_filter( array( contorno_field_text( 'hours', $post_id ) ) ),
+				'type'   => 'hours',
+				'lines'  => $hours,
 				'href'   => '',
 				'action' => '',
 			),
 			array(
 				'icon'   => 'map-pin',
 				'label'  => __( 'Endereço', 'contorno' ),
+				'type'   => 'text',
 				'lines'  => $address,
 				'href'   => '',
 				'action' => '',
@@ -783,13 +786,15 @@ contorno_add_shortcode(
 			array(
 				'icon'   => 'phone',
 				'label'  => __( 'Telefone / WhatsApp', 'contorno' ),
-				'lines'  => array_unique( array_filter( array( $phone, $whatsapp ) ) ),
+				'type'   => 'text',
+				'lines'  => array_values( array_unique( array_filter( array( contorno_format_phone( $phone ), contorno_format_phone( $whatsapp ) ) ) ) ),
 				'href'   => '',
 				'action' => '',
 			),
 			array(
 				'icon'   => 'map-pin',
 				'label'  => __( 'Como chegar', 'contorno' ),
+				'type'   => 'text',
 				'lines'  => array( __( 'Ver no mapa', 'contorno' ) ),
 				'href'   => $maps_url,
 				'action' => 'arrow',
@@ -804,7 +809,7 @@ contorno_add_shortcode(
 					<?php if ( array() === $row['lines'] ) : continue; endif; ?>
 					<div class="unit-info-strip__item motion-unit-feature">
 						<span class="motion-icon"><?php echo contorno_icon( (string) $row['icon'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-						<div>
+						<div class="unit-info-strip__body">
 							<span class="unit-info-strip__label"><?php echo esc_html( (string) $row['label'] ); ?></span>
 							<?php if ( '' !== (string) $row['href'] ) : ?>
 								<a class="unit-page-link" href="<?php echo esc_url( (string) $row['href'] ); ?>" target="_blank" rel="noopener noreferrer">
@@ -813,6 +818,21 @@ contorno_add_shortcode(
 										<?php echo contorno_icon( 'arrow-right', 'unit-page-link__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 									<?php endif; ?>
 								</a>
+							<?php elseif ( 'hours' === $row['type'] ) : ?>
+								<dl class="unit-info-strip__hours">
+									<?php foreach ( $row['lines'] as $line ) : ?>
+										<?php if ( '' !== (string) $line['term'] ) : ?>
+											<div class="unit-info-strip__hours-row">
+												<dt><?php echo esc_html( (string) $line['term'] ); ?></dt>
+												<dd><?php echo esc_html( (string) $line['value'] ); ?></dd>
+											</div>
+										<?php else : ?>
+											<div class="unit-info-strip__hours-row unit-info-strip__hours-row--plain">
+												<dd><?php echo esc_html( (string) $line['value'] ); ?></dd>
+											</div>
+										<?php endif; ?>
+									<?php endforeach; ?>
+								</dl>
 							<?php else : ?>
 								<p>
 									<?php foreach ( $row['lines'] as $line ) : ?>
@@ -852,7 +872,7 @@ contorno_add_shortcode(
 		);
 
 		$post_id = contorno_resolve_context_id( (array) $a );
-		$items   = $post_id ? contorno_field_list( 'facilities', $post_id ) : array();
+		$items   = $post_id ? contorno_unit_attribute_items( 'facilities', $post_id ) : array();
 
 		if ( array() === $items ) {
 			return '';
@@ -866,11 +886,10 @@ contorno_add_shortcode(
 		?>
 		<div class="contorno-highlights is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-reveal>
 			<?php foreach ( $items as $item ) : ?>
-				<?php $label = is_array( $item ) ? (string) ( $item['label'] ?? '' ) : (string) $item; ?>
-				<?php if ( '' === trim( $label ) ) : continue; endif; ?>
+				<?php if ( '' === trim( (string) $item['label'] ) ) : continue; endif; ?>
 				<article class="unit-highlight-card motion-item">
-					<span class="unit-highlight-card__icon-wrap"><?php echo contorno_icon( contorno_icon_for_label( $label ), 'unit-highlight-card__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-					<h3 class="unit-highlight-card__label"><?php echo esc_html( $label ); ?></h3>
+					<span class="unit-highlight-card__icon-wrap"><?php echo contorno_icon( (string) $item['icon'], 'unit-highlight-card__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+					<h3 class="unit-highlight-card__label"><?php echo esc_html( (string) $item['label'] ); ?></h3>
 				</article>
 			<?php endforeach; ?>
 		</div>
@@ -900,7 +919,7 @@ contorno_add_shortcode(
 		);
 
 		$post_id = contorno_resolve_context_id( (array) $a );
-		$items   = $post_id ? contorno_field_list( 'differentials', $post_id ) : array();
+		$items   = $post_id ? contorno_unit_attribute_items( 'differentials', $post_id ) : array();
 
 		if ( array() === $items ) {
 			return '';
@@ -912,11 +931,10 @@ contorno_add_shortcode(
 		?>
 		<ul class="contorno-differentials motion-stagger" data-contorno-reveal>
 			<?php foreach ( $items as $item ) : ?>
-				<?php $label = is_array( $item ) ? (string) ( $item['label'] ?? '' ) : (string) $item; ?>
-				<?php if ( '' === trim( $label ) ) : continue; endif; ?>
+				<?php if ( '' === trim( (string) $item['label'] ) ) : continue; endif; ?>
 				<li class="contorno-differentials__item motion-item motion-diff">
-					<span class="motion-icon"><?php echo contorno_icon( contorno_icon_for_label( $label ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-					<h3><?php echo esc_html( $label ); ?></h3>
+					<span class="motion-icon"><?php echo contorno_icon( (string) $item['icon'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+					<h3><?php echo esc_html( (string) $item['label'] ); ?></h3>
 				</li>
 			<?php endforeach; ?>
 		</ul>

@@ -141,6 +141,77 @@ final class Contorno_CLI {
 	}
 
 	/**
+	 * Migra os atributos das unidades (destaques, diferenciais, modalidades)
+	 * dos rotulos soltos para as chaves do catalogo central.
+	 *
+	 *   wp contorno attributes --dry-run   # prova o mapeamento, nao grava
+	 *   wp contorno attributes             # grava
+	 *   wp contorno attributes --list      # mostra o catalogo
+	 *
+	 * Unidade com valor fora do catalogo NAO e migrada: o valor e reportado
+	 * para decisao humana.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--dry-run]
+	 * : Simula e prova que todos os valores atuais tem destino.
+	 *
+	 * [--list]
+	 * : Lista o catalogo e sai.
+	 *
+	 * @param array<int,string>    $args
+	 * @param array<string,string> $assoc_args
+	 */
+	public function attributes( array $args, array $assoc_args ): void {
+		if ( isset( $assoc_args['list'] ) ) {
+			foreach ( contorno_attribute_types() as $type => $definition ) {
+				WP_CLI::log( sprintf( '== %s (%s)', (string) $definition['label'], (string) $definition['field'] ) );
+
+				foreach ( contorno_attributes_by_type( (string) $type ) as $item ) {
+					WP_CLI::log(
+						sprintf(
+							'  %-48s %-12s %s%s',
+							(string) $item['key'],
+							(string) $item['icon'],
+							(string) $item['label'],
+							$item['active'] ? '' : '  [inativo]'
+						)
+					);
+				}
+			}
+
+			return;
+		}
+
+		$dry_run = isset( $assoc_args['dry-run'] );
+		$report  = contorno_attributes_migrate( $dry_run );
+
+		foreach ( $report['lines'] as $line ) {
+			WP_CLI::log( $line );
+		}
+
+		foreach ( $report['unmapped'] as $miss ) {
+			WP_CLI::warning( sprintf( 'Sem correspondência: %s / %s -> "%s"', $miss['unit'], $miss['field'], $miss['value'] ) );
+		}
+
+		$summary = sprintf(
+			'%s — %d unidades, %d campos migrados, %d já em chaves, %d bloqueados por valor desconhecido.',
+			$dry_run ? 'Simulação' : 'Migração',
+			$report['units'],
+			$report['changed'],
+			$report['unchanged'],
+			$report['blocked']
+		);
+
+		if ( $report['blocked'] > 0 ) {
+			WP_CLI::warning( $summary );
+			WP_CLI::halt( 1 );
+		}
+
+		WP_CLI::success( $summary );
+	}
+
+	/**
 	 * Mostra o estado atual da migracao.
 	 */
 	public function status(): void {

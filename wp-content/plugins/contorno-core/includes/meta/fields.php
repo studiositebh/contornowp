@@ -299,6 +299,20 @@ function contorno_sanitize_field( mixed $value, array $definition ): mixed {
 
 			return sanitize_text_field( (string) $value );
 
+		case 'attributes':
+			/*
+			 * Lista de CHAVES do catalogo, na ordem em que a unidade as tem.
+			 *
+			 * Rotulos legados (antes da migracao) passam intactos: o campo
+			 * nunca descarta o que ja estava gravado so porque ainda nao virou
+			 * chave. Quem resolve isso e contorno_unit_attribute_items().
+			 */
+			$items = is_array( $value ) ? $value : preg_split( '/\R/', (string) $value );
+			$items = array_map( static fn ( $item ): string => trim( sanitize_text_field( (string) $item ) ), (array) $items );
+			$items = array_values( array_unique( array_filter( $items, static fn ( string $item ): bool => '' !== $item ) ) );
+
+			return contorno_encode_json( $items );
+
 		case 'list':
 		case 'media_list':
 			$items = is_array( $value ) ? $value : preg_split( '/\R/', (string) $value );
