@@ -193,6 +193,47 @@ function contorno_hours_lines( string $hours ): array {
 	$parts = preg_split( '/[\r\n]+|\s*\|\s*/u', $hours );
 	$parts = is_array( $parts ) ? $parts : array();
 
+	/*
+	 * No banco NAO ha quebra de linha: o campo e do tipo texto e o
+	 * sanitize_text_field() do WordPress troca "\n" por espaco na gravacao.
+	 * Entao a segunda quebra e pelo proprio nome do dia — "... 23h Sexta,
+	 * 05h ..." vira duas faixas.
+	 */
+	$split = array();
+
+	foreach ( $parts as $part ) {
+		$pieces = preg_split(
+			'/(?=\b(?:segunda|terça|terca|quarta|quinta|sexta|sábado|sabado|domingo|feriado)s?\b)/iu',
+			(string) $part
+		);
+
+		if ( ! is_array( $pieces ) ) {
+			$split[] = (string) $part;
+			continue;
+		}
+
+		/*
+		 * "Segunda a quinta" e "Sábados e feriados" sao UMA faixa: o pedaco
+		 * cortado no meio nao tem horario nenhum, entao volta a se juntar ao
+		 * seguinte em vez de virar linha propria.
+		 */
+		$buffer = '';
+
+		foreach ( $pieces as $piece ) {
+			$buffer .= $piece;
+
+			if ( 1 === preg_match( '/\d/', $piece ) ) {
+				$split[] = $buffer;
+				$buffer  = '';
+			}
+		}
+
+		if ( '' !== trim( $buffer ) ) {
+			$split[] = $buffer;
+		}
+	}
+
+	$parts = $split;
 	$lines = array();
 
 	foreach ( $parts as $part ) {
