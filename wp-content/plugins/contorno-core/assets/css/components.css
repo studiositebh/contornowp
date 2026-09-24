@@ -1467,24 +1467,81 @@
 .unit-page .unit-results-section .contorno-differentials {
 	display: flex;
 	flex-wrap: wrap;
+	/* Os itens comecam no topo: assim os icones de uma mesma linha ficam
+	   alinhados entre si mesmo quando um rotulo quebra em duas linhas. */
+	align-items: flex-start;
 	justify-content: center;
 	gap: var(--space-6, 1.5rem);
 	border-inline: 0;
 }
 
+/*
+ * Largura FIXA (flex-basis sem encolher). Com `0 1 8rem` o item encolhia
+ * conforme o tamanho do rotulo e os cartoes saiam com larguras diferentes
+ * (90px, 95px, 123px na mesma linha), o que tirava a uniformidade da faixa.
+ */
 .unit-page .unit-results-section .contorno-differentials__item {
 	align-items: center;
-	flex: 0 1 8rem;
+	flex: 0 0 8rem;
+	gap: var(--space-4, 1rem);
 	text-align: center;
 	border: 0;
 	border-radius: 0;
-	padding: 0 var(--space-4, 1rem);
+	padding: 0 var(--space-2, 0.5rem);
+}
+
+/*
+ * Caixa quadrada para o icone. O `contorno_icon()` devolve SVG sem width/height
+ * proprios, entao o tamanho vem daqui; fixar o wrapper mantem todos os icones
+ * ocupando o mesmo espaco, independente do desenho de cada um.
+ */
+.unit-page .unit-results-section .contorno-differentials__item .motion-icon {
+	align-items: center;
+	justify-content: center;
+	width: 2.125rem;
+	height: 2.125rem;
+	line-height: 0;
+}
+
+.unit-page .unit-results-section .contorno-differentials__item svg {
+	width: 100%;
+	height: 100%;
 }
 
 .unit-page .unit-results-section .contorno-differentials__item h3 {
-	font-size: 0.72rem;
+	font-size: 0.78rem;
 	font-weight: 500;
 	line-height: 1.35;
+}
+
+@media (min-width: 768px) {
+	.unit-page .unit-results-section .contorno-differentials__item {
+		flex-basis: 9.5rem;
+	}
+
+	.unit-page .unit-results-section .contorno-differentials__item .motion-icon {
+		width: 2.5rem;
+		height: 2.5rem;
+	}
+
+	.unit-page .unit-results-section .contorno-differentials__item h3 {
+		font-size: 0.82rem;
+	}
+}
+
+@media (min-width: 1024px) {
+	.unit-page .unit-results-section .contorno-differentials__item {
+		flex-basis: 10.5rem;
+	}
+
+	.unit-page .unit-results-section .contorno-differentials__item .motion-icon {
+		width: 2.875rem;
+		height: 2.875rem;
+	}
+
+	.unit-page .unit-results-section .contorno-differentials__item h3 {
+		font-size: 0.86rem;
+	}
 }
 
 .unit-page .unit-plans-section {
