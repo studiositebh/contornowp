@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /** Tagline oficial das landings CTN (copy aprovada pelo cliente). */
-const CONTORNO_CTN_TAGLINE = 'SEU ÚNICO LIMITE É VOCÊ MESMO!';
+const CONTORNO_CTN_TAGLINE = 'SEU ÚNICO LIMITE É VOCÊ MESMO!';
 
 /**
  * PUV do hub /ctn — fotografia oficial com o equipamento como protagonista

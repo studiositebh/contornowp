@@ -56,7 +56,7 @@ contorno_add_shortcode(
 				'cta_label'        => 'Encontre seu CTN',
 				// Rotulo removido a pedido do cliente; o atributo segue aceito no builder.
 				'puv_eyebrow'      => '',
-				'puv_title'        => 'SEU ÚNICO LIMITE É VOCÊ MESMO!',
+				'puv_title'        => 'SEU ÚNICO LIMITE É VOCÊ MESMO!',
 				'puv_text'         => 'SEU ÚNICO LIMITE É VOCÊ MESMO! Equipamentos de marcas líderes em um ambiente premium.',
 				'puv_image'        => '/ctn/institucional/leg-press-realleader.jpg',
 				'puv_image_alt'    => 'Leg Press Realleader dourado — equipamento de alto nível dos Centros de Treinamento Contorno',
