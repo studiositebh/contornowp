@@ -112,7 +112,10 @@ final class Contorno_Evo_Frontend {
 	 * @return array<string,mixed>
 	 */
 	public static function apply( array $plan, array $m ): array {
-		$display = (string) ( $m['display_name'] ?: $m['name'] );
+		// stored() so exige id_membership; um registro gravado por outra versao
+		// (ou restaurado de backup) pode nao ter estas chaves. Sem as guardas,
+		// cada render do card emitia warning do PHP 8 no log.
+		$display = (string) ( ( $m['display_name'] ?? '' ) ?: ( $m['name'] ?? '' ) );
 		if ( '' !== $display ) {
 			$plan['name'] = $display;
 		}
