@@ -41,7 +41,7 @@ $contorno_phone_label  = 10 === strlen( $contorno_phone_digits )
 			<?php if ( function_exists( 'contorno_is_ctn_context' ) && contorno_is_ctn_context() && function_exists( 'contorno_ctn_logo' ) ) : ?>
 				<?php /* Variante CTN do Footer.tsx: logo CTN e tagline oficial. */ ?>
 				<?php echo contorno_ctn_logo( 'site-footer__ctn-logo' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				<p class="site-footer__about"><?php esc_html_e( 'YOUR ONLY LIMIT IS YOU. O maior e mais completo CT de BH espera por você.', 'contorno' ); ?></p>
+				<p class="site-footer__about"><?php esc_html_e( 'SEU ÚNICO LIMITE É VOCÊ MESMO! O maior e mais completo Centro de Treinamento espera por você.', 'contorno' ); ?></p>
 			<?php else : ?>
 				<?php contorno_render_logo( 'light' ); ?>
 				<p class="site-footer__about"><?php esc_html_e( 'A maior rede de academias do Brasil, com unidades modernas, completas e feitas para você evoluir todos os dias.', 'contorno' ); ?></p>

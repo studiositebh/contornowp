@@ -26,7 +26,7 @@ if ( ! defined( 'CONTORNO_CPT_CTN' ) ) {
 }
 
 if ( ! defined( 'CONTORNO_CTN_TAGLINE' ) ) {
-	define( 'CONTORNO_CTN_TAGLINE', 'YOUR ONLY LIMIT IS YOU' );
+	define( 'CONTORNO_CTN_TAGLINE', 'SEU ÚNICO LIMITE É VOCÊ MESMO!' );
 }
 
 if ( ! function_exists( 'contorno_is_ctn_context' ) ) {

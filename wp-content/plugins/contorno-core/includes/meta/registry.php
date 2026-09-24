@@ -311,7 +311,7 @@ function contorno_field_schema(): array {
 					'tagline'    => array(
 						'type'        => 'text',
 						'label'       => __( 'Tagline', 'contorno' ),
-						'placeholder' => 'YOUR ONLY LIMIT IS YOU',
+						'placeholder' => 'SEU ÚNICO LIMITE É VOCÊ MESMO!',
 						'help'        => __( 'Deixe vazio para usar a tagline oficial CTN.', 'contorno' ),
 					),
 				),
