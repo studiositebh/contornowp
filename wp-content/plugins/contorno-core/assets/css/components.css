@@ -791,7 +791,10 @@
 	box-shadow: 0 18px 48px -34px rgb(17 17 17 / 0.35);
 }
 
-/* Tablet e desktop: colunas iguais, separadas por um fio discreto. */
+/*
+ * Tablet: o Horario ocupa a linha inteira (e o bloco mais alto e o que mais
+ * ganha com largura) e Endereco + Telefone dividem a segunda linha.
+ */
 @media (min-width: 768px) {
 	.unit-info-strip__inner {
 		gap: 0;
@@ -802,32 +805,37 @@
 		padding: var(--space-4, 1rem) var(--space-5, 1.25rem);
 	}
 
-	.unit-info-strip__item + .unit-info-strip__item {
-		border-left: 1px solid var(--border, #e6e8ea);
+	.unit-info-strip__inner.is-cols-3 .unit-info-strip__item:first-child {
+		grid-column: 1 / -1;
 	}
 
-	.unit-info-strip__item:nth-child(odd) {
-		border-left: 0;
-	}
-
-	.unit-info-strip__item:nth-child(n + 3) {
+	.unit-info-strip__inner.is-cols-3 .unit-info-strip__item:nth-child(n + 2) {
 		border-top: 1px solid var(--border, #e6e8ea);
+	}
+
+	.unit-info-strip__item:nth-child(3),
+	.unit-info-strip__inner.is-cols-2 .unit-info-strip__item:nth-child(2) {
+		border-left: 1px solid var(--border, #e6e8ea);
 	}
 }
 
+/* Desktop: tres colunas, com o Horario mais largo (~40/35/25). */
 @media (min-width: 1100px) {
-	.unit-info-strip__inner {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+	.unit-info-strip__inner.is-cols-3 {
+		grid-template-columns: 1.6fr 1.4fr 1fr;
 	}
 
-	.unit-info-strip__item:nth-child(odd),
-	.unit-info-strip__item:nth-child(n + 3) {
+	.unit-info-strip__inner.is-cols-2 {
+		grid-template-columns: 1.4fr 1fr;
+	}
+
+	.unit-info-strip__inner.is-cols-3 .unit-info-strip__item:first-child {
+		grid-column: auto;
+	}
+
+	.unit-info-strip__item:nth-child(n + 2) {
 		border-top: 0;
 		border-left: 1px solid var(--border, #e6e8ea);
-	}
-
-	.unit-info-strip__item:first-child {
-		border-left: 0;
 	}
 }
 
@@ -884,6 +892,18 @@
 	gap: 0.3rem;
 }
 
+/*
+ * A partir de tres faixas o bloco vira duas subcolunas, para nao ficar uma
+ * coluna alta ao lado de duas curtas. No celular volta a ser uma so — em
+ * 375px duas colunas quebrariam "Sábados e feriados" no meio.
+ */
+@media (min-width: 768px) {
+	.unit-info-strip__hours.is-split {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: var(--space-5, 1.25rem);
+	}
+}
+
 .unit-info-strip__hours-row {
 	display: flex;
 	flex-wrap: wrap;
@@ -897,6 +917,11 @@
 
 .unit-info-strip__hours dt::after {
 	content: ":";
+}
+
+/* "Ver no mapa": ultima linha do Endereço, com respiro proprio. */
+.unit-info-strip__map {
+	margin-top: 0.5rem;
 }
 
 .unit-info-strip__hours dd {

@@ -782,6 +782,9 @@ contorno_add_shortcode(
 				'lines'  => $address,
 				'href'   => '',
 				'action' => '',
+				// "Ver no mapa" mora aqui: e o destino do proprio endereco, e
+				// como quarta coluna deixava a faixa desequilibrada.
+				'link'   => $maps_url,
 			),
 			array(
 				'icon'   => 'phone',
@@ -791,20 +794,19 @@ contorno_add_shortcode(
 				'href'   => '',
 				'action' => '',
 			),
-			array(
-				'icon'   => 'map-pin',
-				'label'  => __( 'Como chegar', 'contorno' ),
-				'type'   => 'text',
-				'lines'  => array( __( 'Ver no mapa', 'contorno' ) ),
-				'href'   => $maps_url,
-				'action' => 'arrow',
-			),
 		);
+
+		/*
+		 * Ha unidades sem horario cadastrado. Sem isso a faixa ficaria com duas
+		 * colunas preenchidas e uma terceira vazia: o grid segue quantos blocos
+		 * realmente existem.
+		 */
+		$visible = count( array_filter( $rows, static fn ( array $row ): bool => array() !== $row['lines'] ) );
 
 		ob_start();
 		?>
 		<section class="unit-info-strip">
-			<div class="site-container unit-info-strip__inner">
+			<div class="site-container unit-info-strip__inner is-cols-<?php echo esc_attr( (string) $visible ); ?>">
 				<?php foreach ( $rows as $row ) : ?>
 					<?php if ( array() === $row['lines'] ) : continue; endif; ?>
 					<div class="unit-info-strip__item motion-unit-feature">
@@ -819,7 +821,15 @@ contorno_add_shortcode(
 									<?php endif; ?>
 								</a>
 							<?php elseif ( 'hours' === $row['type'] ) : ?>
-								<dl class="unit-info-strip__hours">
+								<?php
+								/*
+								 * Duas subcolunas so a partir de tres faixas. Com uma ou
+								 * duas, dividir deixaria metade do bloco vazio; a regra
+								 * olha o conteudo real, nunca a unidade.
+								 */
+								$hours_split = count( (array) $row['lines'] ) >= 3;
+								?>
+								<dl class="unit-info-strip__hours<?php echo $hours_split ? ' is-split' : ''; ?>">
 									<?php foreach ( $row['lines'] as $line ) : ?>
 										<?php if ( '' !== (string) $line['term'] ) : ?>
 											<div class="unit-info-strip__hours-row">
@@ -839,6 +849,12 @@ contorno_add_shortcode(
 										<span><?php echo esc_html( (string) $line ); ?></span>
 									<?php endforeach; ?>
 								</p>
+								<?php if ( '' !== (string) ( $row['link'] ?? '' ) ) : ?>
+									<a class="unit-page-link unit-info-strip__map" href="<?php echo esc_url( (string) $row['link'] ); ?>" target="_blank" rel="noopener noreferrer">
+										<?php esc_html_e( 'Ver no mapa', 'contorno' ); ?>
+										<?php echo contorno_icon( 'arrow-right', 'unit-page-link__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+									</a>
+								<?php endif; ?>
 							<?php endif; ?>
 						</div>
 					</div>
