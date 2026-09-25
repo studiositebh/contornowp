@@ -3,7 +3,7 @@
  * Plugin Name:       Contorno EVO Sync
  * Plugin URI:        https://contornodocorpo.com.br
  * Description:       Sincroniza os planos (memberships) do EVO com as unidades e CTNs do site. O EVO manda nos dados comerciais (nome, preço, descrição, link de venda, duração, parcelas, status); o WordPress continua mandando na apresentação (ordem, destaque, selo, benefícios). Dados persistidos localmente — a API nunca é consultada por visitante.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Requires Plugins:  contorno-core
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CONTORNO_EVO_VERSION', '1.0.0' );
+define( 'CONTORNO_EVO_VERSION', '1.1.0' );
 define( 'CONTORNO_EVO_FILE', __FILE__ );
 define( 'CONTORNO_EVO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CONTORNO_EVO_URL', plugin_dir_url( __FILE__ ) );
