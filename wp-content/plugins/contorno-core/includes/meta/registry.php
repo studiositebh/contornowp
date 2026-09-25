@@ -87,9 +87,23 @@ function contorno_field_schema(): array {
 					),
 					'neighborhood' => array( 'type' => 'text', 'label' => __( 'Bairro', 'contorno' ) ),
 					'address'      => array( 'type' => 'text', 'label' => __( 'Endereço', 'contorno' ) ),
-					'postal_code'  => array( 'type' => 'text', 'label' => __( 'CEP', 'contorno' ) ),
-					'phone'        => array( 'type' => 'text', 'label' => __( 'Telefone', 'contorno' ) ),
-					'whatsapp'     => array( 'type' => 'text', 'label' => __( 'WhatsApp', 'contorno' ) ),
+					'postal_code'  => array(
+						'type'  => 'cep',
+						'label' => __( 'CEP', 'contorno' ),
+						'help'  => __( 'Só números ou já formatado — o painel formata sozinho (00000-000).', 'contorno' ),
+					),
+					'phone'        => array(
+						'type'  => 'phone',
+						'label' => __( 'Telefone', 'contorno' ),
+						'help'  => __( 'Com DDD. Fixo ou celular — o painel formata enquanto você digita.', 'contorno' ),
+						'row'   => 'contact',
+					),
+					'whatsapp'     => array(
+						'type'  => 'phone',
+						'label' => __( 'WhatsApp', 'contorno' ),
+						'help'  => __( 'Com DDD, sem o "55" na frente. Deixe vazio para usar o telefone acima.', 'contorno' ),
+						'row'   => 'contact',
+					),
 					'hours'        => array(
 						'type'  => 'text',
 						'label' => __( 'Horário de funcionamento', 'contorno' ),
@@ -98,20 +112,30 @@ function contorno_field_schema(): array {
 					'maps_query'   => array(
 						'type'  => 'text',
 						'label' => __( 'Busca no Google Maps', 'contorno' ),
-						'help'  => __( 'O que o site pesquisa no Maps para montar o mapa e o botão "Ver no mapa". Se ficar vazio, usa o endereço acima.', 'contorno' ),
+						'help'  => __( 'Avançado. O que o site pesquisa no Maps para montar o mapa e o botão "Ver no mapa". Deixe vazio: por padrão usa o endereço acima, e só vale a pena preencher se o endereço sozinho não achar o lugar certo no Maps.', 'contorno' ),
 					),
 					'latitude'     => array(
-						'type'  => 'number',
-						'label' => __( 'Latitude', 'contorno' ),
-						'step'  => 'any',
-						'help'  => __( 'Opcional. Melhora a ficha da academia no Google. Preencha os dois ou nenhum.', 'contorno' ),
+						'type'    => 'coordinate',
+						'label'   => __( 'Latitude', 'contorno' ),
+						'min'     => -90,
+						'max'     => 90,
+						'row'     => 'coords',
+						'placeholder' => '-19.9636285',
+						'help'    => __( 'Opcional. Aceita vírgula ou ponto decimal. Preencha os dois (latitude e longitude) ou nenhum.', 'contorno' ),
 					),
-					'longitude'    => array( 'type' => 'number', 'label' => __( 'Longitude', 'contorno' ), 'step' => 'any' ),
+					'longitude'    => array(
+						'type'    => 'coordinate',
+						'label'   => __( 'Longitude', 'contorno' ),
+						'min'     => -180,
+						'max'     => 180,
+						'row'     => 'coords',
+						'placeholder' => '-43.9492036',
+					),
 				),
 			),
 			'midia' => array(
 				'label'  => __( 'Hero, galeria e vídeo', 'contorno' ),
-				'help'   => __( 'Clique em "Selecionar da biblioteca" para trocar qualquer imagem. Nunca é preciso mexer em arquivo ou código.', 'contorno' ),
+				'help'   => __( 'Selecione imagens direto da Biblioteca de Mídia. Nunca é preciso digitar caminho de arquivo, URL ou código.', 'contorno' ),
 				'fields' => array(
 					'image'     => array(
 						'type'  => 'media',
@@ -121,12 +145,12 @@ function contorno_field_schema(): array {
 					'image_alt' => array(
 						'type'  => 'text',
 						'label' => __( 'Texto alternativo da imagem principal', 'contorno' ),
-						'help'  => __( 'Descreve a foto para leitores de tela e para o Google.', 'contorno' ),
+						'help'  => __( 'Descreve ESTA foto nesta unidade para leitores de tela e para o Google — é o que aparece no site, mesmo que a mesma foto tenha outro texto alternativo cadastrado na Biblioteca de Mídia (ela pode ser reaproveitada em outras unidades).', 'contorno' ),
 					),
 					'gallery'   => array(
 						'type'  => 'media_list',
 						'label' => __( 'Galeria', 'contorno' ),
-						'help'  => __( 'Uma imagem por linha. Abre em tela cheia no site.', 'contorno' ),
+						'help'  => __( 'Adicione, arraste para reordenar e remova. A ordem aqui é a mesma do site.', 'contorno' ),
 					),
 					'video_url' => array(
 						'type'  => 'url',

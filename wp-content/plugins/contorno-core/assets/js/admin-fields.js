@@ -23,11 +23,42 @@
 			wrapper.dataset.contornoMediaReady = '1';
 
 			var button = wrapper.querySelector('[data-contorno-media-pick]');
+			var remove = wrapper.querySelector('[data-contorno-media-remove]');
 			var input = wrapper.querySelector('[data-contorno-media-input]');
 			var preview = wrapper.querySelector('[data-contorno-media-preview]');
+			var placeholder = wrapper.querySelector('[data-contorno-media-placeholder]');
 
 			if (!button || !input) {
 				return;
+			}
+
+			function setEmpty() {
+				input.value = '';
+				if (preview) {
+					preview.src = '';
+					preview.hidden = true;
+				}
+				if (placeholder) {
+					placeholder.hidden = false;
+				}
+				if (remove) {
+					remove.hidden = true;
+				}
+				button.textContent = 'Selecionar imagem';
+			}
+
+			function setSelected(src) {
+				if (preview) {
+					preview.src = src;
+					preview.hidden = false;
+				}
+				if (placeholder) {
+					placeholder.hidden = true;
+				}
+				if (remove) {
+					remove.hidden = false;
+				}
+				button.textContent = 'Trocar imagem';
 			}
 
 			button.addEventListener('click', function (event) {
@@ -40,7 +71,8 @@
 				var frame = window.wp.media({
 					title: 'Selecionar imagem',
 					button: { text: 'Usar esta imagem' },
-					multiple: false
+					multiple: false,
+					library: { type: 'image' }
 				});
 
 				frame.on('select', function () {
@@ -48,17 +80,263 @@
 
 					input.value = attachment.id;
 
-					if (preview) {
-						var src =
-							attachment.sizes && attachment.sizes.medium
-								? attachment.sizes.medium.url
-								: attachment.url;
-						preview.src = src;
-						preview.hidden = false;
-					}
+					var src =
+						attachment.sizes && attachment.sizes.medium
+							? attachment.sizes.medium.url
+							: attachment.url;
+					setSelected(src);
 				});
 
 				frame.open();
+			});
+
+			if (remove) {
+				remove.addEventListener('click', function (event) {
+					event.preventDefault();
+					setEmpty();
+				});
+			}
+		});
+	}
+
+	/* ---------------------------------------------------------------
+	 * Galeria: multi-selecao na Biblioteca de Midia + arrastar pra
+	 * reordenar. O nome de cada input escondido e sempre o mesmo
+	 * (campo[]), entao a ordem no DOM e a ordem que sera salva.
+	 * ------------------------------------------------------------- */
+
+	function bindGallery(scope) {
+		var galleries = scope.querySelectorAll('[data-contorno-gallery]');
+
+		Array.prototype.forEach.call(galleries, function (gallery) {
+			if (gallery.dataset.contornoGalleryReady === '1') {
+				return;
+			}
+			gallery.dataset.contornoGalleryReady = '1';
+
+			var grid = gallery.querySelector('[data-contorno-gallery-items]');
+			var add = gallery.querySelector('[data-contorno-gallery-add]');
+			var template = gallery.querySelector('[data-contorno-gallery-template]');
+
+			if (!grid || !add || !template) {
+				return;
+			}
+
+			function bindItem(item) {
+				var removeBtn = item.querySelector('[data-contorno-gallery-remove]');
+
+				if (removeBtn && removeBtn.dataset.contornoBound !== '1') {
+					removeBtn.dataset.contornoBound = '1';
+					removeBtn.addEventListener('click', function (event) {
+						event.preventDefault();
+						item.remove();
+					});
+				}
+			}
+
+			Array.prototype.forEach.call(
+				grid.querySelectorAll('[data-contorno-gallery-item]'),
+				bindItem
+			);
+
+			add.addEventListener('click', function (event) {
+				event.preventDefault();
+
+				if (!window.wp || !window.wp.media) {
+					return;
+				}
+
+				var frame = window.wp.media({
+					title: 'Adicionar imagens',
+					button: { text: 'Adicionar à galeria' },
+					multiple: true,
+					library: { type: 'image' }
+				});
+
+				frame.on('select', function () {
+					var attachments = frame.state().get('selection').toArray();
+
+					attachments.forEach(function (attachment) {
+						var data = attachment.toJSON();
+						var src =
+							(data.sizes && data.sizes.thumbnail
+								? data.sizes.thumbnail.url
+								: data.url) || '';
+
+						var html = template.innerHTML
+							.split('__ID__')
+							.join(String(data.id))
+							.split('__URL__')
+							.join(src);
+
+						var holder = document.createElement('div');
+						holder.innerHTML = html;
+
+						var item = holder.firstElementChild;
+
+						if (!item) {
+							return;
+						}
+
+						grid.appendChild(item);
+						bindItem(item);
+					});
+				});
+
+				frame.open();
+			});
+
+			// Arrastar para reordenar — mesma tecnica do catalogo de atributos.
+			var dragging = null;
+
+			grid.addEventListener('dragstart', function (event) {
+				var item = event.target.closest('[data-contorno-gallery-item]');
+
+				if (!item) {
+					return;
+				}
+
+				dragging = item;
+				item.classList.add('is-dragging');
+
+				if (event.dataTransfer) {
+					event.dataTransfer.effectAllowed = 'move';
+					event.dataTransfer.setData('text/plain', '');
+				}
+			});
+
+			grid.addEventListener('dragover', function (event) {
+				if (!dragging) {
+					return;
+				}
+
+				event.preventDefault();
+
+				var over = event.target.closest('[data-contorno-gallery-item]');
+
+				if (!over || over === dragging) {
+					return;
+				}
+
+				var box = over.getBoundingClientRect();
+				var after = event.clientX > box.left + box.width / 2;
+
+				grid.insertBefore(dragging, after ? over.nextSibling : over);
+			});
+
+			function stopDragging() {
+				if (dragging) {
+					dragging.classList.remove('is-dragging');
+					dragging = null;
+				}
+			}
+
+			grid.addEventListener('drop', function (event) {
+				event.preventDefault();
+				stopDragging();
+			});
+
+			grid.addEventListener('dragend', stopDragging);
+		});
+	}
+
+	/* ---------------------------------------------------------------
+	 * Mascaras: CEP, telefone/WhatsApp, coordenadas.
+	 *
+	 * So cosmetico — quem realmente garante o formato gravado e o
+	 * saneamento no PHP (contorno_sanitize_field(), tipos 'cep',
+	 * 'phone' e 'coordinate'). Colar com ou sem pontuacao funciona
+	 * nos dois lados.
+	 * ------------------------------------------------------------- */
+
+	function maskCep(digits) {
+		digits = digits.slice(0, 8);
+		return digits.length > 5 ? digits.slice(0, 5) + '-' + digits.slice(5) : digits;
+	}
+
+	function bindCepMask(scope) {
+		var inputs = scope.querySelectorAll('[data-contorno-cep]');
+
+		Array.prototype.forEach.call(inputs, function (input) {
+			if (input.dataset.contornoBound === '1') {
+				return;
+			}
+			input.dataset.contornoBound = '1';
+
+			input.addEventListener('input', function () {
+				var digits = input.value.replace(/\D/g, '');
+				input.value = maskCep(digits);
+			});
+		});
+	}
+
+	function maskPhone(digits) {
+		digits = digits.slice(0, 11);
+
+		if (digits.length === 0) {
+			return '';
+		}
+
+		if (digits.length <= 2) {
+			return '(' + digits;
+		}
+
+		var ddd = digits.slice(0, 2);
+		var rest = digits.slice(2);
+
+		// 11 digitos = celular (5+4); ate 10 = fixo (4+4). So vira 5+4 quando
+		// o resto (sem DDD) chega a 9 digitos — antes disso pode ainda virar
+		// um fixo de 10, entao mante o agrupamento 4+4.
+		var splitAt = rest.length >= 9 ? 5 : 4;
+
+		if (rest.length <= splitAt) {
+			return '(' + ddd + ') ' + rest;
+		}
+
+		return '(' + ddd + ') ' + rest.slice(0, splitAt) + '-' + rest.slice(splitAt);
+	}
+
+	function bindPhoneMask(scope) {
+		var inputs = scope.querySelectorAll('[data-contorno-phone]');
+
+		Array.prototype.forEach.call(inputs, function (input) {
+			if (input.dataset.contornoBound === '1') {
+				return;
+			}
+			input.dataset.contornoBound = '1';
+
+			input.addEventListener('input', function () {
+				var digits = input.value.replace(/\D/g, '');
+				input.value = maskPhone(digits);
+			});
+		});
+	}
+
+	/**
+	 * Coordenadas nao tem mascara rigida (o formato final e decidido no
+	 * PHP ao salvar) — so filtra, na digitacao, o que nunca poderia fazer
+	 * parte de uma coordenada: letras e mais de um separador decimal.
+	 */
+	function bindCoordinateInput(scope) {
+		var inputs = scope.querySelectorAll('[data-contorno-coordinate]');
+
+		Array.prototype.forEach.call(inputs, function (input) {
+			if (input.dataset.contornoBound === '1') {
+				return;
+			}
+			input.dataset.contornoBound = '1';
+
+			input.addEventListener('input', function () {
+				var value = input.value.replace(/[^0-9,.\-]/g, '');
+				var negative = value.charAt(0) === '-';
+				value = value.replace(/-/g, '');
+				var separator = value.match(/[,.]/);
+				if (separator) {
+					var index = value.indexOf(separator[0]);
+					value =
+						value.slice(0, index + 1) + value.slice(index + 1).replace(/[,.]/g, '');
+				}
+				input.value = (negative ? '-' : '') + value;
 			});
 		});
 	}
@@ -327,10 +605,14 @@
 
 	function init() {
 		bindMediaPicker(document);
+		bindGallery(document);
 		bindRepeaters(document);
 		bindAttributeSearch(document);
 		bindIconPickers(document);
 		bindSortable(document);
+		bindCepMask(document);
+		bindPhoneMask(document);
+		bindCoordinateInput(document);
 	}
 
 	if (document.readyState !== 'loading') {

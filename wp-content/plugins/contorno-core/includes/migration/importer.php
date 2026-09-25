@@ -410,6 +410,34 @@ final class Contorno_Migration {
 			}
 		}
 
+		/*
+		 * Campos que passam a ser edicao de painel, nao mais fonte-unica-o-
+		 * dataset: uma vez preenchidos numa unidade, o migrate para de tocar
+		 * neles (ver o `continue` logo abaixo). So se aplica ao CPT unidade —
+		 * escopo desta rodada; CTN continua 100% do dataset como sempre foi.
+		 */
+		$protected_fields = CONTORNO_CPT_UNIT === $post_type
+			? array(
+				'city',
+				'state',
+				'neighborhood',
+				'address',
+				'postal_code',
+				'phone',
+				'whatsapp',
+				'hours',
+				'maps_query',
+				'latitude',
+				'longitude',
+				'image',
+				'image_alt',
+				'gallery',
+				'video_url',
+			)
+			: array();
+
+		$protected_fields = (array) apply_filters( 'contorno_migrate_protected_fields', $protected_fields, $post_type );
+
 		foreach ( $entities as $entity ) {
 			$slug = sanitize_title( (string) ( $entity['slug'] ?? '' ) );
 
@@ -450,6 +478,10 @@ final class Contorno_Migration {
 				}
 			}
 
+			// Capturado ANTES do insert/update: dali pra frente $post_id vale
+			// pra criacao tambem, e perderiamos a distincao "ja existia".
+			$was_existing = (bool) $post_id;
+
 			if ( $this->dry_run ) {
 				$this->report->log( sprintf( '%s %s: %s', $post_id ? 'Atualizaria' : 'Criaria', $post_type, $slug ) );
 				$this->report->bump( $counter );
@@ -486,6 +518,23 @@ final class Contorno_Migration {
 			foreach ( $fields as $name => $value ) {
 				$name = (string) $name;
 
+				/*
+				 * Localizacao, contato e midia: mesma regra que ja vale pra
+				 * atributos. Unidade ja existe e o campo ja tem valor gravado
+				 * (editado no painel ou por um migrate anterior)? Nao mexe,
+				 * a menos que --force seja usado. Sem isso, editar telefone,
+				 * endereco, foto ou galeria no wp-admin era desfeito no
+				 * proximo deploy — porque wp_cmd contorno migrate roda sem
+				 * --force em todo deploy (scripts/cpanel-deploy.sh).
+				 */
+				if ( $was_existing && ! $this->force && in_array( $name, $protected_fields, true ) ) {
+					$current = contorno_field( $name, $post_id, null );
+
+					if ( null !== $current && array() !== $current && '' !== $current ) {
+						continue;
+					}
+				}
+
 				if ( in_array( $name, $attribute_fields, true ) ) {
 					$mapped = $this->map_attributes( $post_id, $name, (array) $value, $slug );
 
@@ -509,10 +558,17 @@ final class Contorno_Migration {
 			}
 
 			// Imagem destacada: hero da unidade / da CTN.
-			$hero = $fields['image'] ?? ( $fields['hero_image'] ?? '' );
-			$hero = $this->map_asset( $hero );
-			if ( is_numeric( $hero ) && (int) $hero > 0 ) {
-				set_post_thumbnail( $post_id, (int) $hero );
+			// Mesma protecao do campo 'image': unidade existente com foto
+			// destacada ja definida no painel nao e trocada sem --force.
+			$image_is_protected = $was_existing && ! $this->force && in_array( 'image', $protected_fields, true )
+				&& has_post_thumbnail( $post_id );
+
+			if ( ! $image_is_protected ) {
+				$hero = $fields['image'] ?? ( $fields['hero_image'] ?? '' );
+				$hero = $this->map_asset( $hero );
+				if ( is_numeric( $hero ) && (int) $hero > 0 ) {
+					set_post_thumbnail( $post_id, (int) $hero );
+				}
 			}
 
 			// Taxonomias.

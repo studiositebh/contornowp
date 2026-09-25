@@ -195,8 +195,36 @@ function contorno_render_metabox_group( WP_Post $post, array $group ): void {
 
 	echo '<div class="contorno-fields">';
 
-	foreach ( (array) ( $group['fields'] ?? array() ) as $name => $definition ) {
-		contorno_render_field( $post->ID, (string) $name, (array) $definition );
+	/*
+	 * Campos que declaram o mesmo 'row' (ex.: latitude/longitude,
+	 * telefone/whatsapp) ficam lado a lado, numa unica linha visual —
+	 * so isso: nenhum dado, ordem de gravacao ou nome de campo muda.
+	 */
+	$fields     = (array) ( $group['fields'] ?? array() );
+	$names      = array_keys( $fields );
+	$total      = count( $names );
+	$row_open   = false;
+	$row_of     = static fn ( int $index ): string => $index >= 0 && $index < $total
+		? (string) ( ( (array) $fields[ $names[ $index ] ] )['row'] ?? '' )
+		: '';
+
+	foreach ( $names as $index => $name ) {
+		$definition  = (array) $fields[ $name ];
+		$row         = $row_of( $index );
+		$starts_row  = '' !== $row && $row !== $row_of( $index - 1 );
+		$continues   = '' !== $row && $row === $row_of( $index + 1 );
+
+		if ( $starts_row ) {
+			echo '<div class="contorno-field-row">';
+			$row_open = true;
+		}
+
+		contorno_render_field( $post->ID, (string) $name, $definition );
+
+		if ( $row_open && ! $continues ) {
+			echo '</div>';
+			$row_open = false;
+		}
 	}
 
 	echo '</div>';
@@ -262,24 +290,38 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 			break;
 
 		case 'media':
-			$preview = contorno_resolve_media( $value, 'medium' );
+			$has_value = is_scalar( $value ) && '' !== (string) $value;
+			$preview   = $has_value ? contorno_resolve_media( $value, 'medium' ) : '';
 			echo '<div class="contorno-media" data-contorno-media>';
 			printf(
-				'<input type="text" id="%s" name="%s" value="%s" class="large-text" data-contorno-media-input placeholder="%s" />',
+				'<input type="hidden" id="%s" name="%s" value="%s" data-contorno-media-input />',
 				esc_attr( $input_id ),
 				esc_attr( $input_name ),
-				esc_attr( is_scalar( $value ) ? (string) $value : '' ),
-				esc_attr__( 'ID do anexo ou caminho /brand/arquivo.webp', 'contorno' )
+				esc_attr( $has_value ? (string) $value : '' )
+			);
+			echo '<div class="contorno-media__preview-wrap">';
+			printf(
+				'<img src="%s" alt="" class="contorno-media__preview" data-contorno-media-preview %s />',
+				esc_url( $preview ),
+				'' === $preview ? 'hidden' : ''
 			);
 			printf(
-				'<button type="button" class="button" data-contorno-media-pick>%s</button>',
-				esc_html__( 'Selecionar da biblioteca', 'contorno' )
+				'<p class="contorno-media__placeholder" data-contorno-media-placeholder %s>%s</p>',
+				'' !== $preview ? 'hidden' : '',
+				esc_html__( 'Nenhuma imagem selecionada.', 'contorno' )
 			);
-			if ( '' !== $preview ) {
-				printf( '<img src="%s" alt="" class="contorno-media__preview" data-contorno-media-preview />', esc_url( $preview ) );
-			} else {
-				echo '<img src="" alt="" class="contorno-media__preview" data-contorno-media-preview hidden />';
-			}
+			echo '</div>';
+			echo '<div class="contorno-media__actions">';
+			printf(
+				'<button type="button" class="button" data-contorno-media-pick>%s</button>',
+				esc_html( $has_value ? __( 'Trocar imagem', 'contorno' ) : __( 'Selecionar imagem', 'contorno' ) )
+			);
+			printf(
+				'<button type="button" class="button button-link-delete" data-contorno-media-remove %s>%s</button>',
+				$has_value ? '' : 'hidden',
+				esc_html__( 'Remover imagem', 'contorno' )
+			);
+			echo '</div>';
 			echo '</div>';
 			break;
 
@@ -293,7 +335,6 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 			break;
 
 		case 'list':
-		case 'media_list':
 			$lines = is_array( $value ) ? implode( "\n", array_map( 'strval', $value ) ) : '';
 			printf(
 				'<textarea id="%s" name="%s" rows="6" class="large-text code" data-contorno-list>%s</textarea>',
@@ -307,8 +348,57 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 			);
 			break;
 
+		case 'media_list':
+			$items = is_array( $value ) ? array_values( $value ) : array();
+			echo '<div class="contorno-gallery" data-contorno-gallery data-contorno-gallery-field="' . esc_attr( $input_name ) . '">';
+			// Garante o campo no POST mesmo com a galeria vazia (senao "esvaziar tudo" nao grava nada).
+			printf( '<input type="hidden" name="%s[]" value="" />', esc_attr( $input_name ) );
+			echo '<div class="contorno-gallery__grid" data-contorno-gallery-items>';
+			foreach ( $items as $item ) {
+				echo contorno_render_gallery_item( $input_name, (string) $item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- montado por contorno_render_gallery_item(), ja escapado.
+			}
+			echo '</div>';
+			printf(
+				'<button type="button" class="button" data-contorno-gallery-add>%s</button>',
+				esc_html__( '+ Adicionar imagens', 'contorno' )
+			);
+			printf(
+				'<template data-contorno-gallery-template>%s</template>',
+				contorno_render_gallery_item( $input_name, '__ID__' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			);
+			echo '</div>';
+			break;
+
 		case 'repeater':
 			contorno_render_repeater( $name, (array) ( $definition['subfields'] ?? array() ), is_array( $value ) ? $value : array() );
+			break;
+
+		case 'cep':
+			printf(
+				'<input type="text" inputmode="numeric" autocomplete="postal-code" maxlength="9" id="%s" name="%s" value="%s" class="contorno-field__input--cep" placeholder="00000-000" data-contorno-cep />',
+				esc_attr( $input_id ),
+				esc_attr( $input_name ),
+				esc_attr( is_scalar( $value ) ? (string) $value : '' )
+			);
+			break;
+
+		case 'phone':
+			printf(
+				'<input type="tel" inputmode="tel" maxlength="16" id="%s" name="%s" value="%s" class="regular-text" placeholder="(31) 4042-0177" data-contorno-phone />',
+				esc_attr( $input_id ),
+				esc_attr( $input_name ),
+				esc_attr( is_scalar( $value ) ? contorno_format_phone( (string) $value ) : '' )
+			);
+			break;
+
+		case 'coordinate':
+			printf(
+				'<input type="text" inputmode="decimal" id="%s" name="%s" value="%s" class="regular-text" placeholder="%s" data-contorno-coordinate />',
+				esc_attr( $input_id ),
+				esc_attr( $input_name ),
+				esc_attr( is_scalar( $value ) && '' !== (string) $value ? (string) $value : '' ),
+				esc_attr( $placeholder )
+			);
 			break;
 
 		case 'url':
@@ -330,6 +420,29 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 	}
 
 	echo '</div>';
+}
+
+/**
+ * Uma miniatura da galeria: hidden com o valor gravado (ID de anexo ou
+ * path/URL legado) + preview + botao de remover. Usada tanto para os itens
+ * ja salvos quanto, com o placeholder __ID__/__URL__, como <template> que o
+ * JS clona ao adicionar imagem nova (mesmo truque do __INDEX__ do repeater).
+ */
+function contorno_render_gallery_item( string $input_name, string $item ): string {
+	$is_template = '__ID__' === $item;
+	$preview     = $is_template ? '__URL__' : contorno_resolve_media( $item, 'thumbnail' );
+
+	return sprintf(
+		'<div class="contorno-gallery__item" draggable="true" data-contorno-gallery-item>' .
+			'<input type="hidden" name="%1$s[]" value="%2$s" data-contorno-gallery-value />' .
+			'<img src="%3$s" alt="" class="contorno-gallery__thumb" />' .
+			'<button type="button" class="contorno-gallery__remove" data-contorno-gallery-remove aria-label="%4$s">&times;</button>' .
+		'</div>',
+		esc_attr( $input_name ),
+		$is_template ? $item : esc_attr( $item ),
+		$is_template ? $preview : esc_url( $preview ),
+		esc_attr__( 'Remover esta imagem', 'contorno' )
+	);
 }
 
 /**

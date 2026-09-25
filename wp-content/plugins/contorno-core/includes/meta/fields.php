@@ -299,6 +299,53 @@ function contorno_sanitize_field( mixed $value, array $definition ): mixed {
 
 			return sanitize_text_field( (string) $value );
 
+		case 'cep':
+			/*
+			 * Normaliza para 00000-000 (mesmo formato que o dataset e a
+			 * busca por CEP ja usam — contorno_cep_digits()/contorno_format_cep()
+			 * em includes/data/geo.php). Entrada sem 8 digitos validos (CEP
+			 * incompleto, estrangeiro, etc.) nao e apagada: fica como texto
+			 * saneado, sem forcar um formato que nao existe.
+			 */
+			$digits = contorno_cep_digits( (string) $value );
+
+			return '' !== $digits ? contorno_format_cep( $digits ) : sanitize_text_field( trim( (string) $value ) );
+
+		case 'phone':
+			/*
+			 * So digitos — mesmo formato ja gravado hoje em phone/whatsapp e
+			 * que contorno_format_phone() (includes/helpers.php) usa para
+			 * exibir no site. A mascara e so no JS; aqui e a garantia real.
+			 */
+			return contorno_phone_digits( (string) $value );
+
+		case 'coordinate':
+			$raw = trim( (string) $value );
+
+			if ( '' === $raw ) {
+				return '';
+			}
+
+			// Aceita virgula OU ponto decimal na digitacao.
+			$normalized = str_replace( ',', '.', $raw );
+
+			if ( 1 !== preg_match( '/^-?\d{1,3}(?:\.\d+)?$/', $normalized ) ) {
+				// Letras, sinais demais, etc.: preserva o que foi digitado em
+				// vez de apagar um dado que pode so estar mal formatado.
+				return sanitize_text_field( $raw );
+			}
+
+			$number = (float) $normalized;
+			$min    = (float) ( $definition['min'] ?? -180 );
+			$max    = (float) ( $definition['max'] ?? 180 );
+
+			if ( $number < $min || $number > $max ) {
+				return sanitize_text_field( $raw );
+			}
+
+			// Ate 7 casas decimais (~1cm de precisao), sem zero a mais no fim.
+			return rtrim( rtrim( sprintf( '%.7F', $number ), '0' ), '.' );
+
 		case 'attributes':
 			/*
 			 * Lista de CHAVES do catalogo, na ordem em que a unidade as tem.
@@ -314,12 +361,45 @@ function contorno_sanitize_field( mixed $value, array $definition ): mixed {
 			return contorno_encode_json( $items );
 
 		case 'list':
-		case 'media_list':
 			$items = is_array( $value ) ? $value : preg_split( '/\R/', (string) $value );
 			$items = array_map( static fn ( $item ): string => sanitize_text_field( (string) $item ), (array) $items );
 			$items = array_values( array_filter( $items, static fn ( string $item ): bool => '' !== trim( $item ) ) );
 
 			return contorno_encode_json( $items );
+
+		case 'media_list':
+			/*
+			 * Nunca confia no array que veio do navegador: cada item so entra
+			 * se for um ID de anexo que REALMENTE existe e e uma imagem
+			 * (wp_attachment_is_image), nunca uma referencia arbitraria a
+			 * arquivo do servidor. Path/URL legado (pre-Biblioteca de Midia)
+			 * continua aceito como estava, para nao quebrar unidade que ainda
+			 * nao foi migrada — so passa por sanitize_text_field().
+			 */
+			$items = is_array( $value ) ? $value : preg_split( '/\R/', (string) $value );
+			$clean = array();
+
+			foreach ( (array) $items as $item ) {
+				$item = is_scalar( $item ) ? trim( (string) $item ) : '';
+
+				if ( '' === $item ) {
+					continue;
+				}
+
+				if ( ctype_digit( $item ) ) {
+					$id = absint( $item );
+
+					if ( $id > 0 && 'attachment' === get_post_type( $id ) && wp_attachment_is_image( $id ) ) {
+						$clean[] = (string) $id;
+					}
+
+					continue;
+				}
+
+				$clean[] = sanitize_text_field( $item );
+			}
+
+			return contorno_encode_json( array_values( $clean ) );
 
 		case 'repeater':
 			$rows      = is_array( $value ) ? $value : array();

@@ -48,26 +48,137 @@
 	font-size: 13px;
 }
 
-/* ---- Midia ---- */
+/* ---- Campos lado a lado (latitude/longitude, telefone/WhatsApp) ---- */
+
+.contorno-field-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 18px;
+	grid-column: 1 / -1;
+}
+
+.contorno-field-row .contorno-field {
+	min-width: 0;
+}
+
+/* ---- CEP: input curto, do tamanho do proprio dado ---- */
+
+.contorno-field__input--cep {
+	width: auto !important;
+	max-width: 120px !important;
+}
+
+/* ---- Midia (imagem principal) ---- */
 
 .contorno-media {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: center;
-	gap: 8px;
+	align-items: flex-start;
+	gap: 14px;
 }
 
-.contorno-media [data-contorno-media-input] {
-	flex: 1 1 220px;
+.contorno-media__preview-wrap {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 220px;
+	height: 130px;
+	overflow: hidden;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
 }
 
 .contorno-media__preview {
 	display: block;
 	width: 100%;
-	max-width: 220px;
-	height: auto;
+	height: 100%;
+	object-fit: cover;
+}
+
+.contorno-media__preview[hidden] {
+	display: none;
+}
+
+.contorno-media__placeholder {
+	margin: 0;
+	padding: 0 12px;
+	color: #787c82;
+	font-size: 12px;
+	text-align: center;
+}
+
+.contorno-media__placeholder[hidden] {
+	display: none;
+}
+
+.contorno-media__actions {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.contorno-media__actions [hidden] {
+	display: none;
+}
+
+/* ---- Galeria ---- */
+
+.contorno-gallery__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+	gap: 10px;
+	margin-bottom: 10px;
+}
+
+.contorno-gallery__item {
+	position: relative;
+	aspect-ratio: 1 / 1;
+	overflow: hidden;
+	background: #f6f7f7;
 	border: 1px solid #dcdcde;
 	border-radius: 6px;
+	cursor: grab;
+}
+
+.contorno-gallery__item.is-dragging {
+	opacity: 0.5;
+	cursor: grabbing;
+}
+
+.contorno-gallery__thumb {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	pointer-events: none;
+}
+
+.contorno-gallery__remove {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	color: #fff;
+	background: rgb(0 0 0 / 0.6);
+	border: none;
+	border-radius: 50%;
+	font-size: 16px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.contorno-gallery__remove:hover {
+	background: #b32d2e;
+}
+
+.contorno-gallery [data-contorno-gallery-template] {
+	display: none;
 }
 
 /* ---- Repeater ---- */
