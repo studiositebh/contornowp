@@ -144,6 +144,15 @@ else
 	log "Geocode skipped (network or provider error)"
 fi
 
+# Sincroniza a taxonomia unidade_cidade com o campo estruturado e limpa
+# termos orfaos (residuo da caixa lateral nativa, ja oculta em unidade).
+# Idempotente: depois da primeira limpeza, roda sem efeito nos deploys seguintes.
+if wp_cmd contorno cities; then
+	log "Cities OK"
+else
+	log "Cities sync skipped (erro nao fatal)"
+fi
+
 wp_cmd rewrite flush
 log "Rewrite OK"
 

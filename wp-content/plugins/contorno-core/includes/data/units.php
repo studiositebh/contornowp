@@ -14,6 +14,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Sincroniza a taxonomia unidade_cidade a partir do campo estruturado
+ * "city" — a UNICA fonte editorial (a caixa lateral nativa fica oculta em
+ * unidade, ver post-types.php). $append=false troca a relacao inteira a
+ * cada chamada: uma unidade nunca fica ligada a mais de uma cidade, e
+ * nunca precisa de selecao manual. Mesmo padrao que o importador ja usa
+ * (includes/migration/importer.php) para nao ter duas fontes de verdade.
+ */
+function contorno_sync_unit_city_term( int $post_id ): void {
+	$city = trim( contorno_field_text( 'city', $post_id ) );
+
+	wp_set_object_terms( $post_id, '' !== $city ? array( $city ) : array(), CONTORNO_TAX_CITY, false );
+}
+
+add_action(
+	'save_post_' . CONTORNO_CPT_UNIT,
+	static function ( int $post_id ): void {
+		if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+			return;
+		}
+
+		contorno_sync_unit_city_term( $post_id );
+	},
+	20 // depois do save_post que grava os campos estruturados (metaboxes.php, prioridade 10).
+);
+
+/**
  * Busca unidades.
  *
  * @param array<string,mixed> $args

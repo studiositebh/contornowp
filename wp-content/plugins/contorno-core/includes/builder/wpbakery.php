@@ -79,6 +79,33 @@ add_action(
 );
 
 /**
+ * Mesma logica, pro editor nativo (post_content) — o "editor grande" que
+ * aparecia mesmo com o WPBakery ja oculto, porque e renderizado direto por
+ * wp-admin/edit-form-advanced.php quando o post type suporta 'editor',
+ * independente de qualquer metabox.
+ *
+ * remove_post_type_support() aqui, dentro de add_meta_boxes_unidade, roda
+ * ANTES do edit-form-advanced.php checar o suporte (mesma requisicao,
+ * add_meta_boxes sempre fura antes do template) — e so vale para esta
+ * unidade, nesta tela: o suporte volta a valer no proximo request de outra
+ * unidade que precise dele.
+ *
+ * Nao apaga post_content, nao mexe no recurso "Conteudo editorial extra":
+ * se a unidade usa esse recurso, o editor nativo continua aparecendo,
+ * exatamente como o WPBakery acima.
+ */
+add_action(
+	'add_meta_boxes_' . CONTORNO_CPT_UNIT,
+	static function ( WP_Post $post ): void {
+		if ( contorno_unit_has_editorial_content( $post->ID ) ) {
+			return;
+		}
+
+		remove_post_type_support( CONTORNO_CPT_UNIT, 'editor' );
+	}
+);
+
+/**
  * Habilita o builder onde ele faz sentido.
  */
 add_action(

@@ -212,6 +212,83 @@ final class Contorno_CLI {
 	}
 
 	/**
+	 * Corrige a taxonomia unidade_cidade: sincroniza cada unidade com o
+	 * campo estruturado "city" (fonte editorial unica) e so DEPOIS remove
+	 * os termos que sobraram sem nenhuma unidade/CTN ligada — o resíduo de
+	 * quando a caixa lateral nativa permitia digitar qualquer coisa
+	 * (endereço, bairro) como "cidade nova".
+	 *
+	 *   wp contorno cities --dry-run   # so mostra o que mudaria
+	 *   wp contorno cities             # sincroniza e limpa termos orfaos
+	 *
+	 * Nunca apaga um termo que ainda tenha post ligado (unidade OU CTN) —
+	 * so os que ficam com count=0 depois da sincronizacao.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--dry-run]
+	 * : Mostra o que seria corrigido/removido, sem gravar nada.
+	 *
+	 * @param array<int,string>    $args
+	 * @param array<string,string> $assoc_args
+	 */
+	public function cities( array $args, array $assoc_args ): void {
+		$dry_run  = isset( $assoc_args['dry-run'] );
+		$fixed    = 0;
+		$unchanged = 0;
+
+		foreach ( contorno_get_units( array( 'post_status' => 'any' ) ) as $unit ) {
+			$city    = trim( contorno_field_text( 'city', $unit->ID ) );
+			$current = wp_get_object_terms( $unit->ID, CONTORNO_TAX_CITY, array( 'fields' => 'names' ) );
+			$current = is_array( $current ) ? $current : array();
+			$wanted  = '' !== $city ? array( $city ) : array();
+
+			if ( $current === $wanted ) {
+				++$unchanged;
+				continue;
+			}
+
+			WP_CLI::log(
+				sprintf(
+					'%s %s: [%s] -> [%s]',
+					$dry_run ? 'Corrigiria' : 'Corrigido',
+					$unit->post_name,
+					implode( ', ', $current ),
+					implode( ', ', $wanted )
+				)
+			);
+
+			if ( ! $dry_run ) {
+				contorno_sync_unit_city_term( $unit->ID );
+			}
+
+			++$fixed;
+		}
+
+		WP_CLI::log( sprintf( 'Unidades: %d corrigidas, %d ja estavam certas.', $fixed, $unchanged ) );
+
+		$terms   = get_terms( array( 'taxonomy' => CONTORNO_TAX_CITY, 'hide_empty' => false ) );
+		$terms   = $terms instanceof WP_Error ? array() : $terms;
+		$removed = 0;
+
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof WP_Term || $term->count > 0 ) {
+				continue;
+			}
+
+			WP_CLI::log( sprintf( '%s termo orfao: "%s" (0 unidades/CTNs ligados)', $dry_run ? 'Removeria' : 'Removido', $term->name ) );
+
+			if ( ! $dry_run ) {
+				wp_delete_term( $term->term_id, CONTORNO_TAX_CITY );
+			}
+
+			++$removed;
+		}
+
+		WP_CLI::success( sprintf( 'Cidades — %d unidades corrigidas, %d termos órfãos %s.', $fixed, $removed, $dry_run ? 'seriam removidos' : 'removidos' ) );
+	}
+
+	/**
 	 * Mostra o estado atual da migracao.
 	 */
 	public function status(): void {

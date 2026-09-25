@@ -141,6 +141,22 @@ function contorno_register_post_types(): void {
 add_action( 'init', 'contorno_register_post_types' );
 
 /**
+ * Esconde a caixa lateral nativa "Cidades" na tela de unidade.
+ *
+ * A fonte editorial e o campo estruturado "Localizacao e contato > Cidade"
+ * (contorno_sync_unit_city_term(), em includes/data/units.php, mantem a
+ * taxonomia sincronizada sozinha a cada save_post). Duas caixas editando a
+ * mesma coisa e exatamente como termos soltos (endereco, bairro) foram
+ * parar na taxonomia. CTN continua com a caixa nativa — fora do escopo.
+ */
+add_action(
+	'add_meta_boxes_' . CONTORNO_CPT_UNIT,
+	static function (): void {
+		remove_meta_box( CONTORNO_TAX_CITY . 'div', CONTORNO_CPT_UNIT, 'side' );
+	}
+);
+
+/**
  * Termos fixos de "tipo de unidade" — espelham UnitKind do React
  * (standard | prime | ctn-prime).
  */
