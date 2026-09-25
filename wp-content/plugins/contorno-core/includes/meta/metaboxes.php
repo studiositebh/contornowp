@@ -107,6 +107,83 @@ add_action(
 );
 
 /**
+ * A metabox nativa "Resumo" (post_excerpt) duplicava visualmente
+ * "Descricao curta (card)": os dois campos guardavam o mesmo texto vindo da
+ * migracao, mas sem nenhuma sincronizacao — duas fontes de verdade para o
+ * mesmo conteudo. "Descricao curta (card)" fica como UNICA fonte editorial;
+ * post_excerpt continua existindo (cards e SEO ainda usam como fallback) e
+ * agora e espelhado automaticamente dela no save_post abaixo.
+ */
+add_action(
+	'add_meta_boxes_' . CONTORNO_CPT_UNIT,
+	static function (): void {
+		remove_meta_box( 'postexcerpt', CONTORNO_CPT_UNIT, 'normal' );
+	}
+);
+
+/**
+ * "Revisoes" para o final da tela de unidade.
+ *
+ * O nucleo registra revisionsdiv na prioridade 'core', que renderiza logo
+ * apos os boxes 'high' — antes da maior parte dos grupos do Contorno.
+ * Prioridade 100 aqui garante que isso ja aconteceu (o nucleo registra a
+ * metabox direto em register_and_do_post_meta_boxes(), antes de disparar
+ * add_meta_boxes/add_meta_boxes_unidade): so movemos a caixa, sem recriar
+ * condicao nenhuma — se ela nao existir (unidade sem revisao ainda), nao ha
+ * nada a mover.
+ */
+add_action(
+	'add_meta_boxes_' . CONTORNO_CPT_UNIT,
+	static function (): void {
+		global $wp_meta_boxes;
+
+		$context = 'normal';
+
+		if ( empty( $wp_meta_boxes[ CONTORNO_CPT_UNIT ][ $context ] ) ) {
+			return;
+		}
+
+		foreach ( $wp_meta_boxes[ CONTORNO_CPT_UNIT ][ $context ] as $priority => $boxes ) {
+			if ( 'low' === $priority || ! isset( $boxes['revisionsdiv'] ) ) {
+				continue;
+			}
+
+			$wp_meta_boxes[ CONTORNO_CPT_UNIT ][ $context ]['low']['revisionsdiv'] = $boxes['revisionsdiv'];
+			unset( $wp_meta_boxes[ CONTORNO_CPT_UNIT ][ $context ][ $priority ]['revisionsdiv'] );
+		}
+	},
+	100
+);
+
+/**
+ * A ordem "arrastada" que cada usuario salva (meta-box-order_unidade)
+ * sobrescreveria a posicao acima assim que qualquer admin reordenasse os
+ * boxes uma vez. Tira "revisionsdiv" dessa preferencia pessoal para esta
+ * tela especificamente, para a caixa ficar sempre por ultimo — inclusive
+ * para quem ja tinha uma ordem salva de antes desta mudanca, e para
+ * administradores novos.
+ */
+add_filter(
+	'get_user_option_meta-box-order_' . CONTORNO_CPT_UNIT,
+	static function ( $value ) {
+		if ( ! is_array( $value ) ) {
+			return $value;
+		}
+
+		foreach ( $value as $context => $ids ) {
+			$kept = array_filter(
+				explode( ',', (string) $ids ),
+				static fn ( string $id ): bool => 'revisionsdiv' !== $id
+			);
+
+			$value[ $context ] = implode( ',', $kept );
+		}
+
+		return $value;
+	}
+);
+
+/**
  * @param array<string,mixed> $group
  */
 function contorno_render_metabox_group( WP_Post $post, array $group ): void {
@@ -273,7 +350,7 @@ function contorno_render_attributes_field( string $input_name, string $input_id,
 	}
 
 	$catalog = contorno_attributes_by_type( $type );
-	$manage  = admin_url( 'admin.php?page=' . CONTORNO_ATTRIBUTES_PAGE . '&tipo=' . rawurlencode( $type ) );
+	$manage  = contorno_attributes_page_url( $type );
 
 	// Casa o que a unidade tem com o catalogo, preservando o que nao casar.
 	$checked = array();
@@ -306,7 +383,7 @@ function contorno_render_attributes_field( string $input_name, string $input_id,
 	if ( array() === $catalog ) {
 		printf(
 			'<p class="description">%s</p>',
-			esc_html__( 'Nenhum atributo cadastrado ainda. Cadastre em Contorno → Atributos das unidades.', 'contorno' )
+			esc_html__( 'Nenhum atributo cadastrado ainda. Cadastre em Unidades → Atributos das unidades.', 'contorno' )
 		);
 	}
 
@@ -473,6 +550,12 @@ function contorno_render_repeater_row( string $name, array $subfields, array $ro
 add_action(
 	'save_post',
 	static function ( int $post_id, WP_Post $post ): void {
+		static $is_syncing_excerpt = false;
+
+		if ( $is_syncing_excerpt ) {
+			return;
+		}
+
 		if ( ! contorno_should_render_native_metaboxes() ) {
 			return;
 		}
@@ -516,6 +599,30 @@ add_action(
 			}
 
 			contorno_update_field( $post_id, (string) $name, $value );
+		}
+
+		/*
+		 * A metabox nativa "Resumo" fica oculta em unidade (ver o
+		 * add_meta_boxes_unidade acima): "Descricao curta (card)" e
+		 * a UNICA fonte editorial. post_excerpt continua existindo por baixo
+		 * — cards e SEO ainda caem nele quando o campo customizado esta vazio
+		 * (ver contorno_render_unit_card() e contorno_meta_description()) —
+		 * mas passa a ser espelho automatico do campo customizado, nunca
+		 * editado direto.
+		 */
+		if ( CONTORNO_CPT_UNIT === $post->post_type && array_key_exists( 'short_description', $submitted ) ) {
+			$short_description = contorno_field_text( 'short_description', $post_id );
+
+			if ( $short_description !== $post->post_excerpt ) {
+				$is_syncing_excerpt = true;
+				wp_update_post(
+					array(
+						'ID'           => $post_id,
+						'post_excerpt' => $short_description,
+					)
+				);
+				$is_syncing_excerpt = false;
+			}
 		}
 	},
 	10,

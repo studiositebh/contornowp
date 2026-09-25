@@ -1,6 +1,6 @@
 <?php
 /**
- * Tela "Contorno > Atributos das unidades".
+ * Tela "Unidades > Atributos das unidades".
  *
  * Catalogo central de destaques, diferenciais e modalidades. Nao existe rota
  * publica para estes registros: sao configuracao, guardada numa option (ver o
@@ -22,8 +22,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action(
 	'admin_menu',
 	static function (): void {
+		// Submenu do CPT unidade (nao mais de "Contorno"): e catalogo de
+		// atributos das unidades, conceitualmente pertence a Unidades.
 		add_submenu_page(
-			'contorno-migracao',
+			'edit.php?post_type=' . CONTORNO_CPT_UNIT,
 			__( 'Atributos das unidades', 'contorno' ),
 			__( 'Atributos das unidades', 'contorno' ),
 			'manage_options',
@@ -49,8 +51,15 @@ function contorno_attributes_current_type(): string {
  */
 function contorno_attributes_page_url( string $type, array $extra = array() ): string {
 	return add_query_arg(
-		array_merge( array( 'page' => CONTORNO_ATTRIBUTES_PAGE, 'tipo' => $type ), $extra ),
-		admin_url( 'admin.php' )
+		array_merge(
+			array(
+				'post_type' => CONTORNO_CPT_UNIT,
+				'page'      => CONTORNO_ATTRIBUTES_PAGE,
+				'tipo'      => $type,
+			),
+			$extra
+		),
+		admin_url( 'edit.php' )
 	);
 }
 

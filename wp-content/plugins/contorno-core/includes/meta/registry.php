@@ -137,7 +137,7 @@ function contorno_field_schema(): array {
 			),
 			'conteudo' => array(
 				'label'  => __( 'Destaques e diferenciais', 'contorno' ),
-				'help'   => __( 'Marque o que esta unidade oferece. Os itens vêm do catálogo em Contorno → Atributos das unidades, onde ficam o nome e o ícone de cada um.', 'contorno' ),
+				'help'   => __( 'Marque o que esta unidade oferece. Os itens vêm do catálogo em Unidades → Atributos das unidades, onde ficam o nome e o ícone de cada um.', 'contorno' ),
 				'fields' => array(
 					'facilities'    => array(
 						'type'           => 'attributes',

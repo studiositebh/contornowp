@@ -24,6 +24,61 @@ function contorno_wpbakery_active(): bool {
 }
 
 /**
+ * A unidade usa de fato o recurso "Conteudo editorial extra"?
+ *
+ * O WPBakery so tem uma funcao real no CPT unidade: e o editor do
+ * post_content injetado pelo slot escolhido em editorial_position (ver
+ * includes/shortcodes/institutional.php e o registry.php). Nenhuma outra
+ * parte da tela de unidade depende dele.
+ */
+function contorno_unit_has_editorial_content( int $post_id ): bool {
+	if ( 'none' !== contorno_field_text( 'editorial_position', $post_id, 'none' ) ) {
+		return true;
+	}
+
+	return '' !== trim( (string) get_post_field( 'post_content', $post_id ) );
+}
+
+/**
+ * Esconde a caixa "WPBakery Page Builder" na tela de edicao de unidade —
+ * ela nao serve pra nada la alem do recurso acima, e confundia o editor com
+ * um builder de pagina que nao e usado nas unidades.
+ *
+ * So some se a unidade REALMENTE usa o recurso: editorial_position != none
+ * ou post_content ja tem algo (unidade legada ou em uso). Nesse caso a caixa
+ * continua aparecendo, com um aviso explicando o porque — nada de conteudo
+ * apagado, nada de recurso desligado, so a interface fica limpa quando nao
+ * ha nada pra editar ali.
+ *
+ * Nao mexe em nenhum outro post type: CTN e paginas continuam com o
+ * WPBakery normalmente.
+ */
+add_action(
+	'add_meta_boxes_' . CONTORNO_CPT_UNIT,
+	static function ( WP_Post $post ): void {
+		if ( contorno_unit_has_editorial_content( $post->ID ) ) {
+			add_action(
+				'edit_form_after_title',
+				static function ( WP_Post $notice_post ) use ( $post ): void {
+					if ( (int) $notice_post->ID !== (int) $post->ID ) {
+						return;
+					}
+
+					printf(
+						'<div class="notice notice-info inline"><p>%s</p></div>',
+						esc_html__( 'O WPBakery aparece aqui porque esta unidade usa o recurso "Conteúdo editorial extra" (aba Conteúdo editorial extra, campo Posição). Sem isso configurado, esta caixa fica oculta.', 'contorno' )
+					);
+				}
+			);
+
+			return;
+		}
+
+		remove_meta_box( 'wpb_wpbakery', CONTORNO_CPT_UNIT, 'normal' );
+	}
+);
+
+/**
  * Habilita o builder onde ele faz sentido.
  */
 add_action(
