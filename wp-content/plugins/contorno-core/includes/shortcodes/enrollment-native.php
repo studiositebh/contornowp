@@ -122,7 +122,7 @@ function contorno_native_field( array $args ): string {
  *
  * @param array<string,mixed>|null $plan
  */
-function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string $fallback_url, string $back_url ): string {
+function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string $back_url ): string {
 	$boot = contorno_evo_checkout_boot_data();
 
 	// A etapa de endereco existe porque a integracao pediu, nao porque o
@@ -135,6 +135,9 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 
 	contorno_enqueue_component( 'enrollment-native' );
 
+	$phone       = contorno_field_text( 'whatsapp', $post->ID, contorno_field_text( 'phone', $post->ID ) );
+	$contact_url = '' !== trim( $phone ) ? contorno_whatsapp_link( $phone ) : '';
+
 	wp_localize_script(
 		'contorno-enrollment-native',
 		'contornoCheckout',
@@ -143,10 +146,15 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 			'routes' => (array) $boot['routes'],
 			'slug'   => (string) $post->post_name,
 			'plan'   => (string) ( $plan['id'] ?? '' ),
-			// Destino de emergencia: usado SOMENTE quando a API diz
-			// explicitamente que nenhuma venda foi criada (fallback=true).
-			// Nunca depois de uma resposta ambigua.
-			'fallback' => esc_url_raw( $fallback_url ),
+			/*
+			 * A jornada nunca sai do site: quando a API diz explicitamente
+			 * que nenhuma venda foi criada (fallback=true), o checkout so
+			 * mostra o aviso de indisponibilidade + este contato — nunca
+			 * um destino externo (ver assets/js/enrollment-native.js,
+			 * Checkout.prototype.fallbackTo). Nunca depois de uma resposta
+			 * ambigua.
+			 */
+			'contactUrl' => esc_url_raw( $contact_url ),
 			'i18n'   => array(
 				'required'    => __( 'Preencha este campo.', 'contorno' ),
 				'email'       => __( 'Informe um e-mail válido.', 'contorno' ),
@@ -160,6 +168,8 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 				'generic'     => __( 'Não foi possível concluir agora. Tente novamente em alguns instantes.', 'contorno' ),
 				'stepOf'      => __( 'Etapa %1$d de %2$d', 'contorno' ),
 				'cardMissing' => __( 'O pagamento por cartão ainda não está disponível nesta página.', 'contorno' ),
+				'unavailable' => __( 'Não foi possível iniciar sua matrícula online no momento. A integração com o sistema da academia ainda não está disponível. Tente novamente em alguns instantes ou entre em contato com a unidade.', 'contorno' ),
+				'contactUnit' => __( 'Falar com a unidade', 'contorno' ),
 			),
 		)
 	);
@@ -403,11 +413,13 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 				</aside>
 			</div>
 
-			<?php /* Sem JavaScript o checkout nativo nao roda; o caminho atual continua valendo. */ ?>
+			<?php /* Sem JavaScript o checkout nativo nao roda. Nunca externo: so o contato da propria unidade. */ ?>
 			<noscript>
 				<p class="contorno-ck__noscript">
 					<?php esc_html_e( 'Para concluir a matrícula nesta página é necessário ativar o JavaScript.', 'contorno' ); ?>
-					<a href="<?php echo esc_url( $fallback_url ); ?>"><?php esc_html_e( 'Continuar no ambiente de matrícula da academia', 'contorno' ); ?></a>
+					<?php if ( '' !== $contact_url ) : ?>
+						<a href="<?php echo esc_url( $contact_url ); ?>"><?php esc_html_e( 'Falar com a unidade', 'contorno' ); ?></a>
+					<?php endif; ?>
 				</p>
 			</noscript>
 		</div>

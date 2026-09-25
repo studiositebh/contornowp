@@ -74,7 +74,19 @@ check_present 'handler POST de /matricula/ sem JS preservado' 'CONTORNO_ENROLL_A
 check_present 'nonce preservado no formulario de matricula' 'wp_nonce_field' "$CORE/includes/shortcodes/enrollment.php"
 check_present 'honeypot preservado no formulario de matricula' 'contorno-honeypot' "$CORE/includes/shortcodes/enrollment.php"
 check_present 'rate limit do fluxo antigo preservado' 'contorno_rate_limit_hit' "$CORE/includes/forms.php"
-check_present 'checkout externo segue como fallback no JS nativo' 'CFG.fallback' "$CORE/assets/js/enrollment-native.js"
+
+echo
+echo "== Matricula 100% interna (rodada 'sem redirect externo')"
+
+check_absent 'nenhum CTA publico usa checkout_url como destino (card/hero da unidade)' "enrollment_url *= *'' *!== *contorno_field_text\\( *'checkout_url'|enroll_url *= *'' *!== *contorno_field_text\\( *'checkout_url'" "$CORE/includes/shortcodes/units.php"
+check_absent 'forms.php nao redireciona mais pra checkout_url/urlSale (sem JS)' 'wp_redirect\(' "$CORE/includes/forms.php"
+check_absent 'JS nativo nao navega mais pro externo em fallbackTo' 'window\.location\.assign\(url\)|window\.location\.assign\(CFG\.fallback\)' "$CORE/assets/js/enrollment-native.js"
+check_absent 'JS nativo nao recebe mais URL de fallback externo do PHP' "'fallback' *=> *esc_url_raw" "$CORE/includes/shortcodes/enrollment-native.php"
+check_present 'JS nativo usa contato da unidade (WhatsApp), nunca URL externa' 'CFG.contactUrl' "$CORE/assets/js/enrollment-native.js"
+check_present 'checkout_url continua gravado (compatibilidade), so nao e mais destino publico' 'function contorno_plan_checkout_url' "$CORE/includes/data/units.php"
+check_present 'plano sem selecao mostra etapa de escolha, nunca decide sozinho' 'function contorno_enrollment_plan_picker_markup' "$CORE/includes/shortcodes/enrollment.php"
+check_present 'unidade sem checkout nativo ligado mostra aviso interno, nunca redirect' 'function contorno_enrollment_unavailable_markup' "$CORE/includes/shortcodes/enrollment.php"
+check_absent 'mensagem de "checkout desligado" nao anuncia mais redirect pra EVO' "Vamos continuar sua matr.cula no ambiente seguro da academia" "$EVO/includes/class-checkout.php"
 
 echo
 echo "== Credenciais e cartao nunca chegam ao frontend"

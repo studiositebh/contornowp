@@ -673,7 +673,7 @@ final class Contorno_Evo_Checkout {
 			'plano_sem_membership'   => __( 'Este plano ainda não aceita matrícula online.', 'contorno-evo' ),
 			'membership_inexistente' => __( 'Este plano não está mais disponível nesta unidade.', 'contorno-evo' ),
 			'membership_inativo'     => __( 'Este plano não está mais disponível nesta unidade.', 'contorno-evo' ),
-			'nativo_desligado'       => __( 'Vamos continuar sua matrícula no ambiente seguro da academia.', 'contorno-evo' ),
+			'nativo_desligado'       => __( 'Não foi possível iniciar sua matrícula online no momento. A integração com o sistema da academia ainda não está disponível. Tente novamente em alguns instantes ou entre em contato com a unidade.', 'contorno-evo' ),
 			'evo_indisponivel'       => __( 'Não conseguimos falar com o sistema da academia agora. Tente novamente em alguns instantes.', 'contorno-evo' ),
 			'preco_mudou'            => __( 'O valor deste plano mudou enquanto você preenchia. Confira o novo valor antes de continuar.', 'contorno-evo' ),
 			'sessao_expirada'        => __( 'Sua sessão expirou. Recomece a matrícula para continuar.', 'contorno-evo' ),

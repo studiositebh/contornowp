@@ -1,26 +1,32 @@
 <?php
 /**
- * Fluxo de matricula.
+ * Fluxo de matricula — 100% interno, a partir desta rodada.
  *
- * FLUXO REAL, portado do React (MatriculaForm.tsx):
+ * FLUXO REAL:
  *
- *   CTA "Matricule-se" no plano da unidade
- *     -> /matricula/?unidade={slug}&plano={id}
- *     -> formulario "Seus dados" (nome, e-mail, telefone, aceite)
- *     -> valida
- *     -> se o plano tem checkout_url  : redireciona para a EVO (externo)
- *     -> se nao tem                   : segue para /matricula/confirmacao/
+ *   CTA publico (card, hero, plano)
+ *     -> /matricula/?unidade={slug}[&plano={id}]
+ *     -> sem plano na URL e 2+ opcoes: "Escolha seu plano"
+ *        (contorno_enrollment_plan_picker_markup)
+ *     -> com plano resolvido:
+ *          - checkout nativo ligado pra esta unidade (Contorno_Evo_Settings::
+ *            checkout_enabled_for(), OFF/PILOT/ON) -> etapas dentro do site
+ *            (contorno_enrollment_native_markup, ver enrollment-native.php)
+ *          - nao ligado -> aviso de indisponibilidade, ainda em /matricula/
+ *            (contorno_enrollment_unavailable_markup) + "Falar com a
+ *            unidade" (WhatsApp da propria unidade)
  *
- * O que o React faz e NAO reproduzimos por decisao consciente:
+ * NENHUM CTA publico nem estado de erro leva a checkout_url/urlSale
+ * (dominio da EVO). Esse dado continua gravado no plano (compatibilidade/
+ * historico) mas nao e mais lido como destino publico — nem aqui, nem em
+ * includes/shortcodes/units.php, nem em includes/forms.php.
+ *
+ * O que o React fazia e NAO reproduzimos por decisao consciente:
  *   - saveCheckoutLead() em sessionStorage. Guardar o lead so no navegador
  *     nao serve a ninguem: o dado nunca chega a Contorno e some ao fechar a
  *     aba. Aqui o formulario passa pelo servidor (nonce + validacao) e segue
  *     para o mesmo destino. O armazenamento fica disponivel por filtro, mas
  *     desligado — ver includes/forms.php.
- *
- * O que NAO inventamos:
- *   - nenhuma etapa de pagamento propria. O pagamento e da EVO, no
- *     checkout_url cadastrado no plano.
  */
 
 declare( strict_types = 1 );
@@ -70,13 +76,139 @@ function contorno_enrollment_context( ?array $source = null ): array {
 		}
 	}
 
-	foreach ( $plans as $plan ) {
-		if ( ! empty( $plan['featured'] ) ) {
-			return array( 'unit' => $unit, 'plan' => $plan );
-		}
+	/*
+	 * Nenhum plano valido na URL (ausente ou nao encontrado). Com uma
+	 * unica opcao nao ha escolha real a fazer — segue direto. Com 2+,
+	 * devolve plan=null: quem chama mostra "Escolha seu plano" em vez de
+	 * decidir por quem visita (nunca mais o "destacado > primeiro" em
+	 * silencio).
+	 */
+	if ( 1 === count( $plans ) ) {
+		return array( 'unit' => $unit, 'plan' => $plans[0] );
 	}
 
-	return array( 'unit' => $unit, 'plan' => $plans[0] );
+	return array( 'unit' => $unit, 'plan' => null );
+}
+
+/**
+ * A unidade/CTN tem algum plano cadastrado?
+ */
+function contorno_unit_has_plans( int $post_id ): bool {
+	$plans = array_values( array_filter( (array) contorno_field_list( 'plans', $post_id ), 'is_array' ) );
+
+	return array() !== $plans;
+}
+
+/**
+ * Etapa "Escolha seu plano" — /matricula/?unidade={slug} sem ?plano=,
+ * quando ha 2+ opcoes. Nunca decide por quem visita; so lista e deixa
+ * escolher.
+ */
+function contorno_enrollment_plan_picker_markup( WP_Post $unit ): string {
+	$plans  = array_values( array_filter( (array) contorno_field_list( 'plans', $unit->ID ), 'is_array' ) );
+	$is_ctn = CONTORNO_CPT_CTN === $unit->post_type;
+	$key    = $is_ctn ? 'ctn' : 'unidade';
+	$page   = get_page_by_path( 'matricula' );
+	$base   = $page instanceof WP_Post ? (string) get_permalink( $page ) : home_url( '/matricula/' );
+
+	contorno_enqueue_component( 'enrollment' );
+
+	ob_start();
+	?>
+	<section class="contorno-enroll-section">
+	<div class="site-container">
+	<div class="contorno-enroll">
+		<?php echo do_shortcode( '[contorno_checkout_steps current="1"]' ); ?>
+
+		<header class="contorno-enroll__head motion-reveal" data-contorno-reveal>
+			<h1 class="contorno-enroll__title"><?php esc_html_e( 'Escolha seu plano', 'contorno' ); ?></h1>
+			<p class="contorno-enroll__subtitle">
+				<?php
+				printf(
+					/* translators: %s: nome da unidade/CTN */
+					esc_html__( 'Planos disponíveis em %s.', 'contorno' ),
+					esc_html( (string) get_the_title( $unit ) )
+				);
+				?>
+			</p>
+		</header>
+
+		<div class="contorno-enroll__plan-options motion-stagger" data-contorno-reveal>
+			<?php foreach ( $plans as $plan ) : ?>
+				<?php
+				$price = isset( $plan['price'] ) ? (float) $plan['price'] : 0.0;
+				$url   = add_query_arg(
+					array_filter(
+						array(
+							$key    => (string) $unit->post_name,
+							'plano' => (string) ( $plan['id'] ?? '' ),
+						)
+					),
+					$base
+				);
+				?>
+				<a class="contorno-enroll__plan-option motion-item<?php echo ! empty( $plan['featured'] ) ? ' is-featured' : ''; ?>" href="<?php echo esc_url( $url ); ?>">
+					<span class="contorno-enroll__plan-option-name"><?php echo esc_html( (string) ( $plan['name'] ?? '' ) ); ?></span>
+					<?php if ( $price > 0 ) : ?>
+						<strong class="contorno-enroll__plan-option-price"><?php echo esc_html( contorno_format_price( $price ) ); ?></strong>
+					<?php elseif ( ! empty( $plan['price_label'] ) ) : ?>
+						<strong class="contorno-enroll__plan-option-price"><?php echo esc_html( (string) $plan['price_label'] ); ?></strong>
+					<?php endif; ?>
+					<?php echo contorno_icon( 'arrow-right', 'contorno-enroll__plan-option-arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				</a>
+			<?php endforeach; ?>
+		</div>
+	</div>
+	</div>
+	</section>
+	<?php
+
+	return (string) ob_get_clean();
+}
+
+/**
+ * Aviso de indisponibilidade — unidade e plano validos, mas o checkout
+ * nativo nao esta ligado pra esta unidade (OFF, ou PILOT fora da
+ * allowlist — ver Contorno_Evo_Settings::checkout_enabled_for()). Sempre
+ * dentro de /matricula/, nunca externo.
+ *
+ * O motivo tecnico (credencial ausente, token sem permissao, gateway,
+ * codigo de pagamento nao conferido...) NUNCA aparece aqui — so no
+ * wp-admin, na tela Contorno EVO Sync > Configuracoes
+ * (Contorno_Evo_Settings::checkout_blockers(), ja existente).
+ */
+function contorno_enrollment_unavailable_markup( WP_Post $unit, string $back_url ): string {
+	$phone       = contorno_field_text( 'whatsapp', $unit->ID, contorno_field_text( 'phone', $unit->ID ) );
+	$contact_url = '' !== trim( $phone ) ? contorno_whatsapp_link( $phone ) : '';
+
+	contorno_enqueue_component( 'enrollment' );
+
+	ob_start();
+	?>
+	<section class="contorno-enroll-section">
+	<div class="site-container">
+	<div class="contorno-enroll">
+		<?php echo do_shortcode( '[contorno_checkout_steps current="1"]' ); ?>
+
+		<div class="contorno-enroll__card contorno-enroll__card--unavailable motion-reveal" data-contorno-reveal>
+			<h1 class="contorno-enroll__title"><?php esc_html_e( 'Matrícula online temporariamente indisponível', 'contorno' ); ?></h1>
+			<p class="contorno-enroll__subtitle">
+				<?php esc_html_e( 'Não foi possível iniciar sua matrícula online no momento. A integração com o sistema da academia ainda não está disponível. Tente novamente em alguns instantes ou entre em contato com a unidade.', 'contorno' ); ?>
+			</p>
+
+			<div class="contorno-enroll__actions">
+				<?php if ( '' !== $contact_url ) : ?>
+					<?php echo contorno_button( __( 'Falar com a unidade', 'contorno' ), $contact_url, 'primary', array( 'class' => 'contorno-enroll__contact-btn', 'external' => true ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php endif; ?>
+				<?php echo contorno_button( __( 'Voltar', 'contorno' ), $back_url, 'outline', array( 'class' => 'contorno-enroll__back-btn' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</div>
+		</div>
+	</div>
+	</div>
+	</section>
+	<?php
+
+	return (string) ob_get_clean();
 }
 
 /**
@@ -154,24 +286,37 @@ contorno_add_shortcode(
 			? (string) get_permalink( $unit ) . '#planos'
 			: (string) ( get_page_by_path( 'unidades' ) instanceof WP_Post ? get_permalink( get_page_by_path( 'unidades' ) ) : home_url( '/unidades/' ) );
 
-		$checkout = $plan ? contorno_plan_checkout_url( $plan, $unit instanceof WP_Post ? $unit->ID : null ) : '';
-
-		$fallback_url = '' !== $checkout
-			? $checkout
-			: (string) ( get_page_by_path( 'matricula/confirmacao' ) instanceof WP_Post
-				? get_permalink( get_page_by_path( 'matricula/confirmacao' ) )
-				: home_url( '/matricula/confirmacao/' ) );
-
 		/*
-		 * Checkout nativo: mesma pagina, mesma selecao, etapas dentro do site.
+		 * A matricula e 100% interna a partir daqui. Tres desfechos:
 		 *
-		 * Desligado (o padrao) cai no markup de sempre, logo abaixo — nada do
-		 * fluxo atual foi removido, e o checkout externo continua sendo o
-		 * destino. Ver includes/shortcodes/enrollment-native.php.
+		 *  1. unidade valida, sem plano definido na URL e com 2+ opcoes ->
+		 *     etapa "Escolha seu plano" (nunca decide por quem visita).
+		 *  2. unidade + plano resolvidos e o checkout nativo esta ligado
+		 *     pra esta unidade -> etapas dentro do site
+		 *     (includes/shortcodes/enrollment-native.php).
+		 *  3. unidade + plano resolvidos mas o checkout nativo NAO esta
+		 *     ligado (OFF, ou PILOT fora da allowlist) -> aviso de
+		 *     indisponibilidade, ainda dentro de /matricula/. NUNCA mais
+		 *     redireciona para checkout_url/urlSale (dominio da EVO).
 		 */
-		if ( $plan && contorno_native_checkout_active( $unit ) ) {
-			return contorno_enrollment_native_markup( $unit, $plan, $fallback_url, $back_url );
+		if ( $unit instanceof WP_Post && null === $plan && contorno_unit_has_plans( $unit->ID ) ) {
+			return contorno_enrollment_plan_picker_markup( $unit );
 		}
+
+		if ( $plan && $unit instanceof WP_Post ) {
+			if ( contorno_native_checkout_active( $unit ) ) {
+				return contorno_enrollment_native_markup( $unit, $plan, $back_url );
+			}
+
+			return contorno_enrollment_unavailable_markup( $unit, $back_url );
+		}
+
+		// Sobra so o caso residual: unidade nao encontrada, ou encontrada
+		// sem nenhum plano cadastrado. checkout_url NUNCA e usado aqui —
+		// segue so para /matricula/confirmacao/, o mesmo destino interno.
+		$fallback_url = (string) ( get_page_by_path( 'matricula/confirmacao' ) instanceof WP_Post
+			? get_permalink( get_page_by_path( 'matricula/confirmacao' ) )
+			: home_url( '/matricula/confirmacao/' ) );
 
 		$benefits = '' !== trim( (string) $a['benefits'] )
 			? contorno_decode_param_group( (string) $a['benefits'] )
@@ -216,8 +361,9 @@ contorno_add_shortcode(
 					method="post"
 					novalidate
 					data-contorno-enroll
-					data-checkout="<?php echo esc_url( $checkout ); ?>"
-					data-fallback="<?php echo esc_url( (string) ( get_page_by_path( 'matricula/confirmacao' ) instanceof WP_Post ? get_permalink( get_page_by_path( 'matricula/confirmacao' ) ) : home_url( '/matricula/confirmacao/' ) ) ); ?>"
+					<?php // data-checkout fica sempre vazio de proposito: a jornada nunca sai do site (ver includes/assets/js/enrollment.js). ?>
+					data-checkout=""
+					data-fallback="<?php echo esc_url( $fallback_url ); ?>"
 				>
 					<?php wp_nonce_field( CONTORNO_ENROLL_ACTION, 'contorno_nonce' ); ?>
 					<input type="hidden" name="contorno_form" value="<?php echo esc_attr( CONTORNO_ENROLL_ACTION ); ?>" />

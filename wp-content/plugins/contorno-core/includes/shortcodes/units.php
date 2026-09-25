@@ -114,11 +114,14 @@ function contorno_render_unit_card( int $post_id, array $args = array() ): strin
 				? contorno_field_text( 'prescricao_url', $post_id )
 				: (string) get_permalink( $post_id );
 
+			/*
+			 * Sempre a jornada interna — nunca o checkout_url da unidade
+			 * (externo). A matricula acontece 100% em /matricula/; ver
+			 * scripts/test-checkout-internal.sh.
+			 */
 			$enrollment_page = get_page_by_path( 'matricula' );
 			$enrollment_base = $enrollment_page instanceof WP_Post ? (string) get_permalink( $enrollment_page ) : home_url( '/matricula/' );
-			$enrollment_url  = '' !== contorno_field_text( 'checkout_url', $post_id )
-				? contorno_field_text( 'checkout_url', $post_id )
-				: add_query_arg( 'unidade', (string) get_post_field( 'post_name', $post_id ), $enrollment_base );
+			$enrollment_url  = add_query_arg( 'unidade', (string) get_post_field( 'post_name', $post_id ), $enrollment_base );
 			?>
 			<div class="unit-card__actions">
 				<?php echo contorno_button( $cta_label, $cta_url, ! empty( $args['dual_cta'] ) ? 'outline' : 'primary', array( 'class' => 'unit-know-btn unit-card-cta cta-label' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -628,11 +631,10 @@ contorno_add_shortcode(
 		$features    = array_slice( contorno_unit_attribute_items( 'facilities', $post_id ), 0, 4 );
 		$title       = contorno_field_text( 'short_name', $post_id, (string) get_the_title( $post_id ) );
 		$location    = trim( implode( ' - ', array_filter( array( contorno_field_text( 'neighborhood', $post_id ), trim( contorno_field_text( 'city', $post_id ) . ( '' !== contorno_field_text( 'state', $post_id ) ? ', ' . contorno_field_text( 'state', $post_id ) : '' ) ) ) ) ) );
+		// Sempre a jornada interna — nunca o checkout_url da unidade (externo).
 		$enroll_page = get_page_by_path( 'matricula' );
 		$enroll_base = $enroll_page instanceof WP_Post ? (string) get_permalink( $enroll_page ) : home_url( '/matricula/' );
-		$enroll_url  = '' !== contorno_field_text( 'checkout_url', $post_id )
-			? contorno_field_text( 'checkout_url', $post_id )
-			: add_query_arg( 'unidade', (string) get_post_field( 'post_name', $post_id ), $enroll_base );
+		$enroll_url  = add_query_arg( 'unidade', (string) get_post_field( 'post_name', $post_id ), $enroll_base );
 		$hero_gallery = array_values( array_filter( array_merge( array( $image ), $gallery ) ) );
 
 		if ( array() !== $hero_gallery ) {

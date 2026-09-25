@@ -321,10 +321,14 @@ add_action(
  * onde eles ficam no log de acesso do servidor, no histórico do navegador e
  * no cabecalho Referer da proxima pagina.
  *
- * Regra do destino: o checkout NAO vem da requisicao. Ele e resolvido no
- * servidor a partir do plano cadastrado (contorno_plan_checkout_url), como
- * no caminho com JavaScript. Nao existe parametro que escolha para onde
- * redirecionar — nao ha open redirect a explorar.
+ * Regra do destino: sempre /matricula/confirmacao/, interno. Nao existe
+ * parametro que escolha para onde redirecionar — nao ha open redirect a
+ * explorar. checkout_url/urlSale do plano nao sao mais lidos aqui (ver
+ * relatorio consolidado): a jornada com plano+unidade validos passa pelo
+ * checkout nativo ou pelo aviso de indisponibilidade, ambos em
+ * contorno_enrollment_form (includes/shortcodes/enrollment.php); este
+ * handler so cobre o caminho sem JS quando esse shortcode ainda cai no
+ * formulario residual (unidade sem plano cadastrado, por exemplo).
  */
 add_action(
 	'template_redirect',
@@ -369,22 +373,10 @@ add_action(
 
 		contorno_rate_limit_mark( 'enroll' );
 
-		$context  = contorno_enrollment_context( $post );
-		$unit     = $context['unit'];
-		$checkout = $context['plan'] ? contorno_plan_checkout_url( $context['plan'], $unit instanceof WP_Post ? $unit->ID : null ) : '';
-
-		if ( '' !== $checkout ) {
-			// Destino externo (EVO) — por isso wp_redirect, e nao
-			// wp_safe_redirect. A URL vem do cadastro do plano, nunca da
-			// requisicao; esc_url_raw derruba javascript:/data:.
-			$safe = esc_url_raw( $checkout, array( 'http', 'https' ) );
-
-			if ( '' !== $safe ) {
-				wp_redirect( $safe );
-				exit;
-			}
-		}
-
+		// Destino SEMPRE interno — checkout_url/urlSale nunca e usado como
+		// redirect publico (ver relatorio consolidado, rodada "matricula
+		// 100% interna"). O dado continua no cadastro do plano, so nao e
+		// mais lido aqui.
 		$confirmation = get_page_by_path( 'matricula/confirmacao' );
 
 		wp_safe_redirect( $confirmation instanceof WP_Post ? (string) get_permalink( $confirmation ) : home_url( '/matricula/confirmacao/' ) );

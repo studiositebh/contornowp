@@ -2415,6 +2415,83 @@
 	margin: var(--space-10, 2.5rem) auto 0;
 }
 
+/* ---- Escolha de plano (/matricula/ sem ?plano=) e aviso de indisponibilidade ---- */
+
+.contorno-enroll__card--unavailable {
+	padding: 2rem;
+	text-align: center;
+	background: #fff;
+	border: 1px solid var(--border, #e6e8ea);
+	border-radius: var(--radius-xl, 1rem);
+	box-shadow: 0 10px 30px -22px rgb(17 17 17 / 0.28);
+}
+
+.contorno-enroll__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--space-3, 0.75rem);
+	margin-top: var(--space-6, 1.5rem);
+}
+
+.contorno-enroll__plan-options {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3, 0.75rem);
+	max-width: 32rem;
+	margin: var(--space-8, 2rem) auto 0;
+}
+
+.contorno-enroll__plan-option {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3, 0.75rem);
+	padding: 1.1rem 1.25rem;
+	background: #fff;
+	border: 1px solid var(--border, #e6e8ea);
+	border-radius: var(--radius-lg, 0.75rem);
+	text-decoration: none;
+	color: inherit;
+	transition:
+		border-color var(--motion-hover, 220ms) var(--motion-ease, ease),
+		transform var(--motion-hover, 220ms) var(--motion-ease, ease);
+}
+
+.contorno-enroll__plan-option:hover,
+.contorno-enroll__plan-option:focus-visible {
+	border-color: var(--brand, #10b8b1);
+	transform: translateY(-2px);
+}
+
+.contorno-enroll__plan-option.is-featured {
+	border-color: var(--brand, #10b8b1);
+	border-width: 2px;
+}
+
+.contorno-enroll__plan-option-name {
+	flex: 1 1 auto;
+	font-weight: 600;
+}
+
+.contorno-enroll__plan-option-price {
+	color: var(--brand, #10b8b1);
+	white-space: nowrap;
+}
+
+.contorno-enroll__plan-option-arrow {
+	flex: none;
+	width: 1.1rem;
+	height: 1.1rem;
+	color: var(--brand, #10b8b1);
+}
+
+.contorno-ck__alert-contact {
+	display: inline-block;
+	margin-top: 0.5rem;
+	font-weight: 600;
+	text-decoration: underline;
+}
+
 .contorno-enroll__form {
 	padding: 1.5rem;
 	background: #fff;

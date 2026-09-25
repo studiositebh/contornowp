@@ -15,12 +15,14 @@
  * do resumo no inspetor muda o texto na tela e nada mais; quem cobra é a EVO,
  * com o valor que ela mesma resolveu.
  *
- * FALLBACK
- * --------
- * O checkout externo só é oferecido quando a API diz, explicitamente, que
- * nenhuma venda foi criada (`fallback: true`). Depois de uma resposta
- * ambígua o servidor responde `indeterminado` e NÃO manda fallback — mandar
- * cobraria duas vezes.
+ * INDISPONIBILIDADE (antes chamada de "fallback")
+ * -------------------------------------------------
+ * A jornada NUNCA sai do site. Quando a API diz, explicitamente, que
+ * nenhuma venda foi criada (`fallback: true` na resposta), a tela mostra
+ * o aviso de indisponibilidade + "Falar com a unidade" (CFG.contactUrl,
+ * WhatsApp da própria unidade) — nunca um redirect para domínio externo.
+ * Depois de uma resposta ambígua o servidor responde `indeterminado` e
+ * NÃO manda fallback — mostrar esse caminho cobraria duas vezes.
  *
  * TOKENIZAÇÃO — o que falta homologar
  * -----------------------------------
@@ -280,12 +282,30 @@
 		});
 	};
 
+	// Nunca navega para fora do site. So mostra o aviso — mensagem publica
+	// ja vem sanitizada do servidor (Contorno_Evo_Checkout::public_message)
+	// — e, se a unidade tiver WhatsApp cadastrado, um jeito de continuar
+	// por humano.
 	Checkout.prototype.fallbackTo = function (message) {
-		var url = CFG.fallback;
-		this.say(message || T.generic, 'warning');
+		if (!this.alert) return;
 
-		if (url) {
-			window.location.assign(url);
+		var text = message || T.unavailable || T.generic;
+		this.alert.innerHTML = '';
+		this.alert.hidden = false;
+		this.alert.className = 'contorno-ck__alert is-warning';
+
+		var p = document.createElement('p');
+		p.textContent = text;
+		this.alert.appendChild(p);
+
+		if (CFG.contactUrl) {
+			var link = document.createElement('a');
+			link.href = CFG.contactUrl;
+			link.target = '_blank';
+			link.rel = 'noopener noreferrer';
+			link.className = 'contorno-ck__alert-contact';
+			link.textContent = T.contactUnit || 'Falar com a unidade';
+			this.alert.appendChild(link);
 		}
 	};
 

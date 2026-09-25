@@ -1,9 +1,10 @@
 /**
- * Formulário de matrícula — porte de MatriculaForm.tsx.
+ * Formulário de matrícula (caminho residual — sem unidade/plano válidos,
+ * já que /matricula/ com unidade+plano vai pro checkout nativo ou pro
+ * aviso de indisponibilidade, ambos dentro do site).
  *
  * Valida no cliente (mesmas mensagens do React), aplica a máscara de telefone
- * e leva ao destino correto: checkout externo da EVO quando o plano tem URL,
- * ou a página de confirmação quando não tem.
+ * e sempre segue para a confirmação interna — nunca para domínio externo.
  *
  * A validação server-side existe em paralelo (includes/forms.php); esta camada
  * é conveniência, não a única barreira.
@@ -110,11 +111,10 @@
 			if (button) button.disabled = true;
 			if (label) label.textContent = 'Redirecionando...';
 
-			// Mesma decisão do React: checkout da EVO quando existe; senão, confirmação.
-			var checkout = form.dataset.checkout || '';
+			// Sempre interno: confirmação dentro do site, nunca domínio externo.
 			var fallback = form.dataset.fallback || '/matricula/confirmacao/';
 
-			window.location.assign(checkout || fallback);
+			window.location.assign(fallback);
 		});
 	}
 
