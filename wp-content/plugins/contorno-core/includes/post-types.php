@@ -141,18 +141,30 @@ function contorno_register_post_types(): void {
 add_action( 'init', 'contorno_register_post_types' );
 
 /**
- * Esconde a caixa lateral nativa "Cidades" na tela de unidade.
+ * Esconde caixas laterais nativas que duplicam um campo estruturado, na
+ * tela de unidade. Cada uma tem a sincronizacao automatica correspondente
+ * em includes/data/units.php (cidade e tipo) ou logo abaixo (imagem
+ * destacada) — nunca duas fontes editando a mesma coisa.
  *
- * A fonte editorial e o campo estruturado "Localizacao e contato > Cidade"
- * (contorno_sync_unit_city_term(), em includes/data/units.php, mantem a
- * taxonomia sincronizada sozinha a cada save_post). Duas caixas editando a
- * mesma coisa e exatamente como termos soltos (endereco, bairro) foram
- * parar na taxonomia. CTN continua com a caixa nativa — fora do escopo.
+ *  - "Cidades" (unidade_cidadediv)      -> Localizacao e contato > Cidade
+ *  - "Tipos de unidade" (unidade_tipodiv) -> Dados gerais > Tipo de unidade
+ *  - "Imagem destacada" (postimagediv)  -> Midia > Imagem principal (so
+ *    quando esta preenchida com um ID de anexo real; ver
+ *    contorno_sync_unit_featured_image())
+ *  - WPCode "Scripts de pagina" — plugin nao esta neste checkout, mas se
+ *    estiver ativo no servidor os IDs abaixo cobrem as versoes conhecidas.
+ *    remove_meta_box() numa caixa que nao existe e inofensivo.
+ *
+ * CTN continua com todas as caixas nativas — fora do escopo desta rodada.
  */
 add_action(
 	'add_meta_boxes_' . CONTORNO_CPT_UNIT,
 	static function (): void {
 		remove_meta_box( CONTORNO_TAX_CITY . 'div', CONTORNO_CPT_UNIT, 'side' );
+		remove_meta_box( CONTORNO_TAX_UNIT_KIND . 'div', CONTORNO_CPT_UNIT, 'side' );
+		remove_meta_box( 'postimagediv', CONTORNO_CPT_UNIT, 'side' );
+		remove_meta_box( 'wpcode-page-scripts', CONTORNO_CPT_UNIT, 'normal' );
+		remove_meta_box( 'insert-headers-and-footers-meta-box', CONTORNO_CPT_UNIT, 'normal' );
 	}
 );
 

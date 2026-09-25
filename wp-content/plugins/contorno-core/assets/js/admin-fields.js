@@ -524,6 +524,39 @@
 		return results;
 	}
 
+	// Grid inicial ao abrir o popover — antes de qualquer busca. Cerca de
+	// 30 icones relevantes pra academia/localizacao, pra nunca abrir
+	// mostrando so a busca vazia.
+	var POPULAR_ICONS = [
+		'wifi', 'car', 'parking-circle', 'bike', 'shower-head', 'dumbbell',
+		'heart-pulse', 'accessibility', 'coffee', 'baby', 'hand', 'wind',
+		'shield', 'camera', 'key', 'archive', 'waves', 'flame', 'users',
+		'clock', 'calendar', 'map-pin', 'music', 'headphones', 'tv', 'sun',
+		'leaf', 'building', 'home', 'footprints', 'scale', 'medal', 'star',
+		'check', 'bath'
+	];
+
+	function renderIconResults(container, icons, emptyMessage) {
+		if (!icons.length) {
+			container.innerHTML = '<p class="description">' + emptyMessage + '</p>';
+			return;
+		}
+
+		container.innerHTML = icons
+			.map(function (icon) {
+				return (
+					'<button type="button" class="contorno-icon-picker__result" data-icon-key="' +
+					icon.k +
+					'" title="' +
+					icon.l +
+					'">' +
+					iconSvgMarkup(icon.s, 'contorno-icon-picker__result-svg') +
+					'</button>'
+				);
+			})
+			.join('');
+	}
+
 	function iconSvgMarkup(inner, classes) {
 		return (
 			'<svg class="' +
@@ -591,8 +624,26 @@
 					popover.hidden = !willOpen;
 					toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
 
-					if (willOpen && search) {
-						search.focus();
+					if (willOpen) {
+						if (search) {
+							search.focus();
+						}
+
+						// Grid inicial: mostra logo, nao so depois de digitar.
+						if (results && !results.dataset.contornoFilled) {
+							results.innerHTML = '<p class="description">Carregando…</p>';
+							loadIconLibrary().then(function (library) {
+								results.dataset.contornoFilled = '1';
+								var byKey = {};
+								library.forEach(function (icon) {
+									byKey[icon.k] = icon;
+								});
+								var popular = POPULAR_ICONS.map(function (key) {
+									return byKey[key];
+								}).filter(Boolean);
+								renderIconResults(results, popular, 'Nada encontrado.');
+							});
+						}
 					}
 				});
 
@@ -608,34 +659,22 @@
 				search.addEventListener('input', function () {
 					var query = search.value;
 
-					if ('' === normalizeIconTerm(query)) {
-						results.innerHTML =
-							'<p class="description">Digite para buscar.</p>';
-						return;
-					}
-
 					loadIconLibrary().then(function (library) {
-						var matches = searchIconLibrary(library, query);
+						results.dataset.contornoFilled = '1';
 
-						if (!matches.length) {
-							results.innerHTML =
-								'<p class="description">Nada encontrado.</p>';
+						if ('' === normalizeIconTerm(query)) {
+							var byKey = {};
+							library.forEach(function (icon) {
+								byKey[icon.k] = icon;
+							});
+							var popular = POPULAR_ICONS.map(function (key) {
+								return byKey[key];
+							}).filter(Boolean);
+							renderIconResults(results, popular, 'Nada encontrado.');
 							return;
 						}
 
-						results.innerHTML = matches
-							.map(function (icon) {
-								return (
-									'<button type="button" class="contorno-icon-picker__result" data-icon-key="' +
-									icon.k +
-									'" title="' +
-									icon.l +
-									'">' +
-									iconSvgMarkup(icon.s, 'contorno-icon-picker__result-svg') +
-									'</button>'
-								);
-							})
-							.join('');
+						renderIconResults(results, searchIconLibrary(library, query), 'Nada encontrado.');
 					});
 				});
 
@@ -793,6 +832,78 @@
 		});
 	}
 
+	/**
+	 * Contador de caracteres abaixo de campos com maxlength (nome curto,
+	 * selo, descricao curta, titulo/descricao SEO). O limite real e o
+	 * atributo maxlength; isto so mantem o "N/limite" atualizado.
+	 */
+	function bindCharCounters(scope) {
+		var inputs = scope.querySelectorAll('[data-contorno-counter]');
+
+		Array.prototype.forEach.call(inputs, function (input) {
+			if (input.dataset.contornoBound === '1') {
+				return;
+			}
+			input.dataset.contornoBound = '1';
+
+			var wrap = input.closest('.contorno-field');
+			var label = wrap ? wrap.querySelector('[data-contorno-counter-label] span') : null;
+
+			if (!label) {
+				return;
+			}
+
+			input.addEventListener('input', function () {
+				label.textContent = String(input.value.length);
+			});
+		});
+	}
+
+	/**
+	 * Campos condicionais (ex.: os de pre-venda so aparecem quando Status =
+	 * Pre-venda). So esconde/mostra — o campo continua no formulario e no
+	 * POST, entao trocar o status de volta e pra frente nunca apaga o que
+	 * ja estava preenchido.
+	 */
+	function bindConditionalFields(scope) {
+		var conditionals = scope.querySelectorAll('[data-contorno-conditional-field]');
+
+		if (!conditionals.length) {
+			return;
+		}
+
+		var byControllingField = {};
+
+		Array.prototype.forEach.call(conditionals, function (field) {
+			var name = field.getAttribute('data-contorno-conditional-field');
+			(byControllingField[name] = byControllingField[name] || []).push(field);
+		});
+
+		Object.keys(byControllingField).forEach(function (name) {
+			var controller = scope.querySelector('[name="contorno[' + name + ']"]');
+
+			if (!controller) {
+				return;
+			}
+
+			function apply() {
+				var current = controller.value;
+
+				byControllingField[name].forEach(function (field) {
+					var values = (field.getAttribute('data-contorno-conditional-values') || '').split(',');
+					field.hidden = values.indexOf(current) === -1;
+				});
+			}
+
+			if (controller.dataset.contornoBound !== '1') {
+				controller.dataset.contornoBound = '1';
+				controller.addEventListener('change', apply);
+			}
+
+			apply();
+		});
+	}
+
 	function init() {
 		bindMediaPicker(document);
 		bindGallery(document);
@@ -803,6 +914,8 @@
 		bindCepMask(document);
 		bindPhoneMask(document);
 		bindCoordinateInput(document);
+		bindCharCounters(document);
+		bindConditionalFields(document);
 	}
 
 	if (document.readyState !== 'loading') {

@@ -416,11 +416,28 @@ function contorno_attribute_usage_ids( string $type, string $key ): array {
 
 	global $wpdb;
 
+	/*
+	 * BUG CORRIGIDO: a consulta antiga nao filtrava post_type nem status,
+	 * entao contava toda linha de postmeta com essa chave — inclusive
+	 * REVISOES. Desde que os campos passaram a registrar
+	 * 'revisions_enabled' => true (registry.php), o WordPress passou a
+	 * gravar uma copia do meta em CADA revisao (post_type='revision'), o
+	 * que inflava "Usado em X unidades" muito acima das ~70 unidades
+	 * reais. DISTINCT + JOIN em post_type=unidade (nunca revisao/lixeira/
+	 * rascunho automatico) e a contagem correta.
+	 */
 	$meta_key = contorno_meta_key( $field );
 	$rows     = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$wpdb->prepare(
-			"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value <> ''",
-			$meta_key
+			"SELECT DISTINCT pm.post_id
+			FROM {$wpdb->postmeta} pm
+			INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+			WHERE pm.meta_key = %s
+			  AND pm.meta_value <> ''
+			  AND p.post_type = %s
+			  AND p.post_status NOT IN ( 'trash', 'auto-draft' )",
+			$meta_key,
+			CONTORNO_CPT_UNIT
 		)
 	);
 

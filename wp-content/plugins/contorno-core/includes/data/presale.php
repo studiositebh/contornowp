@@ -40,6 +40,28 @@ function contorno_pre_sale_label( ?int $post_id = null ): string {
 }
 
 /**
+ * Data de abertura formatada por extenso ("15 de outubro de 2026") quando
+ * o campo esta em AAAA-MM-DD (input type="date", desde esta rodada). Um
+ * valor legado em texto livre (unidade cadastrada antes) passa direto —
+ * nunca reescreve o que o cliente ja digitou como texto de verdade.
+ */
+function contorno_pre_sale_opening_date_label( ?int $post_id = null ): string {
+	$raw = trim( contorno_field_text( 'presale_opening_date', $post_id ) );
+
+	if ( '' === $raw ) {
+		return '';
+	}
+
+	$date = DateTime::createFromFormat( 'Y-m-d', $raw );
+
+	if ( ! ( $date instanceof DateTime ) || $date->format( 'Y-m-d' ) !== $raw ) {
+		return $raw;
+	}
+
+	return date_i18n( 'j \d\e F \d\e Y', $date->getTimestamp() );
+}
+
+/**
  * Linha informativa opcional (pre-inauguracao / data / texto promocional).
  *
  * So retorna conteudo a partir de dados cadastrados — nao inventa inauguracao.
@@ -53,7 +75,7 @@ function contorno_pre_sale_info_line( ?int $post_id = null ): string {
 		array_filter(
 			array(
 				trim( contorno_field_text( 'presale_opening_label', $post_id ) ),
-				trim( contorno_field_text( 'presale_opening_date', $post_id ) ),
+				contorno_pre_sale_opening_date_label( $post_id ),
 			),
 			static fn ( string $part ): bool => '' !== $part
 		)

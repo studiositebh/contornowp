@@ -93,8 +93,8 @@ add_action(
 			add_meta_box(
 				'contorno-' . $group_key,
 				(string) ( $group['label'] ?? $group_key ),
-				static function ( WP_Post $post ) use ( $group ): void {
-					contorno_render_metabox_group( $post, $group );
+				static function ( WP_Post $post ) use ( $group, $group_key ): void {
+					contorno_render_metabox_group( $post, $group, $group_key );
 				},
 				$post_type,
 				'normal',
@@ -186,11 +186,31 @@ add_filter(
 /**
  * @param array<string,mixed> $group
  */
-function contorno_render_metabox_group( WP_Post $post, array $group ): void {
+function contorno_render_metabox_group( WP_Post $post, array $group, string $group_key = '' ): void {
 	wp_nonce_field( 'contorno_save_fields', 'contorno_fields_nonce' );
 
 	if ( ! empty( $group['help'] ) ) {
 		printf( '<p class="contorno-group-help">%s</p>', esc_html( (string) $group['help'] ) );
+	}
+
+	/*
+	 * "Sincronizado pela EVO": aviso discreto na caixa de Planos quando o
+	 * checkout nativo esta de fato ligado pra esta unidade
+	 * (Contorno_Evo_Settings::checkout_enabled_for(), OFF/PILOT/ON — ja
+	 * auditado, nao alterado). So informa; nenhum campo fica bloqueado
+	 * nesta rodada — os planos aqui continuam sendo o que a EVO confere
+	 * no momento da venda (preco/idMembership resolvidos server-side,
+	 * ver includes/shortcodes/enrollment-native.php), entao editar um
+	 * campo comercial aqui nunca engana o visitante, so pode ficar
+	 * desatualizado ate a proxima conferencia.
+	 */
+	if ( 'planos' === $group_key && CONTORNO_CPT_UNIT === $post->post_type
+		&& function_exists( 'contorno_native_checkout_active' ) && contorno_native_checkout_active( $post )
+	) {
+		printf(
+			'<p class="contorno-group-notice contorno-group-notice--evo">%s</p>',
+			esc_html__( 'Sincronizado pela EVO: o checkout nativo está ativo para esta unidade. Preço, condições e disponibilidade são conferidos na EVO no momento da venda — os campos abaixo continuam editáveis para apresentação (nome, benefícios, selo, ordem), mas um valor comercial desatualizado aqui não afeta o que o cliente paga.', 'contorno' )
+		);
 	}
 
 	echo '<div class="contorno-fields">';
@@ -231,6 +251,23 @@ function contorno_render_metabox_group( WP_Post $post, array $group ): void {
 }
 
 /**
+ * Contador "N/limite" abaixo de um campo com maxlength — so cosmetico
+ * (contorno-fields.js atualiza ao digitar); o limite real e sempre o
+ * atributo maxlength do proprio input/textarea.
+ */
+function contorno_render_char_counter( int $maxlength, string $current ): void {
+	if ( $maxlength <= 0 ) {
+		return;
+	}
+
+	printf(
+		'<p class="contorno-field__counter" data-contorno-counter-label><span>%s</span>/%s</p>',
+		esc_html( (string) mb_strlen( $current ) ),
+		esc_html( (string) $maxlength )
+	);
+}
+
+/**
  * @param array<string,mixed> $definition
  */
 function contorno_render_field( int $post_id, string $name, array $definition ): void {
@@ -242,18 +279,40 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 	$input_id    = 'contorno-field-' . $name;
 	$value       = contorno_field( $name, $post_id );
 
-	echo '<div class="contorno-field contorno-field--' . esc_attr( $type ) . '">';
+	/*
+	 * Campo condicional: so aparece quando outro campo (geralmente um
+	 * select, ex. "status") tem um dos valores esperados. Puramente
+	 * visual (data-contorno-conditional-*, ver admin-fields.js) — o
+	 * campo continua no formulario e no POST mesmo escondido, entao
+	 * trocar o status de volta nunca apaga o que ja estava preenchido.
+	 */
+	$conditional = (array) ( $definition['conditional'] ?? array() );
+	$cond_attrs  = '';
+	if ( isset( $conditional['field'], $conditional['values'] ) ) {
+		$cond_attrs = sprintf(
+			' data-contorno-conditional-field="%s" data-contorno-conditional-values="%s"',
+			esc_attr( (string) $conditional['field'] ),
+			esc_attr( implode( ',', (array) $conditional['values'] ) )
+		);
+	}
+
+	echo '<div class="contorno-field contorno-field--' . esc_attr( $type ) . '"' . $cond_attrs . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $cond_attrs ja escapado acima.
 	printf( '<label class="contorno-field__label" for="%s">%s</label>', esc_attr( $input_id ), esc_html( $label ) );
+
+	$maxlength = isset( $definition['maxlength'] ) ? absint( $definition['maxlength'] ) : 0;
 
 	switch ( $type ) {
 		case 'textarea':
 			printf(
-				'<textarea id="%s" name="%s" rows="4" class="large-text" placeholder="%s">%s</textarea>',
+				'<textarea id="%s" name="%s" rows="4" class="large-text" placeholder="%s" %s%s>%s</textarea>',
 				esc_attr( $input_id ),
 				esc_attr( $input_name ),
 				esc_attr( $placeholder ),
+				$maxlength > 0 ? 'maxlength="' . esc_attr( (string) $maxlength ) . '" ' : '',
+				$maxlength > 0 ? 'data-contorno-counter' : '',
 				esc_textarea( is_scalar( $value ) ? (string) $value : '' )
 			);
+			contorno_render_char_counter( $maxlength, is_scalar( $value ) ? (string) $value : '' );
 			break;
 
 		case 'checkbox':
@@ -382,6 +441,15 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 			);
 			break;
 
+		case 'date':
+			printf(
+				'<input type="date" id="%s" name="%s" value="%s" class="regular-text" />',
+				esc_attr( $input_id ),
+				esc_attr( $input_name ),
+				esc_attr( is_scalar( $value ) ? (string) $value : '' )
+			);
+			break;
+
 		case 'phone':
 			printf(
 				'<input type="tel" inputmode="tel" maxlength="16" id="%s" name="%s" value="%s" class="regular-text" placeholder="(31) 4042-0177" data-contorno-phone />',
@@ -405,13 +473,16 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 		case 'text':
 		default:
 			printf(
-				'<input type="%s" id="%s" name="%s" value="%s" class="large-text" placeholder="%s" />',
+				'<input type="%s" id="%s" name="%s" value="%s" class="large-text" placeholder="%s" %s%s/>',
 				'url' === $type ? 'url' : 'text',
 				esc_attr( $input_id ),
 				esc_attr( $input_name ),
 				esc_attr( is_scalar( $value ) ? (string) $value : '' ),
-				esc_attr( $placeholder )
+				esc_attr( $placeholder ),
+				$maxlength > 0 ? 'maxlength="' . esc_attr( (string) $maxlength ) . '" ' : '',
+				$maxlength > 0 ? 'data-contorno-counter ' : ''
 			);
+			contorno_render_char_counter( $maxlength, is_scalar( $value ) ? (string) $value : '' );
 			break;
 	}
 

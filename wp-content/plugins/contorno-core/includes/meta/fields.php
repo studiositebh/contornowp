@@ -311,6 +311,26 @@ function contorno_sanitize_field( mixed $value, array $definition ): mixed {
 
 			return '' !== $digits ? contorno_format_cep( $digits ) : sanitize_text_field( trim( (string) $value ) );
 
+		case 'date':
+			/*
+			 * Grava sempre AAAA-MM-DD (o que <input type="date"> ja manda).
+			 * Um valor antigo em texto livre (antes desta rodada) nao e
+			 * apagado por nao bater o formato — so fica sem a formatacao
+			 * bonita na exibicao (contorno_pre_sale_info_line() mostra o
+			 * texto cru quando nao reconhece a data).
+			 */
+			$raw = trim( (string) $value );
+
+			if ( '' === $raw ) {
+				return '';
+			}
+
+			$date = DateTime::createFromFormat( 'Y-m-d', $raw );
+
+			return ( $date instanceof DateTime && $date->format( 'Y-m-d' ) === $raw )
+				? $raw
+				: sanitize_text_field( $raw );
+
 		case 'phone':
 			/*
 			 * So digitos — mesmo formato ja gravado hoje em phone/whatsapp e

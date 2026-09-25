@@ -9,6 +9,16 @@
 	line-height: 1.5;
 }
 
+.contorno-group-notice--evo {
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	background: #fcf9e8;
+	border-left: 3px solid #dba617;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.5;
+}
+
 .contorno-fields {
 	display: grid;
 	gap: 18px;
@@ -46,6 +56,13 @@
 	align-items: center;
 	gap: 6px;
 	font-size: 13px;
+}
+
+.contorno-field__counter {
+	margin: 4px 0 0;
+	font-size: 11px;
+	text-align: right;
+	color: #787c82;
 }
 
 /* ---- Campos lado a lado (latitude/longitude, telefone/WhatsApp) ---- */
@@ -443,6 +460,34 @@
 
 .contorno-attributes-page__count {
 	opacity: 0.7;
+}
+
+/* Colunas da tabela do catalogo: visual e nome levam a maior parte do
+   espaco (o picker de icone/imagem precisa de largura), ativo fica
+   compacto e uso pega o que sobrar. */
+
+.contorno-attributes-table__col--sort {
+	width: 44px;
+}
+
+.contorno-attributes-table__col--visual {
+	width: 32%;
+}
+
+.contorno-attributes-table__col--name {
+	width: 38%;
+}
+
+.contorno-attributes-table__col--active {
+	width: 70px;
+	text-align: center;
+}
+
+.contorno-attributes-table__key {
+	margin: 4px 0 0;
+	font-size: 11px;
+	font-family: Consolas, Monaco, monospace;
+	color: #787c82;
 }
 
 /* Ordenacao por arrastar e soltar no catalogo. */

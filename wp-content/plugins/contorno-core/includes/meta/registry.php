@@ -25,6 +25,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 const CONTORNO_META_PREFIX = '_contorno_';
 
 /**
+ * As 27 UFs do Brasil, pra nao restringir o cadastro de unidade a MG/SP
+ * (a lista antiga so tinha essas duas — coincidencia de quais unidades
+ * existiam quando o campo foi criado, nao uma regra de negocio).
+ *
+ * @return array<string,string>
+ */
+function contorno_brazilian_states(): array {
+	return array(
+		'AC' => 'AC', 'AL' => 'AL', 'AP' => 'AP', 'AM' => 'AM', 'BA' => 'BA',
+		'CE' => 'CE', 'DF' => 'DF', 'ES' => 'ES', 'GO' => 'GO', 'MA' => 'MA',
+		'MT' => 'MT', 'MS' => 'MS', 'MG' => 'MG', 'PA' => 'PA', 'PB' => 'PB',
+		'PR' => 'PR', 'PE' => 'PE', 'PI' => 'PI', 'RJ' => 'RJ', 'RN' => 'RN',
+		'RS' => 'RS', 'RO' => 'RO', 'RR' => 'RR', 'SC' => 'SC', 'SP' => 'SP',
+		'SE' => 'SE', 'TO' => 'TO',
+	);
+}
+
+/**
  * Esquema completo por post type.
  *
  * @return array<string,array<string,mixed>>
@@ -43,9 +61,10 @@ function contorno_field_schema(): array {
 				'help'   => __( 'O nome que aparece no site é o título no topo desta tela. O endereço da página vem do Slug, na caixa "Slug".', 'contorno' ),
 				'fields' => array(
 					'short_name'        => array(
-						'type'  => 'text',
-						'label' => __( 'Nome curto', 'contorno' ),
-						'help'  => __( 'Só o bairro ou a cidade, sem "Contorno do Corpo". Usado em espaços estreitos.', 'contorno' ),
+						'type'      => 'text',
+						'label'     => __( 'Nome curto', 'contorno' ),
+						'help'      => __( 'Opcional — vazio, o site usa o título do topo desta tela. Só o bairro ou a cidade, sem "Contorno do Corpo". Usado em espaços estreitos.', 'contorno' ),
+						'maxlength' => 40,
 					),
 					'kind'              => array(
 						'type'    => 'select',
@@ -59,9 +78,10 @@ function contorno_field_schema(): array {
 						'help'    => __( 'Define o selo do card e o agrupamento na listagem.', 'contorno' ),
 					),
 					'badge'             => array(
-						'type'  => 'text',
-						'label' => __( 'Selo do card', 'contorno' ),
-						'help'  => __( 'Texto curto sobre a foto na listagem, por exemplo "Nova" ou "Mais procurada". Deixe vazio para não exibir selo. Em pré-venda este campo é ignorado.', 'contorno' ),
+						'type'      => 'text',
+						'label'     => __( 'Selo do card', 'contorno' ),
+						'help'      => __( 'Texto curto sobre a foto na listagem, por exemplo "Nova" ou "Mais procurada". Deixe vazio para não exibir selo. Em pré-venda este campo é ignorado.', 'contorno' ),
+						'maxlength' => 24,
 					),
 					'featured'          => array(
 						'type'  => 'checkbox',
@@ -69,9 +89,10 @@ function contorno_field_schema(): array {
 						'help'  => __( 'Marque para esta unidade aparecer no bloco de destaques da Home. A ordem segue o campo "Ordem" da caixa Atributos.', 'contorno' ),
 					),
 					'short_description' => array(
-						'type'  => 'textarea',
-						'label' => __( 'Descrição curta (card)', 'contorno' ),
-						'help'  => __( 'Uma ou duas linhas. Aparece no card da listagem e abaixo do título no hero.', 'contorno' ),
+						'type'      => 'textarea',
+						'label'     => __( 'Descrição curta (card)', 'contorno' ),
+						'help'      => __( 'Uma ou duas linhas. Aparece no card da listagem e abaixo do título no hero.', 'contorno' ),
+						'maxlength' => 160,
 					),
 				),
 			),
@@ -82,7 +103,7 @@ function contorno_field_schema(): array {
 					'state'        => array(
 						'type'    => 'select',
 						'label'   => __( 'Estado', 'contorno' ),
-						'options' => array( 'MG' => 'MG', 'SP' => 'SP' ),
+						'options' => contorno_brazilian_states(),
 						'default' => 'MG',
 					),
 					'neighborhood' => array( 'type' => 'text', 'label' => __( 'Bairro', 'contorno' ) ),
@@ -155,7 +176,7 @@ function contorno_field_schema(): array {
 					'video_url' => array(
 						'type'  => 'url',
 						'label' => __( 'Vídeo da unidade', 'contorno' ),
-						'help'  => __( 'Link do YouTube ou de um arquivo de vídeo. Deixe vazio para esconder a seção de vídeo.', 'contorno' ),
+						'help'  => __( 'Link de um vídeo do YouTube (ex.: https://youtu.be/XXXXXXXXXXX ou https://www.youtube.com/watch?v=XXXXXXXXXXX) — é o único formato reconhecido hoje. Deixe vazio para esconder a seção de vídeo.', 'contorno' ),
 					),
 				),
 			),
@@ -232,10 +253,29 @@ function contorno_field_schema(): array {
 						'default' => 'open',
 						'help'    => __( 'Ao voltar para "Aberta", todos os elementos de pré-venda desaparecem automaticamente.', 'contorno' ),
 					),
-					'presale_label'          => array( 'type' => 'text', 'label' => __( 'Pill sobre a foto', 'contorno' ), 'placeholder' => 'NOVA UNIDADE' ),
-					'presale_opening_label'  => array( 'type' => 'text', 'label' => __( 'Rótulo de abertura', 'contorno' ), 'placeholder' => 'Pre-inauguracao' ),
-					'presale_opening_date'   => array( 'type' => 'text', 'label' => __( 'Data de abertura (texto)', 'contorno' ), 'help' => __( 'Só preencher com data real — nunca inventar inauguração.', 'contorno' ) ),
-					'presale_promo_text'     => array( 'type' => 'textarea', 'label' => __( 'Texto comercial de pré-venda', 'contorno' ) ),
+					'presale_label'          => array(
+						'type'        => 'text',
+						'label'       => __( 'Pill sobre a foto', 'contorno' ),
+						'placeholder' => 'NOVA UNIDADE',
+						'conditional' => array( 'field' => 'status', 'values' => array( 'pre_sale' ) ),
+					),
+					'presale_opening_label'  => array(
+						'type'        => 'text',
+						'label'       => __( 'Rótulo de abertura', 'contorno' ),
+						'placeholder' => 'Pre-inauguracao',
+						'conditional' => array( 'field' => 'status', 'values' => array( 'pre_sale' ) ),
+					),
+					'presale_opening_date'   => array(
+						'type'        => 'date',
+						'label'       => __( 'Data de abertura', 'contorno' ),
+						'help'        => __( 'Só preencher com data real — nunca inventar inauguração. Formatada automaticamente no site (ex.: "15 de outubro de 2026").', 'contorno' ),
+						'conditional' => array( 'field' => 'status', 'values' => array( 'pre_sale' ) ),
+					),
+					'presale_promo_text'     => array(
+						'type'        => 'textarea',
+						'label'       => __( 'Texto comercial de pré-venda', 'contorno' ),
+						'conditional' => array( 'field' => 'status', 'values' => array( 'pre_sale' ) ),
+					),
 				),
 			),
 			'aulas' => array(
@@ -249,8 +289,8 @@ function contorno_field_schema(): array {
 				),
 			),
 			'integracao' => array(
-				'label'  => __( 'Integrações e links de sistema', 'contorno' ),
-				'help'   => __( 'Campos técnicos. Normalmente só mudam quando algum sistema externo muda.', 'contorno' ),
+				'label'  => __( 'Avançado / Integrações', 'contorno' ),
+				'help'   => __( 'Campos técnicos, não editoriais. Normalmente só mudam quando algum sistema externo muda — nenhum é gerado automaticamente pela EVO ainda.', 'contorno' ),
 				'fields' => array(
 					'prescricao_url' => array(
 						'type'  => 'url',
@@ -302,14 +342,16 @@ function contorno_field_schema(): array {
 				'help'   => __( 'Todos opcionais: deixando vazio, o site monta sozinho a partir do título, do resumo e da imagem principal.', 'contorno' ),
 				'fields' => array(
 					'seo_title'       => array(
-						'type'  => 'text',
-						'label' => __( 'Título no Google', 'contorno' ),
-						'help'  => __( 'Ideal até 60 caracteres.', 'contorno' ),
+						'type'      => 'text',
+						'label'     => __( 'Título no Google', 'contorno' ),
+						'help'      => __( 'Ideal até 60 caracteres.', 'contorno' ),
+						'maxlength' => 70,
 					),
 					'seo_description' => array(
-						'type'  => 'textarea',
-						'label' => __( 'Descrição no Google', 'contorno' ),
-						'help'  => __( 'Ideal entre 120 e 155 caracteres.', 'contorno' ),
+						'type'      => 'textarea',
+						'label'     => __( 'Descrição no Google', 'contorno' ),
+						'help'      => __( 'Ideal entre 120 e 155 caracteres.', 'contorno' ),
+						'maxlength' => 160,
 					),
 					'seo_image'       => array(
 						'type'  => 'media',

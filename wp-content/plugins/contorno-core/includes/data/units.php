@@ -27,6 +27,37 @@ function contorno_sync_unit_city_term( int $post_id ): void {
 	wp_set_object_terms( $post_id, '' !== $city ? array( $city ) : array(), CONTORNO_TAX_CITY, false );
 }
 
+/**
+ * Sincroniza a taxonomia unidade_tipo a partir do campo estruturado
+ * "kind" (Dados gerais > Tipo de unidade) — mesma logica da cidade: a
+ * caixa lateral nativa fica oculta (ver post-types.php), e os valores do
+ * campo (standard|prime|ctn-prime) SAO os slugs dos termos fixos criados
+ * em contorno_register_post_types(), entao wp_set_object_terms() casa por
+ * slug sem precisar criar termo novo.
+ */
+function contorno_sync_unit_kind_term( int $post_id ): void {
+	$kind = trim( contorno_field_text( 'kind', $post_id ) );
+
+	wp_set_object_terms( $post_id, '' !== $kind ? array( $kind ) : array(), CONTORNO_TAX_UNIT_KIND, false );
+}
+
+/**
+ * Sincroniza a imagem destacada nativa (_thumbnail_id) a partir do campo
+ * "image" (Midia > Imagem principal) — a caixa "Imagem destacada" fica
+ * oculta (ver post-types.php); featured image so serve de fallback/
+ * compatibilidade (contorno_image_tag() cai nela quando "image" esta
+ * vazio). So sincroniza quando "image" resolve pra um ID de anexo real:
+ * um path legado (unidade ainda nao migrada pra Media Library) nao mexe
+ * na thumbnail existente, pra nunca apagar uma featured image valida.
+ */
+function contorno_sync_unit_featured_image( int $post_id ): void {
+	$image_id = contorno_field( 'image', $post_id );
+
+	if ( is_numeric( $image_id ) && (int) $image_id > 0 ) {
+		set_post_thumbnail( $post_id, (int) $image_id );
+	}
+}
+
 add_action(
 	'save_post_' . CONTORNO_CPT_UNIT,
 	static function ( int $post_id ): void {
@@ -35,6 +66,8 @@ add_action(
 		}
 
 		contorno_sync_unit_city_term( $post_id );
+		contorno_sync_unit_kind_term( $post_id );
+		contorno_sync_unit_featured_image( $post_id );
 	},
 	20 // depois do save_post que grava os campos estruturados (metaboxes.php, prioridade 10).
 );

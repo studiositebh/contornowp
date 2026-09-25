@@ -234,7 +234,7 @@ function contorno_attributes_icon_picker( string $base_name, string $current_ico
 	printf(
 		'<button type="button" class="button contorno-icon-picker__tab%s" data-contorno-icon-tab="image">%s</button>',
 		$is_image ? ' is-active' : '',
-		esc_html__( 'Imagem personalizada', 'contorno' )
+		esc_html__( 'Imagem', 'contorno' )
 	);
 	echo '</div>';
 
@@ -297,7 +297,7 @@ function contorno_render_attributes_page(): void {
 	$items   = contorno_attributes_by_type( $type );
 	?>
 	<div class="wrap contorno-attributes-page">
-		<h1><?php esc_html_e( 'Contorno — Atributos das unidades', 'contorno' ); ?></h1>
+		<h1><?php esc_html_e( 'Atributos das unidades', 'contorno' ); ?></h1>
 
 		<p class="description" style="max-width:820px">
 			<?php esc_html_e( 'Catálogo central usado pelos checkboxes na edição de cada unidade. As unidades guardam a CHAVE do atributo: renomear aqui muda o texto em todas elas de uma vez, sem editar unidade por unidade.', 'contorno' ); ?>
@@ -332,17 +332,16 @@ function contorno_render_attributes_page(): void {
 			<table class="widefat striped contorno-attributes-table">
 				<thead>
 					<tr>
-						<th style="width:44px"><span class="screen-reader-text"><?php esc_html_e( 'Ordenar', 'contorno' ); ?></span></th>
-						<th style="width:60px"><?php esc_html_e( 'Ícone', 'contorno' ); ?></th>
-						<th><?php esc_html_e( 'Nome', 'contorno' ); ?></th>
-						<th style="width:230px"><?php esc_html_e( 'Chave', 'contorno' ); ?></th>
-						<th style="width:80px"><?php esc_html_e( 'Ativo', 'contorno' ); ?></th>
-						<th style="width:220px"><?php esc_html_e( 'Uso', 'contorno' ); ?></th>
+						<th class="contorno-attributes-table__col--sort"><span class="screen-reader-text"><?php esc_html_e( 'Ordenar', 'contorno' ); ?></span></th>
+						<th class="contorno-attributes-table__col--visual"><?php esc_html_e( 'Visual', 'contorno' ); ?></th>
+						<th class="contorno-attributes-table__col--name"><?php esc_html_e( 'Nome', 'contorno' ); ?></th>
+						<th class="contorno-attributes-table__col--active"><?php esc_html_e( 'Ativo', 'contorno' ); ?></th>
+						<th class="contorno-attributes-table__col--usage"><?php esc_html_e( 'Uso', 'contorno' ); ?></th>
 					</tr>
 				</thead>
 				<tbody data-contorno-sortable>
 					<?php if ( array() === $items ) : ?>
-						<tr><td colspan="6"><?php esc_html_e( 'Nenhum atributo neste grupo ainda.', 'contorno' ); ?></td></tr>
+						<tr><td colspan="5"><?php esc_html_e( 'Nenhum atributo neste grupo ainda.', 'contorno' ); ?></td></tr>
 					<?php endif; ?>
 					<?php $position = 0; ?>
 
@@ -366,9 +365,10 @@ function contorno_render_attributes_page(): void {
 									aria-label="<?php echo esc_attr( sprintf( /* translators: %s: nome do atributo */ __( 'Reordenar %s — arraste, ou use as setas do teclado', 'contorno' ), (string) $item['label'] ) ); ?>">⠿</span>
 								<input type="hidden" name="<?php echo esc_attr( $field . '[order]' ); ?>" value="<?php echo esc_attr( (string) $position ); ?>" data-contorno-sort-order />
 							</td>
-							<td><?php contorno_attributes_icon_picker( $field, (string) $item['icon'], (string) $item['icon_type'], (int) $item['image_id'] ); ?></td>
-							<td>
+							<td class="contorno-attributes-table__col--visual"><?php contorno_attributes_icon_picker( $field, (string) $item['icon'], (string) $item['icon_type'], (int) $item['image_id'] ); ?></td>
+							<td class="contorno-attributes-table__col--name">
 								<input type="text" class="large-text" name="<?php echo esc_attr( $field . '[label]' ); ?>" value="<?php echo esc_attr( (string) $item['label'] ); ?>" />
+								<p class="contorno-attributes-table__key"><code><?php echo esc_html( $key ); ?></code></p>
 								<?php if ( array() !== (array) $item['aliases'] ) : ?>
 									<p class="description">
 										<?php esc_html_e( 'Também reconhece:', 'contorno' ); ?>
@@ -378,14 +378,13 @@ function contorno_render_attributes_page(): void {
 									</p>
 								<?php endif; ?>
 							</td>
-							<td><code><?php echo esc_html( $key ); ?></code></td>
-							<td>
+							<td class="contorno-attributes-table__col--active">
 								<label>
 									<input type="checkbox" name="<?php echo esc_attr( $field . '[active]' ); ?>" value="1" <?php checked( (bool) $item['active'], true ); ?> />
 									<span class="screen-reader-text"><?php esc_html_e( 'Ativo', 'contorno' ); ?></span>
 								</label>
 							</td>
-							<td>
+							<td class="contorno-attributes-table__col--usage">
 								<?php if ( array() === $usage ) : ?>
 									<em><?php esc_html_e( 'Nenhuma unidade', 'contorno' ); ?></em>
 								<?php else : ?>

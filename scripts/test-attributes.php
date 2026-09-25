@@ -65,7 +65,7 @@ function wp_get_attachment_image( $id, $size = 'thumbnail', $icon = false, $attr
 
 	return '<img src="https://example.test/attachment-' . (int) $id . '.jpg" alt="" class="' . esc_attr( (string) ( $attr['class'] ?? '' ) ) . '" />';
 }
-function get_post_meta( $id, $key, $single = false ) { return ''; }
+function get_post_meta( $id, $key, $single = false ) { return $GLOBALS['test_post_meta'][ $id ][ $key ] ?? ''; }
 
 function remove_accents( string $value ): string {
 	return strtr(
@@ -387,6 +387,86 @@ t( 'contorno_attribute_icon() com imagem válida não renderiza <svg>', ! str_co
 
 $html_icon = contorno_attribute_icon( array( 'icon' => 'wifi', 'icon_type' => 'icon', 'image_id' => 0 ) );
 t( 'contorno_attribute_icon() sem imagem renderiza o <svg> normalmente', str_contains( $html_icon, '<svg' ) );
+
+echo "\n== Contador \"Uso\" (contorno_attribute_usage_ids) — bug das revisões ==\n";
+
+/**
+ * $wpdb minimo: so o suficiente pra reproduzir o bug real — a consulta
+ * antiga contava toda linha de postmeta, revisao inclusa. As tabelas sao
+ * arrays em memoria que o teste povoa abaixo.
+ */
+final class Test_Fake_Wpdb {
+	public string $postmeta = 'wp_postmeta';
+	public string $posts    = 'wp_posts';
+
+	/** @var array<int,array{post_id:int,meta_key:string,meta_value:string}> */
+	public array $meta_rows = array();
+
+	/** @var array<int,array{ID:int,post_type:string,post_status:string}> */
+	public array $post_rows = array();
+
+	private array $last_args = array();
+
+	public function prepare( string $query, ...$args ): string {
+		$this->last_args = $args;
+		return $query;
+	}
+
+	public function get_col( string $query ): array {
+		[ $meta_key, $post_type ] = $this->last_args;
+
+		$valid = array();
+		foreach ( $this->post_rows as $p ) {
+			if ( $p['post_type'] === $post_type && ! in_array( $p['post_status'], array( 'trash', 'auto-draft' ), true ) ) {
+				$valid[ $p['ID'] ] = true;
+			}
+		}
+
+		$ids = array();
+		foreach ( $this->meta_rows as $m ) {
+			if ( $m['meta_key'] === $meta_key && '' !== $m['meta_value'] && isset( $valid[ $m['post_id'] ] ) ) {
+				$ids[ $m['post_id'] ] = true;
+			}
+		}
+
+		return array_keys( $ids );
+	}
+}
+
+$fake_wpdb = new Test_Fake_Wpdb();
+$GLOBALS['wpdb'] = $fake_wpdb;
+
+$meta_key = contorno_meta_key( 'facilities' );
+$value    = (string) json_encode( array( 'acesso-wifi' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+
+// 3 unidades REAIS usam o atributo.
+foreach ( array( 101, 102, 103 ) as $id ) {
+	$fake_wpdb->post_rows[] = array( 'ID' => $id, 'post_type' => 'unidade', 'post_status' => 'publish' );
+	$fake_wpdb->meta_rows[] = array( 'post_id' => $id, 'meta_key' => $meta_key, 'meta_value' => $value );
+	$GLOBALS['test_post_meta'][ $id ][ $meta_key ] = $value;
+}
+
+// 5 REVISOES das mesmas unidades — mesma chave de meta (revisions_enabled
+// grava uma copia por revisao). E exatamente isso que inflava a contagem.
+foreach ( array( 201, 202, 203, 204, 205 ) as $id ) {
+	$fake_wpdb->post_rows[] = array( 'ID' => $id, 'post_type' => 'revision', 'post_status' => 'inherit' );
+	$fake_wpdb->meta_rows[] = array( 'post_id' => $id, 'meta_key' => $meta_key, 'meta_value' => $value );
+	$GLOBALS['test_post_meta'][ $id ][ $meta_key ] = $value;
+}
+
+// 1 unidade na LIXEIRA com o mesmo atributo — nao deve contar.
+$fake_wpdb->post_rows[] = array( 'ID' => 301, 'post_type' => 'unidade', 'post_status' => 'trash' );
+$fake_wpdb->meta_rows[] = array( 'post_id' => 301, 'meta_key' => $meta_key, 'meta_value' => $value );
+$GLOBALS['test_post_meta'][301][ $meta_key ] = $value;
+
+$usage = contorno_attribute_usage_ids( 'highlight', 'acesso-wifi' );
+
+$sorted = $usage;
+sort( $sorted );
+
+t( 'conta so as 3 unidades reais (nao as 5 revisoes nem a lixeira)', 3 === count( $usage ), (string) count( $usage ) );
+t( 'ids sao exatamente 101, 102, 103', array( 101, 102, 103 ) === $sorted, implode( ',', $sorted ) );
+t( 'nunca conta mais que o total de "unidades" cadastradas no teste (3)', count( $usage ) <= 3 );
 
 echo "\n";
 printf( "%d passaram, %d falharam\n\n", $ok, $fail );
