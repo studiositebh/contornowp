@@ -184,6 +184,20 @@ add_filter(
 );
 
 /**
+ * "Conteúdo editorial extra" comeca FECHADA por padrao — e um campo pouco
+ * usado (round 1: nenhuma das 70 unidades usa hoje). So se aplica a quem
+ * nunca mexeu nas caixas desta tela (o WordPress ja devolve um array
+ * quando o usuario tem preferencia salva, mesmo vazia — nesse caso
+ * respeitamos a escolha dele, nunca sobrescrevemos).
+ */
+add_filter(
+	'get_user_option_closedpostboxes_' . CONTORNO_CPT_UNIT,
+	static function ( $value ) {
+		return is_array( $value ) ? $value : array( 'contorno-editorial' );
+	}
+);
+
+/**
  * @param array<string,mixed> $group
  */
 function contorno_render_metabox_group( WP_Post $post, array $group, string $group_key = '' ): void {
@@ -245,6 +259,43 @@ function contorno_render_metabox_group( WP_Post $post, array $group, string $gro
 			echo '</div>';
 			$row_open = false;
 		}
+	}
+
+	echo '</div>';
+}
+
+/**
+ * Componente administrativo unico de "botoes segmentados" — radio inputs
+ * REAIS estilizados (nunca divs fake), pra select de poucas opcoes
+ * (Tipo de unidade, Status, Origem do cadastro, Posicao editorial...).
+ * Um so componente/CSS pra todos: normal/hover/selecionado/foco/disabled
+ * vem de .contorno-segmented no admin-fields.css, e navegacao por
+ * teclado e a nativa do browser pra grupos de radio.
+ *
+ * @param array<string,string> $options
+ * @param string[]             $hide_options Chaves pra nao virar botao —
+ *                                            a menos que seja o valor atual
+ *                                            (nunca esconde o proprio
+ *                                            estado salvo da unidade).
+ */
+function contorno_render_segmented( string $input_id, string $input_name, array $options, string $value, array $hide_options = array() ): void {
+	echo '<div class="contorno-segmented" role="radiogroup">';
+
+	foreach ( $options as $option_value => $option_label ) {
+		$option_value = (string) $option_value;
+
+		if ( in_array( $option_value, $hide_options, true ) && $option_value !== $value ) {
+			continue;
+		}
+
+		printf(
+			'<label class="contorno-segmented__option"><input type="radio" id="%s" name="%s" value="%s" %s /><span>%s</span></label>',
+			esc_attr( $input_id . '-' . sanitize_key( $option_value ) ),
+			esc_attr( $input_name ),
+			esc_attr( $option_value ),
+			checked( $value, $option_value, false ),
+			esc_html( (string) $option_label )
+		);
 	}
 
 	echo '</div>';
@@ -338,6 +389,16 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 			echo '</select>';
 			break;
 
+		case 'segmented':
+			contorno_render_segmented(
+				$input_id,
+				$input_name,
+				(array) ( $definition['options'] ?? array() ),
+				(string) $value,
+				(array) ( $definition['hide_options'] ?? array() )
+			);
+			break;
+
 		case 'number':
 			printf(
 				'<input type="number" step="%s" id="%s" name="%s" value="%s" class="regular-text" />',
@@ -345,6 +406,15 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 				esc_attr( $input_id ),
 				esc_attr( $input_name ),
 				esc_attr( is_scalar( $value ) && '' !== (string) $value ? (string) $value : '' )
+			);
+			break;
+
+		case 'money':
+			printf(
+				'<input type="text" inputmode="decimal" id="%s" name="%s" value="%s" class="regular-text" placeholder="R$ 0,00" data-contorno-money />',
+				esc_attr( $input_id ),
+				esc_attr( $input_name ),
+				esc_attr( is_scalar( $value ) && '' !== (string) $value && is_numeric( $value ) ? contorno_format_price( (float) $value ) : ( is_scalar( $value ) ? (string) $value : '' ) )
 			);
 			break;
 
@@ -429,7 +499,7 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 			break;
 
 		case 'repeater':
-			contorno_render_repeater( $name, (array) ( $definition['subfields'] ?? array() ), is_array( $value ) ? $value : array() );
+			contorno_render_repeater( $name, (array) ( $definition['subfields'] ?? array() ), is_array( $value ) ? $value : array(), $post_id );
 			break;
 
 		case 'cep':
@@ -624,7 +694,7 @@ function contorno_render_attributes_field( string $input_name, string $input_id,
  * @param array<string,array<string,mixed>> $subfields
  * @param array<int,mixed>                  $rows
  */
-function contorno_render_repeater( string $name, array $subfields, array $rows ): void {
+function contorno_render_repeater( string $name, array $subfields, array $rows, int $post_id = 0 ): void {
 	echo '<div class="contorno-repeater" data-contorno-repeater data-field="' . esc_attr( $name ) . '">';
 	echo '<div class="contorno-repeater__rows" data-contorno-repeater-rows>';
 
@@ -633,7 +703,7 @@ function contorno_render_repeater( string $name, array $subfields, array $rows )
 		if ( ! is_array( $row ) ) {
 			continue;
 		}
-		contorno_render_repeater_row( $name, $subfields, $row, (string) $index );
+		contorno_render_repeater_row( $name, $subfields, $row, (string) $index, $post_id );
 		++$index;
 	}
 
@@ -641,7 +711,7 @@ function contorno_render_repeater( string $name, array $subfields, array $rows )
 
 	// Template para novas linhas — __INDEX__ e trocado pelo JS.
 	echo '<script type="text/html" data-contorno-repeater-template>';
-	contorno_render_repeater_row( $name, $subfields, array(), '__INDEX__' );
+	contorno_render_repeater_row( $name, $subfields, array(), '__INDEX__', $post_id );
 	echo '</script>';
 
 	printf(
@@ -655,7 +725,19 @@ function contorno_render_repeater( string $name, array $subfields, array $rows )
  * @param array<string,array<string,mixed>> $subfields
  * @param array<string,mixed>               $row
  */
-function contorno_render_repeater_row( string $name, array $subfields, array $row, string $index ): void {
+function contorno_render_repeater_row( string $name, array $subfields, array $row, string $index, int $post_id = 0 ): void {
+	/*
+	 * "Sincronizado pela EVO": so quando o checkout nativo esta DE FATO
+	 * ativo pra esta unidade (Contorno_Evo_Settings::checkout_enabled_for
+	 * — OFF/PILOT/ON ja auditado) E este plano ja tem idMembership
+	 * resolvido. Hoje nenhuma unidade esta homologada, entao isto fica
+	 * inerte ate a homologacao real — nao trava plano nenhum sem motivo.
+	 */
+	$evo_locked = $post_id > 0
+		&& '' !== trim( (string) ( $row['evo_membership_id'] ?? '' ) )
+		&& function_exists( 'contorno_native_checkout_active' )
+		&& contorno_native_checkout_active( get_post( $post_id ) );
+
 	echo '<div class="contorno-repeater__row" data-contorno-repeater-row>';
 	printf(
 		'<button type="button" class="button-link contorno-repeater__remove" data-contorno-repeater-remove aria-label="%s">&times;</button>',
@@ -667,16 +749,24 @@ function contorno_render_repeater_row( string $name, array $subfields, array $ro
 		$sub_label  = (string) ( $sub_definition['label'] ?? $sub_name );
 		$input_name = 'contorno[' . $name . '][' . $index . '][' . $sub_name . ']';
 		$sub_value  = $row[ $sub_name ] ?? '';
+		$sub_locked = $evo_locked && ! empty( $sub_definition['evo_locked'] );
 
 		echo '<div class="contorno-repeater__cell contorno-repeater__cell--' . esc_attr( $sub_type ) . '">';
 		printf( '<span class="contorno-field__label">%s</span>', esc_html( $sub_label ) );
 
+		if ( $sub_locked ) {
+			printf( '<span class="contorno-evo-badge">%s</span>', esc_html__( 'Sincronizado pela EVO', 'contorno' ) );
+		}
+
 		switch ( $sub_type ) {
 			case 'checkbox':
-				printf(
-					'<label><input type="hidden" name="%1$s" value="" /><input type="checkbox" name="%1$s" value="1" %2$s /></label>',
-					esc_attr( $input_name ),
-					checked( (bool) $sub_value, true, false )
+				// Mesmo componente segmentado dos selects — nunca dois
+				// visuais diferentes pra "escolher uma de duas opcoes".
+				contorno_render_segmented(
+					sanitize_key( $input_name ),
+					$input_name,
+					array( '1' => __( 'Sim', 'contorno' ), '' => __( 'Não', 'contorno' ) ),
+					( (bool) $sub_value ) ? '1' : ''
 				);
 				break;
 
@@ -686,6 +776,15 @@ function contorno_render_repeater_row( string $name, array $subfields, array $ro
 					'<textarea name="%s" rows="4" class="large-text code">%s</textarea>',
 					esc_attr( $input_name ),
 					esc_textarea( $lines )
+				);
+				break;
+
+			case 'money':
+				printf(
+					'<input type="text" inputmode="decimal" name="%s" value="%s" placeholder="R$ 0,00" data-contorno-money %s />',
+					esc_attr( $input_name ),
+					esc_attr( is_scalar( $sub_value ) && '' !== (string) $sub_value && is_numeric( $sub_value ) ? contorno_format_price( (float) $sub_value ) : ( is_scalar( $sub_value ) ? (string) $sub_value : '' ) ),
+					$sub_locked ? 'readonly' : ''
 				);
 				break;
 
@@ -714,10 +813,11 @@ function contorno_render_repeater_row( string $name, array $subfields, array $ro
 
 			default:
 				printf(
-					'<input type="%s" name="%s" value="%s" />',
+					'<input type="%s" name="%s" value="%s" %s/>',
 					'url' === $sub_type ? 'url' : 'text',
 					esc_attr( $input_name ),
-					esc_attr( is_scalar( $sub_value ) ? (string) $sub_value : '' )
+					esc_attr( is_scalar( $sub_value ) ? (string) $sub_value : '' ),
+					$sub_locked ? 'readonly ' : ''
 				);
 				break;
 		}

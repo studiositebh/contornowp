@@ -165,6 +165,14 @@ add_action(
 		remove_meta_box( 'postimagediv', CONTORNO_CPT_UNIT, 'side' );
 		remove_meta_box( 'wpcode-page-scripts', CONTORNO_CPT_UNIT, 'normal' );
 		remove_meta_box( 'insert-headers-and-footers-meta-box', CONTORNO_CPT_UNIT, 'normal' );
+		/*
+		 * "Atributos do post" (pageparentdiv, nativa de quem suporta
+		 * page-attributes): so mostra "Ordem" pra unidade (nao e
+		 * hierarquica, sem "Superior"/"Modelo"). menu_order continua
+		 * gravado e usado normalmente (ordena o bloco de destaques da
+		 * Home — importer.php) — so a caixa some, nada e apagado.
+		 */
+		remove_meta_box( 'pageparentdiv', CONTORNO_CPT_UNIT, 'side' );
 	}
 );
 

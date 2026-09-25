@@ -67,7 +67,7 @@ function contorno_field_schema(): array {
 						'maxlength' => 40,
 					),
 					'kind'              => array(
-						'type'    => 'select',
+						'type'    => 'segmented',
 						'label'   => __( 'Tipo de unidade', 'contorno' ),
 						'options' => array(
 							'standard'  => __( 'Padrão', 'contorno' ),
@@ -209,9 +209,8 @@ function contorno_field_schema(): array {
 				'help'   => __( 'Área comercial. Tudo aqui aparece nos cards de plano da página da unidade — preço, condição, benefícios, selo e botão de checkout. Nenhum valor está fixo no código.', 'contorno' ),
 				'fields' => array(
 					'starting_price' => array(
-						'type'  => 'number',
+						'type'  => 'money',
 						'label' => __( 'Preço "a partir de"', 'contorno' ),
-						'step'  => '0.01',
 						'help'  => __( 'Valor exibido no card da listagem. Se deixar vazio, o site usa automaticamente o menor preço entre os planos abaixo.', 'contorno' ),
 					),
 					'checkout_url'   => array(
@@ -221,13 +220,13 @@ function contorno_field_schema(): array {
 					),
 					'plans'          => array(
 						'type'      => 'repeater',
-						'label'     => __( 'Planos da unidade', 'contorno' ),
+						'label'     => __( 'Lista de planos', 'contorno' ),
 						'help'      => __( 'Arraste para reordenar não está disponível: a ordem é a de cadastro. Remova e adicione para reorganizar.', 'contorno' ),
 						'subfields' => array(
 							'id'           => array( 'type' => 'text', 'label' => __( 'Identificador', 'contorno' ) ),
 							'name'         => array( 'type' => 'text', 'label' => __( 'Nome do plano', 'contorno' ) ),
 							'description'  => array( 'type' => 'text', 'label' => __( 'Descrição', 'contorno' ) ),
-							'price'        => array( 'type' => 'number', 'label' => __( 'Preço', 'contorno' ), 'step' => '0.01' ),
+							'price'        => array( 'type' => 'money', 'label' => __( 'Preço', 'contorno' ), 'evo_locked' => true ),
 							'price_label'  => array( 'type' => 'text', 'label' => __( 'Texto no lugar do preço', 'contorno' ) ),
 							'benefits'     => array( 'type' => 'list', 'label' => __( 'Benefícios', 'contorno' ) ),
 							'checkout_url' => array( 'type' => 'url', 'label' => __( 'URL de checkout', 'contorno' ) ),
@@ -243,13 +242,19 @@ function contorno_field_schema(): array {
 				'help'   => __( 'Enquanto o status for "Pré-venda", a unidade exibe a tarja sobre a foto e a faixa PRÉ-VENDA no hero. Ao mudar para "Aberta", os dois desaparecem do site na hora — não é preciso apagar os campos abaixo.', 'contorno' ),
 				'fields' => array(
 					'status'                 => array(
-						'type'    => 'select',
+						'type'    => 'segmented',
 						'label'   => __( 'Status', 'contorno' ),
 						'options' => array(
 							'open'     => __( 'Aberta', 'contorno' ),
 							'pre_sale' => __( 'Pré-venda', 'contorno' ),
 							'closed'   => __( 'Fechada', 'contorno' ),
 						),
+						// "Fechada" nao aparece como botao: nenhuma das 70
+						// unidades usa esse valor hoje. Continua valido pra
+						// validacao/gravacao — so nao vira botao, a menos
+						// que a unidade ja esteja assim (entao o botao
+						// aparece, pra nao esconder o proprio estado atual).
+						'hide_options' => array( 'closed' ),
 						'default' => 'open',
 						'help'    => __( 'Ao voltar para "Aberta", todos os elementos de pré-venda desaparecem automaticamente.', 'contorno' ),
 					),
@@ -303,7 +308,7 @@ function contorno_field_schema(): array {
 						'help'  => __( 'Reservado para a futura sincronização automática. Pode ficar vazio.', 'contorno' ),
 					),
 					'sync_source'    => array(
-						'type'    => 'select',
+						'type'    => 'segmented',
 						'label'   => __( 'Origem do cadastro', 'contorno' ),
 						'options' => array(
 							'manual' => __( 'Manual', 'contorno' ),
@@ -324,7 +329,7 @@ function contorno_field_schema(): array {
 				'help'   => __( 'O conteúdo livre desta unidade é editado no WPBakery, no editor principal desta tela. Aqui você escolhe apenas ONDE ele aparece no template compartilhado. A estrutura obrigatória da página é preservada.', 'contorno' ),
 				'fields' => array(
 					'editorial_position' => array(
-						'type'    => 'select',
+						'type'    => 'segmented',
 						'label'   => __( 'Posição do conteúdo editorial', 'contorno' ),
 						'options' => array(
 							'none'          => __( 'Não exibir', 'contorno' ),
@@ -508,12 +513,12 @@ function contorno_field_schema(): array {
 						'subfields' => array(
 							'id'              => array( 'type' => 'text', 'label' => __( 'ID', 'contorno' ) ),
 							'name'            => array( 'type' => 'text', 'label' => __( 'Nome', 'contorno' ) ),
-							'price_from'      => array( 'type' => 'number', 'label' => __( 'Preço "de" (riscado)', 'contorno' ), 'step' => '0.01' ),
-							'price'           => array( 'type' => 'number', 'label' => __( 'Preço promocional', 'contorno' ), 'step' => '0.01' ),
+							'price_from'      => array( 'type' => 'money', 'label' => __( 'Preço "de" (riscado)', 'contorno' ) ),
+							'price'           => array( 'type' => 'money', 'label' => __( 'Preço promocional', 'contorno' ), 'evo_locked' => true ),
 							'price_note'      => array( 'type' => 'text', 'label' => __( 'Nota do preço', 'contorno' ) ),
-							'recurring_price' => array( 'type' => 'number', 'label' => __( 'Meses seguintes', 'contorno' ), 'step' => '0.01' ),
-							'recurring_from'  => array( 'type' => 'number', 'label' => __( 'Meses seguintes "de"', 'contorno' ), 'step' => '0.01' ),
-							'enrollment_fee'  => array( 'type' => 'number', 'label' => __( 'Taxa de matrícula', 'contorno' ), 'step' => '0.01' ),
+							'recurring_price' => array( 'type' => 'money', 'label' => __( 'Meses seguintes', 'contorno' ) ),
+							'recurring_from'  => array( 'type' => 'money', 'label' => __( 'Meses seguintes "de"', 'contorno' ) ),
+							'enrollment_fee'  => array( 'type' => 'money', 'label' => __( 'Taxa de matrícula', 'contorno' ) ),
 							'fidelity'        => array( 'type' => 'text', 'label' => __( 'Fidelidade', 'contorno' ) ),
 							'card_note'       => array( 'type' => 'text', 'label' => __( 'Nota do cartao', 'contorno' ) ),
 							'benefits'        => array( 'type' => 'list', 'label' => __( 'Benefícios', 'contorno' ) ),
@@ -540,7 +545,7 @@ function contorno_field_schema(): array {
 				'help'   => __( 'O conteúdo livre desta CTN é editado no WPBakery, no editor principal desta tela. Aqui você escolhe apenas ONDE ele aparece no template compartilhado.', 'contorno' ),
 				'fields' => array(
 					'editorial_position' => array(
-						'type'    => 'select',
+						'type'    => 'segmented',
 						'label'   => __( 'Posição do conteúdo editorial', 'contorno' ),
 						'options' => array(
 							'none'          => __( 'Não exibir', 'contorno' ),

@@ -65,6 +65,97 @@
 	color: #787c82;
 }
 
+/* ------------------------------------------------------------------ *
+ * Botoes segmentados — componente unico (Tipo de unidade, Status,
+ * Origem do cadastro, Posicao editorial, Sim/Nao dos repeaters...).
+ * Radio inputs reais, so estilizados — nunca div fake.
+ * ------------------------------------------------------------------ */
+
+.contorno-segmented {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.contorno-segmented__option {
+	position: relative;
+	display: inline-flex;
+	margin: 0;
+	cursor: pointer;
+}
+
+.contorno-segmented__option input[type="radio"] {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.contorno-segmented__option span {
+	padding: 6px 14px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 999px;
+	font-size: 13px;
+	line-height: 1.4;
+	color: #1d2327;
+	transition:
+		background-color var(--motion-hover, 150ms) ease,
+		border-color var(--motion-hover, 150ms) ease,
+		color var(--motion-hover, 150ms) ease;
+	user-select: none;
+}
+
+.contorno-segmented__option:hover span {
+	border-color: #2271b1;
+}
+
+.contorno-segmented__option input[type="radio"]:checked ~ span,
+.contorno-segmented__option input[type="radio"]:checked + span {
+	background: #2271b1;
+	border-color: #2271b1;
+	color: #fff;
+	font-weight: 600;
+}
+
+.contorno-segmented__option input[type="radio"]:focus-visible ~ span,
+.contorno-segmented__option input[type="radio"]:focus-visible + span {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.contorno-segmented__option input[type="radio"]:disabled ~ span,
+.contorno-segmented__option input[type="radio"]:disabled + span {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.contorno-field--segmented {
+	grid-column: 1 / -1;
+}
+
+/* Selo "Sincronizado pela EVO" em campos comerciais travados. */
+
+.contorno-evo-badge {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 1px 8px;
+	background: #fcf9e8;
+	border: 1px solid #dba617;
+	border-radius: 999px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: #7c5e0b;
+}
+
+.contorno-repeater__cell input[readonly] {
+	background: #f6f7f7;
+	color: #646970;
+}
+
 /* ---- Campos lado a lado (latitude/longitude, telefone/WhatsApp) ---- */
 
 .contorno-field-row {

@@ -287,10 +287,49 @@ function contorno_sanitize_field( mixed $value, array $definition ): mixed {
 			return sanitize_textarea_field( (string) $value );
 
 		case 'select':
+		case 'segmented': // Mesma allowlist do select — so muda o componente visual.
 			$options = (array) ( $definition['options'] ?? array() );
 			$value   = sanitize_text_field( (string) $value );
 
 			return array_key_exists( $value, $options ) ? $value : (string) ( $definition['default'] ?? '' );
+
+		case 'money':
+			/*
+			 * Normaliza pro MESMO formato decimal-com-ponto que 'number' ja
+			 * gravava ("99.9") — contorno_format_price()/EVO/calculos
+			 * continuam lendo exatamente como antes. "R$" e so
+			 * apresentacao: nunca e gravado. Entrada que nao da pra
+			 * interpretar como valor (nem BR "1.299,90" nem solto
+			 * "99.90") preserva o texto digitado em vez de zerar —
+			 * mesmo cuidado ja usado em cep/phone/coordinate.
+			 */
+			$raw = trim( (string) $value );
+
+			if ( '' === $raw ) {
+				return '';
+			}
+
+			$clean = (string) preg_replace( '/[^0-9,.]/', '', $raw );
+
+			if ( '' === $clean ) {
+				return sanitize_text_field( $raw );
+			}
+
+			if ( str_contains( $clean, ',' ) ) {
+				// Formato BR: ponto = separador de milhar, virgula = decimal.
+				$clean = str_replace( '.', '', $clean );
+				$clean = str_replace( ',', '.', $clean );
+			} elseif ( 1 !== preg_match( '/^\d+\.\d{1,2}$/', $clean ) ) {
+				// Sem virgula e sem um unico ponto decimal no fim (ex.:
+				// "1.299" colado) — os pontos sao de milhar, nao decimal.
+				$clean = str_replace( '.', '', $clean );
+			}
+
+			if ( ! is_numeric( $clean ) || (float) $clean < 0 ) {
+				return sanitize_text_field( $raw );
+			}
+
+			return (string) (float) $clean;
 
 		case 'media':
 			if ( is_numeric( $value ) ) {

@@ -904,6 +904,71 @@
 		});
 	}
 
+	/**
+	 * Mascara monetaria BR (R$ 1.299,90) enquanto digita. So cosmetico —
+	 * contorno_sanitize_field() (type=money) normaliza de verdade no
+	 * backend, aceitando com ou sem "R$", com ou sem os pontos de milhar.
+	 * "R$" nunca e o que fica gravado.
+	 */
+	function formatMoneyLive(raw) {
+		// Mantem so digitos e a PRIMEIRA virgula digitada.
+		var value = String(raw || '').replace(/[^\d,]/g, '');
+		var comma = value.indexOf(',');
+
+		if (comma !== -1) {
+			value = value.slice(0, comma + 1) + value.slice(comma + 1).replace(/,/g, '');
+		}
+
+		var parts = value.split(',');
+		var intPart = parts[0].replace(/^0+(?=\d)/, '');
+		var centsPart = parts.length > 1 ? parts[1].slice(0, 2) : null;
+		var withThousands = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+		var result = 'R$ ' + (withThousands || (centsPart !== null ? '0' : ''));
+
+		if (centsPart !== null) {
+			result += ',' + centsPart;
+		}
+
+		return 'R$ ' === result ? '' : result;
+	}
+
+	// No blur, sempre fecha em duas casas — "R$ 99" vira "R$ 99,00", "R$
+	// 99,9" vira "R$ 99,90". Enquanto digita nao mexe nas casas (deixaria
+	// de dar pra digitar o segundo centavo).
+	function formatMoneyFinal(raw) {
+		var digits = String(raw || '').replace(/[^\d,]/g, '');
+
+		if ('' === digits) {
+			return '';
+		}
+
+		var parts = digits.split(',');
+		var intPart = parts[0].replace(/^0+(?=\d)/, '') || '0';
+		var cents = parts.length > 1 ? (parts[1] + '00').slice(0, 2) : '00';
+		var withThousands = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+		return 'R$ ' + withThousands + ',' + cents;
+	}
+
+	function bindMoneyMask(scope) {
+		var inputs = scope.querySelectorAll('[data-contorno-money]');
+
+		Array.prototype.forEach.call(inputs, function (input) {
+			if (input.dataset.contornoBound === '1') {
+				return;
+			}
+			input.dataset.contornoBound = '1';
+
+			input.addEventListener('input', function () {
+				input.value = formatMoneyLive(input.value);
+			});
+
+			input.addEventListener('blur', function () {
+				input.value = formatMoneyFinal(input.value);
+			});
+		});
+	}
+
 	function init() {
 		bindMediaPicker(document);
 		bindGallery(document);
@@ -916,6 +981,7 @@
 		bindCoordinateInput(document);
 		bindCharCounters(document);
 		bindConditionalFields(document);
+		bindMoneyMask(document);
 	}
 
 	if (document.readyState !== 'loading') {

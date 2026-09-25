@@ -147,5 +147,18 @@ check(
 	'["501","/units/x.jpg"]'
 );
 
+echo "\n== Preço (contorno_sanitize_field, type=money) ==\n";
+$money_def = array( 'type' => 'money' );
+check( '"99" -> "99" (mesmo formato do type=number antigo)', contorno_sanitize_field( '99', $money_def ), '99' );
+check( '"99,9" -> "99.9"', contorno_sanitize_field( '99,9', $money_def ), '99.9' );
+check( '"1299,90" -> "1299.9"', contorno_sanitize_field( '1299,90', $money_def ), '1299.9' );
+check( '"1.299,90" (ja com milhar) -> "1299.9"', contorno_sanitize_field( '1.299,90', $money_def ), '1299.9' );
+check( '"R$ 99,90" (colado com prefixo) -> "99.9", nunca salva R$', contorno_sanitize_field( 'R$ 99,90', $money_def ), '99.9' );
+check( '"R$ 1.299,90" -> "1299.9"', contorno_sanitize_field( 'R$ 1.299,90', $money_def ), '1299.9' );
+check( '"99.90" (formato solto com ponto decimal) -> "99.9"', contorno_sanitize_field( '99.90', $money_def ), '99.9' );
+check( 'vazio continua vazio', contorno_sanitize_field( '', $money_def ), '' );
+check( 'sinal de menos e ignorado (preco nunca e negativo)', contorno_sanitize_field( '-50', $money_def ), '50' );
+check( 'lixo sem numero: preserva o texto, nao zera', contorno_sanitize_field( 'abc', $money_def ), 'abc' );
+
 printf( "\n%d passaram, %d falharam\n", $pass, $fail );
 exit( $fail > 0 ? 1 : 0 );
