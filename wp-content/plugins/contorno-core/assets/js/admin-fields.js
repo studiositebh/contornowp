@@ -536,7 +536,7 @@
 		'check', 'bath'
 	];
 
-	function renderIconResults(container, icons, emptyMessage) {
+	function renderIconResults(container, icons, emptyMessage, selectedKey) {
 		if (!icons.length) {
 			container.innerHTML = '<p class="description">' + emptyMessage + '</p>';
 			return;
@@ -545,7 +545,9 @@
 		container.innerHTML = icons
 			.map(function (icon) {
 				return (
-					'<button type="button" class="contorno-icon-picker__result" data-icon-key="' +
+					'<button type="button" class="contorno-icon-picker__result' +
+					(icon.k === selectedKey ? ' is-selected' : '') +
+					'" data-icon-key="' +
 					icon.k +
 					'" title="' +
 					icon.l +
@@ -641,7 +643,7 @@
 								var popular = POPULAR_ICONS.map(function (key) {
 									return byKey[key];
 								}).filter(Boolean);
-								renderIconResults(results, popular, 'Nada encontrado.');
+								renderIconResults(results, popular, 'Nada encontrado.', iconValue ? iconValue.value : '');
 							});
 						}
 					}
@@ -670,11 +672,11 @@
 							var popular = POPULAR_ICONS.map(function (key) {
 								return byKey[key];
 							}).filter(Boolean);
-							renderIconResults(results, popular, 'Nada encontrado.');
+							renderIconResults(results, popular, 'Nada encontrado.', iconValue ? iconValue.value : '');
 							return;
 						}
 
-						renderIconResults(results, searchIconLibrary(library, query), 'Nada encontrado.');
+						renderIconResults(results, searchIconLibrary(library, query), 'Nada encontrado.', iconValue ? iconValue.value : '');
 					});
 				});
 
@@ -699,6 +701,14 @@
 						var svg = button.querySelector('svg');
 						preview.innerHTML = svg ? svg.outerHTML : '';
 					}
+
+					Array.prototype.forEach.call(
+						results.querySelectorAll('.contorno-icon-picker__result.is-selected'),
+						function (el) {
+							el.classList.remove('is-selected');
+						}
+					);
+					button.classList.add('is-selected');
 
 					if (popover) {
 						popover.hidden = true;
