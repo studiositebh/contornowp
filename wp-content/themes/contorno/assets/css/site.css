@@ -658,16 +658,40 @@ ol {
 	transition: transform 200ms var(--motion-ease);
 }
 
+/*
+ * O header fica com fundo verde/turquesa (var(--brand)) na maioria dos
+ * estados, entao o hover/focus precisa continuar branco solido — usar
+ * var(--brand) aqui deixava o texto quase invisivel sobre o proprio fundo.
+ */
 .site-header__menu a:hover .site-nav-link,
-.site-nav-link:hover {
-	color: var(--brand);
-}
-
-.site-header--overlay:not(.is-scrolled) .site-header__menu a:hover .site-nav-link {
+.site-nav-link:hover,
+.site-header__menu a:focus-visible .site-nav-link {
 	color: #fff;
 }
 
-.site-header__menu a:hover .site-nav-link::after {
+.site-header__menu a:focus-visible {
+	outline: 2px solid #fff;
+	outline-offset: 4px;
+	border-radius: 2px;
+}
+
+.site-header__menu a:hover .site-nav-link::after,
+.site-header__menu a:focus-visible .site-nav-link::after {
+	transform: scaleX(1);
+}
+
+.site-header__menu li.current-menu-item .site-nav-link,
+.site-header__menu li.current_page_item .site-nav-link,
+.site-header__menu li.current-menu-parent .site-nav-link,
+.site-header__menu li.current-menu-ancestor .site-nav-link {
+	color: #fff;
+	font-weight: 700;
+}
+
+.site-header__menu li.current-menu-item .site-nav-link::after,
+.site-header__menu li.current_page_item .site-nav-link::after,
+.site-header__menu li.current-menu-parent .site-nav-link::after,
+.site-header__menu li.current-menu-ancestor .site-nav-link::after {
 	transform: scaleX(1);
 }
 
@@ -738,6 +762,26 @@ ol {
 .site-header__mobile-menu a {
 	color: #fff;
 	font-weight: 500;
+}
+
+/* Mesmo bug do menu desktop: sem isso, a:hover global (var(--brand)) deixa
+   o item quase invisivel sobre o fundo turquesa do menu mobile. */
+.site-header__mobile-menu a:hover,
+.site-header__mobile-menu a:focus-visible {
+	color: #fff;
+	outline: 2px solid #fff;
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+.site-header__mobile-menu li.current-menu-item a,
+.site-header__mobile-menu li.current_page_item a,
+.site-header__mobile-menu li.current-menu-parent a,
+.site-header__mobile-menu li.current-menu-ancestor a {
+	color: #fff;
+	font-weight: 700;
+	text-decoration: underline;
+	text-underline-offset: 4px;
 }
 
 @media (max-width: 639px) {
