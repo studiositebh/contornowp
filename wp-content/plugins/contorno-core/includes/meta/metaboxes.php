@@ -519,7 +519,7 @@ function contorno_render_attributes_field( string $input_name, string $input_id,
 			esc_attr( $input_id . '-' . $index ),
 			esc_attr( $key ),
 			checked( $is_on, true, false ),
-			contorno_icon( (string) $attribute['icon'], 'contorno-attributes__svg' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			contorno_attribute_icon( $attribute, 'contorno-attributes__svg' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			esc_html( (string) $attribute['label'] ),
 			$attribute['active'] ? '' : ' <em>' . esc_html__( '(inativo)', 'contorno' ) . '</em>'
 		);

@@ -345,6 +345,37 @@ function contorno_reveal_close(): string {
 }
 
 /**
+ * Icone (ou imagem personalizada) de um item do catalogo de atributos.
+ *
+ * Ordem: imagem personalizada valida > icone da biblioteca > fallback
+ * seguro de contorno_icon(). Nunca os dois juntos.
+ *
+ * @param array{icon?:string,icon_type?:string,image_id?:int,label?:string} $item
+ */
+function contorno_attribute_icon( array $item, string $classes = 'contorno-icon' ): string {
+	$image_id = (int) ( $item['image_id'] ?? 0 );
+
+	if ( 'image' === ( $item['icon_type'] ?? 'icon' ) && $image_id > 0 ) {
+		$html = wp_get_attachment_image(
+			$image_id,
+			'thumbnail',
+			false,
+			array(
+				'class'   => trim( $classes . ' contorno-icon--image' ),
+				'alt'     => (string) ( $item['label'] ?? '' ),
+				'loading' => 'lazy',
+			)
+		);
+
+		if ( is_string( $html ) && '' !== $html ) {
+			return $html;
+		}
+	}
+
+	return contorno_icon( (string) ( $item['icon'] ?? '' ), $classes );
+}
+
+/**
  * Registro de icones inline (porte de siteIconRegistry.ts).
  *
  * SVGs traco 1.5 no estilo lucide, para os Destaques Contorno.
@@ -352,7 +383,15 @@ function contorno_reveal_close(): string {
 function contorno_icon( string $name, string $classes = 'contorno-icon' ): string {
 	$paths = contorno_icon_paths();
 
-	$path = $paths[ $name ] ?? $paths['sparkles'];
+	/*
+	 * As chaves legadas (allowlist original) sao checadas primeiro e
+	 * NUNCA mudam de traco. A biblioteca ampliada (includes/attributes/
+	 * icon-library.php, gerada do Lucide) so entra pra chave que nao
+	 * existia antes — e so acrescenta opcoes, nunca sobrescreve.
+	 */
+	$path = $paths[ $name ]
+		?? ( function_exists( 'contorno_icon_library_paths' ) ? ( contorno_icon_library_paths()[ $name ] ?? null ) : null )
+		?? $paths['sparkles'];
 
 	return sprintf(
 		'<svg class="%s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">%s</svg>',

@@ -681,7 +681,7 @@ contorno_add_shortcode(
 						<ul class="unit-hero__features">
 							<?php foreach ( $features as $feature ) : ?>
 								<?php if ( '' === trim( (string) $feature['label'] ) ) : continue; endif; ?>
-								<li><?php echo contorno_icon( (string) $feature['icon'], 'unit-hero__feature-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( (string) $feature['label'] ); ?></span></li>
+								<li><?php echo contorno_attribute_icon( $feature, 'unit-hero__feature-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( (string) $feature['label'] ); ?></span></li>
 							<?php endforeach; ?>
 						</ul>
 					<?php endif; ?>
@@ -904,7 +904,7 @@ contorno_add_shortcode(
 			<?php foreach ( $items as $item ) : ?>
 				<?php if ( '' === trim( (string) $item['label'] ) ) : continue; endif; ?>
 				<article class="unit-highlight-card motion-item">
-					<span class="unit-highlight-card__icon-wrap"><?php echo contorno_icon( (string) $item['icon'], 'unit-highlight-card__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+					<span class="unit-highlight-card__icon-wrap"><?php echo contorno_attribute_icon( $item, 'unit-highlight-card__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 					<h3 class="unit-highlight-card__label"><?php echo esc_html( (string) $item['label'] ); ?></h3>
 				</article>
 			<?php endforeach; ?>
@@ -949,7 +949,7 @@ contorno_add_shortcode(
 			<?php foreach ( $items as $item ) : ?>
 				<?php if ( '' === trim( (string) $item['label'] ) ) : continue; endif; ?>
 				<li class="contorno-differentials__item motion-item motion-diff">
-					<span class="motion-icon"><?php echo contorno_icon( (string) $item['icon'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+					<span class="motion-icon"><?php echo contorno_attribute_icon( $item, 'contorno-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 					<h3><?php echo esc_html( (string) $item['label'] ); ?></h3>
 				</li>
 			<?php endforeach; ?>

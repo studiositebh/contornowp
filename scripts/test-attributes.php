@@ -32,7 +32,39 @@ function is_singular( $x = null ): bool { return false; }
 function is_post_type_archive( $x = null ): bool { return false; }
 function is_page(): bool { return false; }
 function get_the_ID() { return 0; }
-function get_post_type( $id = null ): string { return CONTORNO_CPT_UNIT; }
+$GLOBALS['test_attachments'] = array(
+	901 => array( 'type' => 'attachment', 'is_image' => true ),
+	902 => array( 'type' => 'attachment', 'is_image' => false ), // ex.: um PDF.
+	// 903 nao existe.
+);
+
+function get_post_type( $id = null ): string {
+	if ( null !== $id && isset( $GLOBALS['test_attachments'][ (int) $id ] ) ) {
+		return $GLOBALS['test_attachments'][ (int) $id ]['type'];
+	}
+
+	return CONTORNO_CPT_UNIT;
+}
+
+function wp_attachment_is_image( $id ): bool {
+	return $GLOBALS['test_attachments'][ (int) $id ]['is_image'] ?? false;
+}
+
+function absint( $value ): int {
+	return abs( (int) $value );
+}
+
+function wp_get_attachment_image_url( $id, $size = 'thumbnail' ) {
+	return isset( $GLOBALS['test_attachments'][ (int) $id ] ) ? 'https://example.test/attachment-' . (int) $id . '.jpg' : false;
+}
+
+function wp_get_attachment_image( $id, $size = 'thumbnail', $icon = false, $attr = array() ) {
+	if ( ! isset( $GLOBALS['test_attachments'][ (int) $id ] ) ) {
+		return '';
+	}
+
+	return '<img src="https://example.test/attachment-' . (int) $id . '.jpg" alt="" class="' . esc_attr( (string) ( $attr['class'] ?? '' ) ) . '" />';
+}
 function get_post_meta( $id, $key, $single = false ) { return ''; }
 
 function remove_accents( string $value ): string {
@@ -93,6 +125,7 @@ function contorno_field_list( string $name, ?int $post_id = null ): array {
 }
 
 require_once $plugin . '/includes/helpers.php';
+require_once $plugin . '/includes/attributes/icon-library.php';
 require_once $plugin . '/includes/attributes/catalog.php';
 
 // --- Infra de teste --------------------------------------------------------
@@ -307,6 +340,53 @@ t( 'atributo novo entra no fim', array( 'acesso-wifi', 'vestiarios', 'aulas-cole
 
 $saved = contorno_attributes_keep_unit_order( 1, 'facilities', array( 'acesso-wifi' ) );
 t( 'desmarcar remove só o desmarcado', array( 'acesso-wifi' ) === $saved, implode( ', ', $saved ) );
+
+echo "\n== Biblioteca de icones (Lucide, ampliada) e imagem personalizada\n";
+
+$legacy_choices = array( 'wifi', 'car', 'dumbbell', 'sparkles' ); // ja existiam antes desta rodada.
+$new_choices    = contorno_attribute_icon_choices();
+
+t(
+	'chaves legadas continuam na allowlist',
+	array() === array_diff( $legacy_choices, $new_choices )
+);
+t(
+	'biblioteca ampliada entrou na allowlist (ex.: "coffee", que nao existia antes)',
+	in_array( 'coffee', $new_choices, true )
+);
+t( 'allowlist tem muito mais que os ~30 icones antigos', count( $new_choices ) > 1000, (string) count( $new_choices ) );
+
+// Icone legado continua vindo do traço original de helpers.php, nao da biblioteca nova.
+t( 'contorno_icon("wifi") usa o traço de helpers.php', str_contains( contorno_icon( 'wifi' ), contorno_icon_paths()['wifi'] ) );
+t( 'contorno_icon("coffee") resolve pela biblioteca nova (nao cai no fallback sparkles)', ! str_contains( contorno_icon( 'coffee' ), contorno_icon_paths()['sparkles'] ) );
+
+// Nunca aceita chave fora da allowlist — cai em sparkles.
+$item = contorno_attribute_sanitize_item( array( 'type' => 'highlight', 'label' => 'Teste', 'icon' => '<svg onload=alert(1)>' ) );
+t( 'icone fora da allowlist (tentativa de HTML/SVG arbitrário) cai em sparkles', 'sparkles' === $item['icon'] );
+
+// Imagem personalizada: so aceita attachment que existe E e imagem.
+$item = contorno_attribute_sanitize_item( array( 'type' => 'highlight', 'label' => 'Chuveiro', 'icon' => 'shower', 'icon_type' => 'image', 'image_id' => 901 ) );
+t( 'imagem valida: icon_type vira "image" e image_id é gravado', 'image' === $item['icon_type'] && 901 === $item['image_id'] );
+
+$item = contorno_attribute_sanitize_item( array( 'type' => 'highlight', 'label' => 'PDF', 'icon' => 'shower', 'icon_type' => 'image', 'image_id' => 902 ) );
+t( 'attachment que existe mas NÃO é imagem: volta pro ícone', 'icon' === $item['icon_type'] && 0 === $item['image_id'] );
+
+$item = contorno_attribute_sanitize_item( array( 'type' => 'highlight', 'label' => 'Inexistente', 'icon' => 'shower', 'icon_type' => 'image', 'image_id' => 903 ) );
+t( 'attachment inexistente (referência arbitrária): volta pro ícone', 'icon' === $item['icon_type'] && 0 === $item['image_id'] );
+
+$item = contorno_attribute_sanitize_item( array( 'type' => 'highlight', 'label' => 'Sem imagem', 'icon' => 'shower', 'icon_type' => 'image', 'image_id' => 0 ) );
+t( 'icon_type "image" sem image_id: volta pro ícone', 'icon' === $item['icon_type'] );
+
+// Atributo legado (sem icon_type/image_id no registro, como os 55 da semente): continua icone normal.
+$legacy_item = contorno_attribute_sanitize_item( array( 'type' => 'highlight', 'label' => 'Legado', 'icon' => 'wifi' ) );
+t( 'item sem icon_type/image_id (formato antigo) assume "icon" por padrão', 'icon' === $legacy_item['icon_type'] && 0 === $legacy_item['image_id'] );
+
+// contorno_attribute_icon(): resolve imagem > icone, e nunca os dois juntos.
+$html_image = contorno_attribute_icon( array( 'icon' => 'shower', 'icon_type' => 'image', 'image_id' => 901, 'label' => 'Chuveiro' ) );
+t( 'contorno_attribute_icon() com imagem válida não renderiza <svg>', ! str_contains( $html_image, '<svg' ) );
+
+$html_icon = contorno_attribute_icon( array( 'icon' => 'wifi', 'icon_type' => 'icon', 'image_id' => 0 ) );
+t( 'contorno_attribute_icon() sem imagem renderiza o <svg> normalmente', str_contains( $html_icon, '<svg' ) );
 
 echo "\n";
 printf( "%d passaram, %d falharam\n\n", $ok, $fail );

@@ -435,50 +435,240 @@
 	}
 
 	/**
-	 * Seletor visual de icone do catalogo: abre a grade, marca o radio e
-	 * atualiza a previa. O valor e sempre uma chave da allowlist do PHP.
+	 * Seletor de icone/imagem de um atributo.
+	 *
+	 * A biblioteca (~1800 icones Lucide, gerada localmente — nunca via CDN)
+	 * so e buscada (uma vez, reaproveitada por todos os pickers da tela)
+	 * quando o popover abre pela primeira vez; o grid so mostra os
+	 * resultados da busca atual (no maximo 60), nunca a lista inteira.
 	 */
+
+	// Termos em portugues -> chave/termo em ingles, pra busca tambem achar
+	// "wifi", "carro", "chuveiro" etc. mesmo a biblioteca sendo so em ingles.
+	var ICON_PT_ALIASES = {"wifi":["wifi","wi-fi","internet"],"car":["carro","estacionamento","vaga"],"parking-circle":["estacionamento","vaga","carro"],"parking-square":["estacionamento","vaga","carro"],"bus":["onibus","transporte"],"bike":["bicicleta","bike","ciclismo"],"shower-head":["chuveiro","ducha","vestiario","banho"],"droplets":["agua","chuveiro","hidratacao"],"dumbbell":["musculacao","peso","halter","academia"],"heart-pulse":["coracao","cardio","saude","batimento"],"heart":["coracao","saude","favorito"],"accessibility":["acessibilidade","cadeirante","cadeira de rodas","pcd"],"person-standing":["pessoa","acessibilidade"],"coffee":["cafe","cafeteria","lanchonete"],"baby":["crianca","bebe","infantil"],"baby-carriage":["crianca","bebe","carrinho"],"hand":["massagem","mao","toque"],"wind":["ar condicionado","climatizacao","ventilacao","vento"],"snowflake":["ar condicionado","climatizacao","gelo","frio"],"air-vent":["ar condicionado","climatizacao","ventilacao"],"shield":["seguranca","protecao"],"shield-check":["seguranca","protecao","verificado"],"lock":["seguranca","cadeado","trava"],"camera":["seguranca","camera","cftv","monitoramento"],"key":["chave","acesso","armario"],"archive":["armario","guarda-volumes"],"package":["armario","guarda-volumes","caixa"],"waves":["piscina","natacao","agua"],"flame":["sauna","calor","fogo"],"thermometer":["temperatura","sauna","clima"],"users":["aula","coletiva","equipe","grupo","turma"],"user-round":["personal","pessoa","usuario"],"utensils":["nutricao","alimentacao","restaurante"],"apple":["nutricao","alimentacao","saude"],"clock":["horario","tempo","relogio"],"calendar":["agenda","horario","calendario"],"map-pin":["localizacao","endereco","mapa"],"map":["mapa","localizacao"],"music":["som","musica","sonorizacao"],"headphones":["som","fone","musica","audio"],"tv":["tv","televisao","tela"],"monitor":["tela","monitor","tv"],"thermometer-snowflake":["ar condicionado","climatizacao"],"sun":["sol","luz natural","claridade"],"moon":["noite","24 horas"],"sun-moon":["24 horas","dia e noite"],"leaf":["natureza","sustentabilidade","ecologico"],"trees":["natureza","area verde","externo"],"building":["predio","estrutura","unidade"],"building2":["predio","estrutura","unidade"],"home":["casa","inicio"],"door-open":["porta","entrada","acesso"],"shirt":["roupa","vestiario"],"footprints":["corrida","caminhada","passos"],"timer":["cronometro","tempo","treino"],"scan-face":["catraca","biometria","reconhecimento facial","acesso"],"fingerprint":["catraca","biometria","acesso","digital"],"credit-card":["pagamento","cartao"],"scale":["balanca","avaliacao","peso corporal"],"medal":["premio","conquista","resultado"],"trophy":["premio","conquista","resultado"],"crown":["premium","vip","exclusivo"],"gift":["presente","brinde","bonus"],"bell":["sino","notificacao","aviso"],"star":["estrela","destaque","avaliacao"],"check":["confirmado","incluso","ok"],"circle-parking":["estacionamento","vaga","carro"],"bath":["banheiro","banho"],"toilet":["banheiro","sanitario"],"refrigerator":["bebedouro","agua gelada","geladeira"],"cup-soda":["bebida","agua","hidratacao"],"activity":["funcional","atividade","cardio"],"gauge":["performance","medidor"],"route":["esteira","corrida","percurso"]};
+
+	var iconLibraryPromise = null;
+
+	function loadIconLibrary() {
+		if (!iconLibraryPromise) {
+			var url =
+				(window.contornoAdminFields && window.contornoAdminFields.iconLibraryUrl) || '';
+
+			iconLibraryPromise = url
+				? fetch(url)
+						.then(function (response) {
+							return response.ok ? response.json() : [];
+						})
+						.catch(function () {
+							return [];
+						})
+				: Promise.resolve([]);
+		}
+
+		return iconLibraryPromise;
+	}
+
+	function normalizeIconTerm(value) {
+		return String(value || '')
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[̀-ͯ]/g, '')
+			.trim();
+	}
+
+	// A busca tambem casa pelos aliases em portugues: "chuveiro" encontra
+	// tanto o icone chamado literalmente "chuveiro" (se existir) quanto
+	// "shower-head" (via o dicionario acima).
+	function expandIconQuery(query) {
+		var terms = [query];
+
+		Object.keys(ICON_PT_ALIASES).forEach(function (key) {
+			var aliases = ICON_PT_ALIASES[key];
+
+			for (var i = 0; i < aliases.length; i++) {
+				if (normalizeIconTerm(aliases[i]).indexOf(query) !== -1) {
+					terms.push(key);
+					terms.push(key.replace(/-/g, ' '));
+					break;
+				}
+			}
+		});
+
+		return terms;
+	}
+
+	function searchIconLibrary(library, query) {
+		var normalized = normalizeIconTerm(query);
+
+		if ('' === normalized) {
+			return [];
+		}
+
+		var terms = expandIconQuery(normalized);
+		var results = [];
+
+		for (var i = 0; i < library.length && results.length < 60; i++) {
+			var icon = library[i];
+			var haystack = normalizeIconTerm(
+				icon.k + ' ' + icon.l + ' ' + (icon.t || []).join(' ')
+			);
+
+			for (var t = 0; t < terms.length; t++) {
+				if (haystack.indexOf(terms[t]) !== -1) {
+					results.push(icon);
+					break;
+				}
+			}
+		}
+
+		return results;
+	}
+
+	function iconSvgMarkup(inner, classes) {
+		return (
+			'<svg class="' +
+			classes +
+			'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" ' +
+			'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+			inner +
+			'</svg>'
+		);
+	}
+
 	function bindIconPickers(scope) {
 		var pickers = scope.querySelectorAll('[data-contorno-icon-picker]');
 
 		Array.prototype.forEach.call(pickers, function (picker) {
-			var toggle = picker.querySelector('[data-contorno-icon-toggle]');
-			var grid = picker.querySelector('.contorno-icon-picker__grid');
-			var preview = picker.querySelector('[data-contorno-icon-preview]');
-
-			if (!toggle || !grid) {
+			if (picker.dataset.contornoIconReady === '1') {
 				return;
 			}
+			picker.dataset.contornoIconReady = '1';
 
-			toggle.addEventListener('click', function () {
-				var open = grid.hidden;
-				grid.hidden = !open;
-				toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-			});
+			var iconValue = picker.querySelector('[data-contorno-icon-value]');
+			var typeValue = picker.querySelector('[data-contorno-icon-type-value]');
+			var toggle = picker.querySelector('[data-contorno-icon-toggle]');
+			var popover = picker.querySelector('[data-contorno-icon-popover]');
+			var search = picker.querySelector('[data-contorno-icon-search]');
+			var results = picker.querySelector('[data-contorno-icon-results]');
+			var preview = picker.querySelector('[data-contorno-icon-preview]');
+			var currentName = picker.querySelector('[data-contorno-icon-current-name]');
+			var tabs = picker.querySelectorAll('[data-contorno-icon-tab]');
+			var iconPanel = picker.querySelector('[data-contorno-icon-panel]');
+			var imagePanel = picker.querySelector('[data-contorno-icon-image-panel]');
 
-			grid.addEventListener('change', function (event) {
-				var input = event.target;
-
-				if (!input || input.type !== 'radio') {
-					return;
+			function setTab(which) {
+				if (typeValue) {
+					typeValue.value = which;
 				}
 
-				var svg = input.parentNode.querySelector('svg');
+				Array.prototype.forEach.call(tabs, function (tab) {
+					tab.classList.toggle(
+						'is-active',
+						tab.getAttribute('data-contorno-icon-tab') === which
+					);
+				});
 
-				if (svg && preview) {
-					preview.innerHTML = svg.outerHTML;
+				if (iconPanel) {
+					iconPanel.hidden = 'icon' !== which;
 				}
+				if (imagePanel) {
+					imagePanel.hidden = 'image' !== which;
+				}
+			}
 
-				grid.hidden = true;
-				toggle.setAttribute('aria-expanded', 'false');
+			Array.prototype.forEach.call(tabs, function (tab) {
+				tab.addEventListener('click', function (event) {
+					event.preventDefault();
+					setTab(tab.getAttribute('data-contorno-icon-tab'));
+				});
 			});
 
-			document.addEventListener('click', function (event) {
-				if (!picker.contains(event.target)) {
-					grid.hidden = true;
-					toggle.setAttribute('aria-expanded', 'false');
-				}
-			});
+			if (toggle && popover) {
+				toggle.addEventListener('click', function (event) {
+					event.preventDefault();
+
+					var willOpen = popover.hidden;
+					popover.hidden = !willOpen;
+					toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+
+					if (willOpen && search) {
+						search.focus();
+					}
+				});
+
+				document.addEventListener('click', function (event) {
+					if (!picker.contains(event.target)) {
+						popover.hidden = true;
+						toggle.setAttribute('aria-expanded', 'false');
+					}
+				});
+			}
+
+			if (search && results) {
+				search.addEventListener('input', function () {
+					var query = search.value;
+
+					if ('' === normalizeIconTerm(query)) {
+						results.innerHTML =
+							'<p class="description">Digite para buscar.</p>';
+						return;
+					}
+
+					loadIconLibrary().then(function (library) {
+						var matches = searchIconLibrary(library, query);
+
+						if (!matches.length) {
+							results.innerHTML =
+								'<p class="description">Nada encontrado.</p>';
+							return;
+						}
+
+						results.innerHTML = matches
+							.map(function (icon) {
+								return (
+									'<button type="button" class="contorno-icon-picker__result" data-icon-key="' +
+									icon.k +
+									'" title="' +
+									icon.l +
+									'">' +
+									iconSvgMarkup(icon.s, 'contorno-icon-picker__result-svg') +
+									'</button>'
+								);
+							})
+							.join('');
+					});
+				});
+
+				results.addEventListener('click', function (event) {
+					var button = event.target.closest('[data-icon-key]');
+
+					if (!button) {
+						return;
+					}
+
+					event.preventDefault();
+
+					var key = button.getAttribute('data-icon-key');
+
+					if (iconValue) {
+						iconValue.value = key;
+					}
+					if (currentName) {
+						currentName.textContent = key;
+					}
+					if (preview) {
+						var svg = button.querySelector('svg');
+						preview.innerHTML = svg ? svg.outerHTML : '';
+					}
+
+					if (popover) {
+						popover.hidden = true;
+					}
+					if (toggle) {
+						toggle.setAttribute('aria-expanded', 'false');
+					}
+				});
+			}
 		});
 	}
 

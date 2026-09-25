@@ -52,6 +52,7 @@ $contorno_core_modules = array(
 	'includes/meta/registry.php',
 	'includes/meta/fields.php',
 	'includes/meta/metaboxes.php',
+	'includes/attributes/icon-library.php',
 	'includes/attributes/catalog.php',
 	'includes/attributes/migrate.php',
 	'includes/data/evo.php',

@@ -76,7 +76,23 @@ function contorno_attribute_type_for_field( string $field ): string {
  * @return string[]
  */
 function contorno_attribute_icon_choices(): array {
-	return array_keys( contorno_icon_paths() );
+	static $choices = null;
+
+	if ( null !== $choices ) {
+		return $choices;
+	}
+
+	// Allowlist real: chaves legadas + biblioteca ampliada (Lucide, local).
+	$choices = array_values(
+		array_unique(
+			array_merge(
+				array_keys( contorno_icon_paths() ),
+				array_keys( contorno_icon_library_paths() )
+			)
+		)
+	);
+
+	return $choices;
 }
 
 /**
@@ -179,7 +195,7 @@ function contorno_attribute_save_catalog( array $items ): bool {
  *
  * @param array<string,mixed> $item
  *
- * @return array{key:string,type:string,label:string,icon:string,order:int,active:bool,aliases:string[]}
+ * @return array{key:string,type:string,label:string,icon:string,icon_type:string,image_id:int,order:int,active:bool,aliases:string[]}
  */
 function contorno_attribute_sanitize_item( array $item ): array {
 	$types = contorno_attribute_types();
@@ -197,6 +213,23 @@ function contorno_attribute_sanitize_item( array $item ): array {
 	$choices = contorno_attribute_icon_choices();
 	$icon    = in_array( $icon, $choices, true ) ? $icon : 'sparkles';
 
+	/*
+	 * Imagem personalizada: SUBSTITUI o icone no frontend quando valida.
+	 * Nunca confia no ID vindo do POST — so aceita se o attachment existe
+	 * de verdade e e uma imagem (mesma regra da galeria de unidade).
+	 */
+	$icon_type = sanitize_key( (string) ( $item['icon_type'] ?? 'icon' ) );
+	$icon_type = 'image' === $icon_type ? 'image' : 'icon';
+
+	$image_id = absint( $item['image_id'] ?? 0 );
+	if ( $image_id > 0 && ( 'attachment' !== get_post_type( $image_id ) || ! wp_attachment_is_image( $image_id ) ) ) {
+		$image_id = 0;
+	}
+
+	if ( 'image' === $icon_type && 0 === $image_id ) {
+		$icon_type = 'icon';
+	}
+
 	$aliases = array();
 	foreach ( (array) ( $item['aliases'] ?? array() ) as $alias ) {
 		$alias = sanitize_text_field( (string) $alias );
@@ -206,13 +239,15 @@ function contorno_attribute_sanitize_item( array $item ): array {
 	}
 
 	return array(
-		'key'     => $key,
-		'type'    => $type,
-		'label'   => $label,
-		'icon'    => $icon,
-		'order'   => (int) ( $item['order'] ?? 0 ),
-		'active'  => ! empty( $item['active'] ),
-		'aliases' => array_values( array_unique( $aliases ) ),
+		'key'       => $key,
+		'type'      => $type,
+		'label'     => $label,
+		'icon'      => $icon,
+		'icon_type' => $icon_type,
+		'image_id'  => $image_id,
+		'order'     => (int) ( $item['order'] ?? 0 ),
+		'active'    => ! empty( $item['active'] ),
+		'aliases'   => array_values( array_unique( $aliases ) ),
 	);
 }
 
@@ -344,11 +379,13 @@ function contorno_unit_attribute_items( string $field, ?int $post_id = null ): a
 		}
 
 		$items[] = array(
-			'key'    => (string) $attribute['key'],
-			'label'  => (string) $attribute['label'],
-			'icon'   => (string) $attribute['icon'],
-			'known'  => true,
-			'active' => (bool) $attribute['active'],
+			'key'       => (string) $attribute['key'],
+			'label'     => (string) $attribute['label'],
+			'icon'      => (string) $attribute['icon'],
+			'icon_type' => (string) ( $attribute['icon_type'] ?? 'icon' ),
+			'image_id'  => (int) ( $attribute['image_id'] ?? 0 ),
+			'known'     => true,
+			'active'    => (bool) $attribute['active'],
 		);
 	}
 

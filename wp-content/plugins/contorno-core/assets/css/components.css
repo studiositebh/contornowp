@@ -7,6 +7,21 @@
  */
 
 /* ====================================================================
+ * Icone de atributo com imagem personalizada
+ *
+ * O tamanho vem da MESMA classe contextual do svg que ela substitui
+ * (unit-hero__feature-icon, unit-highlight-card__icon, contorno-icon —
+ * width/height ja definidos abaixo, nesta mesma folha, pra cada contexto);
+ * aqui so garantimos que a imagem nunca deforma nem vira banner.
+ * ================================================================== */
+
+.contorno-icon--image {
+	display: inline-block;
+	object-fit: contain;
+	flex: none;
+}
+
+/* ====================================================================
  * Busca de unidades
  * ================================================================== */
 
@@ -1074,7 +1089,8 @@
 	cursor: default;
 }
 
-.contorno-differentials__item svg {
+.contorno-differentials__item svg,
+.contorno-differentials__item img {
 	width: 1.5rem;
 	height: 1.5rem;
 	color: var(--brand, #10b8b1);
@@ -1603,7 +1619,8 @@
 	line-height: 0;
 }
 
-.unit-page .unit-results-section .contorno-differentials__item svg {
+.unit-page .unit-results-section .contorno-differentials__item svg,
+.unit-page .unit-results-section .contorno-differentials__item img {
 	width: 100%;
 	height: 100%;
 }
