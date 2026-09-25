@@ -51,6 +51,10 @@ foreach (
 		'includes/class-client.php',
 		'includes/class-mapping.php',
 		'includes/class-sync.php',
+		'includes/class-gateway.php',
+		'includes/class-activities.php',
+		'includes/class-checkout.php',
+		'includes/class-checkout-rest.php',
 		'includes/class-frontend.php',
 		'includes/class-cron.php',
 		'includes/class-admin.php',
@@ -81,9 +85,78 @@ add_action(
 		Contorno_Evo_Frontend::boot();
 		Contorno_Evo_Cron::boot();
 		Contorno_Evo_Admin::boot();
+		Contorno_Evo_Checkout_Rest::boot();
 	},
 	20
 );
+
+/**
+ * O checkout nativo esta ligado para esta unidade?
+ *
+ * Unica porta que o contorno-core (apresentacao) usa para saber se deve
+ * desenhar as etapas nativas ou manter o redirecionamento atual para a EVO.
+ * E uma FUNCAO, e nao uma classe, porque o core precisa poder perguntar sem
+ * saber se este plugin existe:
+ *
+ *   if ( function_exists( 'contorno_evo_native_checkout_enabled' ) && ... )
+ *
+ * Plugin desativado = pergunta nem chega a ser feita = comportamento atual.
+ * Nao existe caminho em que a ausencia deste plugin quebre /matricula/.
+ */
+function contorno_evo_native_checkout_enabled( string $slug ): bool {
+	return Contorno_Evo_Settings::checkout_enabled_for( $slug );
+}
+
+/**
+ * Comprovante da matricula, para a pagina de confirmacao.
+ *
+ * Recebe o token opaco que veio em ?ck= e devolve SO o que pode aparecer na
+ * tela: unidade, plano e o numero da operacao. Nome, e-mail, CPF, idProspect
+ * e idMember nao saem daqui — nem para a propria pessoa, porque a pagina de
+ * confirmacao e acessivel a quem tiver o link.
+ *
+ * Token invalido, expirado ou de venda nao concluida devolve array vazio, e a
+ * pagina de confirmacao simplesmente nao mostra o bloco.
+ *
+ * @return array<string,string>
+ */
+function contorno_evo_checkout_receipt( string $token ): array {
+	$state = Contorno_Evo_Checkout::load( $token );
+
+	if ( null === $state || 'success' !== ( $state['status'] ?? '' ) ) {
+		return array();
+	}
+
+	$post = get_post( (int) $state['post_id'] );
+
+	return array(
+		'unit'  => $post instanceof WP_Post ? (string) get_the_title( $post ) : '',
+		'plan'  => (string) ( $state['quote']['name'] ?? '' ),
+		// idSale e o numero da propria venda de quem esta lendo: e o que o
+		// atendimento pede quando a pessoa liga. Nao identifica terceiros.
+		'order' => (int) ( $state['id_sale'] ?? 0 ) > 0 ? (string) $state['id_sale'] : '',
+	);
+}
+
+/**
+ * Nonce e rotas que o formulario nativo precisa. Nunca DNS nem token.
+ *
+ * @return array<string,mixed>
+ */
+function contorno_evo_checkout_boot_data(): array {
+	return array(
+		'nonce'           => wp_create_nonce( Contorno_Evo_Checkout_Rest::NONCE ),
+		// Quem manda no conjunto de etapas e a configuracao da integracao, nao
+		// o plugin de apresentacao: e a EVO que diria que precisa de endereco.
+		'requiresAddress' => (bool) Contorno_Evo_Settings::get( 'checkout_require_address', false ),
+		'routes'          => array(
+			'open'     => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/open' ),
+			'identify' => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/identify' ),
+			'pay'      => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/pay' ),
+			'status'   => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/status' ),
+		),
+	);
+}
 
 register_activation_hook(
 	__FILE__,

@@ -156,6 +156,23 @@ contorno_add_shortcode(
 
 		$checkout = $plan ? contorno_plan_checkout_url( $plan, $unit instanceof WP_Post ? $unit->ID : null ) : '';
 
+		$fallback_url = '' !== $checkout
+			? $checkout
+			: (string) ( get_page_by_path( 'matricula/confirmacao' ) instanceof WP_Post
+				? get_permalink( get_page_by_path( 'matricula/confirmacao' ) )
+				: home_url( '/matricula/confirmacao/' ) );
+
+		/*
+		 * Checkout nativo: mesma pagina, mesma selecao, etapas dentro do site.
+		 *
+		 * Desligado (o padrao) cai no markup de sempre, logo abaixo — nada do
+		 * fluxo atual foi removido, e o checkout externo continua sendo o
+		 * destino. Ver includes/shortcodes/enrollment-native.php.
+		 */
+		if ( $plan && contorno_native_checkout_active( $unit ) ) {
+			return contorno_enrollment_native_markup( $unit, $plan, $fallback_url, $back_url );
+		}
+
 		$benefits = '' !== trim( (string) $a['benefits'] )
 			? contorno_decode_param_group( (string) $a['benefits'] )
 			: array(
@@ -393,8 +410,49 @@ contorno_add_shortcode(
 
 		contorno_enqueue_component( 'unit-search' );
 
+		/*
+		 * Comprovante do checkout nativo.
+		 *
+		 * ?ck= carrega apenas o token opaco da sessao; unidade, plano e numero
+		 * da venda sao lidos no SERVIDOR a partir dele. Nada disso trafega na
+		 * URL, e o bloco simplesmente nao aparece quando o token nao existe
+		 * mais (inclusive no fluxo antigo, que nao tem token nenhum).
+		 */
+		$receipt = array();
+
+		if ( isset( $_GET['ck'] ) && function_exists( 'contorno_evo_checkout_receipt' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$receipt = contorno_evo_checkout_receipt( sanitize_text_field( wp_unslash( (string) $_GET['ck'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
 		ob_start();
 		?>
+		<?php if ( array() !== $receipt ) : ?>
+			<section class="contorno-confirm-receipt">
+				<div class="site-container">
+					<dl class="contorno-confirm-receipt__list">
+						<?php if ( '' !== $receipt['unit'] ) : ?>
+							<div>
+								<dt><?php esc_html_e( 'Unidade', 'contorno' ); ?></dt>
+								<dd><?php echo esc_html( $receipt['unit'] ); ?></dd>
+							</div>
+						<?php endif; ?>
+						<?php if ( '' !== $receipt['plan'] ) : ?>
+							<div>
+								<dt><?php esc_html_e( 'Plano', 'contorno' ); ?></dt>
+								<dd><?php echo esc_html( $receipt['plan'] ); ?></dd>
+							</div>
+						<?php endif; ?>
+						<?php if ( '' !== $receipt['order'] ) : ?>
+							<div>
+								<dt><?php esc_html_e( 'Número da matrícula', 'contorno' ); ?></dt>
+								<dd><?php echo esc_html( $receipt['order'] ); ?></dd>
+							</div>
+						<?php endif; ?>
+					</dl>
+				</div>
+			</section>
+		<?php endif; ?>
+
 		<section class="contorno-confirm-hero">
 			<div class="site-container contorno-confirm-hero__grid">
 				<div class="motion-reveal" data-contorno-reveal>

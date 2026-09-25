@@ -3591,3 +3591,360 @@
 	border-color: var(--brand, #10b8b1);
 	color: #fff;
 }
+
+/* ============================================================
+ * Checkout nativo (/matricula/ com etapas)
+ *
+ * Reaproveita .contorno-field-row, .contorno-input, .contorno-btn e os
+ * tokens do tema — aqui entra somente o que é específico do checkout:
+ * trilha de etapas, grade de duas colunas com resumo fixo, estados.
+ *
+ * Mobile-first: uma coluna, resumo ANTES do formulário (a pessoa precisa
+ * ver o que está comprando antes de digitar). A partir de 960px o resumo
+ * vira coluna lateral e acompanha a rolagem.
+ * ========================================================== */
+
+.contorno-ck__shell {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8, 2rem);
+}
+
+/* ---- trilha de etapas ---- */
+
+.contorno-ck__progress {
+	margin: 0 0 var(--space-3, 0.75rem);
+	font-size: var(--text-sm, 0.875rem);
+	font-weight: 600;
+	color: var(--brand, #10b8b1);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.contorno-ck__steps-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3, 0.75rem) var(--space-5, 1.25rem);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.contorno-ck__step {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: var(--text-sm, 0.875rem);
+	color: var(--muted-foreground, #949398);
+}
+
+.contorno-ck__step-badge {
+	display: grid;
+	place-items: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border: 1px solid var(--border, #e6e8ea);
+	border-radius: var(--radius-full, 999px);
+	background: #fff;
+	font-size: var(--text-xs, 0.75rem);
+	font-weight: 700;
+	transition: background var(--motion-hover, 0.2s) var(--motion-ease, ease);
+}
+
+.contorno-ck__step.is-current {
+	color: var(--foreground, #000);
+	font-weight: 600;
+}
+
+.contorno-ck__step.is-current .contorno-ck__step-badge {
+	border-color: var(--brand, #10b8b1);
+	background: var(--brand, #10b8b1);
+	color: #fff;
+}
+
+.contorno-ck__step.is-done .contorno-ck__step-badge {
+	border-color: var(--brand, #10b8b1);
+	color: var(--brand, #10b8b1);
+}
+
+/* Em telefone a lista de 5 etapas ocuparia três linhas; o contador
+   "Etapa X de Y" já dá a informação, então só a etapa atual fica. */
+@media (max-width: 599px) {
+	.contorno-ck__step:not(.is-current) {
+		display: none;
+	}
+}
+
+/* ---- grade ---- */
+
+.contorno-ck__grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--space-6, 1.5rem);
+}
+
+.contorno-ck__summary {
+	order: -1;
+}
+
+@media (min-width: 960px) {
+	.contorno-ck__grid {
+		grid-template-columns: minmax(0, 1fr) 20rem;
+		align-items: start;
+		gap: var(--space-8, 2rem);
+	}
+
+	.contorno-ck__summary {
+		order: 0;
+		position: sticky;
+		top: var(--space-8, 2rem);
+	}
+}
+
+/* ---- painéis ---- */
+
+.contorno-ck__main,
+.contorno-ck__summary {
+	padding: var(--space-6, 1.5rem);
+	border: 1px solid var(--border, #e6e8ea);
+	border-radius: var(--radius-2xl, 20px);
+	background: var(--card, #fff);
+}
+
+.contorno-ck__title {
+	margin: 0 0 0.5rem;
+	font-size: var(--text-3xl, 1.75rem);
+	line-height: 1.2;
+}
+
+.contorno-ck__lead {
+	margin: 0 0 var(--space-6, 1.5rem);
+	color: var(--muted-foreground, #949398);
+}
+
+.contorno-ck__fields {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--space-4, 1rem);
+}
+
+@media (min-width: 600px) {
+	.contorno-ck__fields {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.contorno-ck__fields .contorno-field-row.is-wide {
+		grid-column: 1 / -1;
+	}
+}
+
+.contorno-field-help {
+	margin: 0;
+	font-size: var(--text-xs, 0.75rem);
+	color: var(--muted-foreground, #949398);
+}
+
+.contorno-ck__terms {
+	display: flex;
+	gap: 0.6rem;
+	margin-top: var(--space-5, 1.25rem);
+	font-size: var(--text-sm, 0.875rem);
+	line-height: 1.5;
+}
+
+.contorno-ck__terms input {
+	flex: none;
+	margin-top: 0.2rem;
+}
+
+.contorno-ck__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3, 0.75rem);
+	margin-top: var(--space-6, 1.5rem);
+}
+
+/* O botão que fecha a venda é o alvo principal da tela: em telefone ele
+   ocupa a largura toda para não competir com "Voltar". */
+@media (max-width: 599px) {
+	.contorno-ck__actions > .contorno-btn {
+		width: 100%;
+		justify-content: center;
+	}
+}
+
+/* ---- avisos e estados ---- */
+
+.contorno-ck__alert {
+	margin: 0 0 var(--space-5, 1.25rem);
+	padding: 0.85rem 1rem;
+	border: 1px solid var(--border, #e6e8ea);
+	border-left-width: 4px;
+	border-radius: var(--radius-md, 12px);
+	font-size: var(--text-sm, 0.875rem);
+}
+
+.contorno-ck__alert.is-error {
+	border-left-color: #b81e52;
+	background: rgb(184 30 82 / 0.06);
+	color: #8d1740;
+}
+
+.contorno-ck__alert.is-warning {
+	border-left-color: #b8761e;
+	background: rgb(184 118 30 / 0.08);
+	color: #7d5013;
+}
+
+.contorno-ck__alert.is-info {
+	border-left-color: var(--brand, #10b8b1);
+	background: rgb(16 184 177 / 0.08);
+}
+
+.contorno-ck__loading {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	color: var(--muted-foreground, #949398);
+	font-size: var(--text-sm, 0.875rem);
+}
+
+.contorno-ck__spinner {
+	display: inline-block;
+	width: 1.1rem;
+	height: 1.1rem;
+	border: 2px solid var(--border, #e6e8ea);
+	border-top-color: var(--brand, #10b8b1);
+	border-radius: var(--radius-full, 999px);
+	animation: contorno-ck-spin 0.7s linear infinite;
+}
+
+@keyframes contorno-ck-spin {
+	to { transform: rotate(360deg); }
+}
+
+/* Respeita quem pediu menos movimento: o spinner passa a piscar suave. */
+@media (prefers-reduced-motion: reduce) {
+	.contorno-ck__spinner {
+		animation: contorno-ck-pulse 1.6s ease-in-out infinite;
+	}
+
+	@keyframes contorno-ck-pulse {
+		50% { opacity: 0.35; }
+	}
+}
+
+.contorno-ck__pay[disabled] {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+/* ---- cartão ---- */
+
+.contorno-ck__secure {
+	display: flex;
+	gap: 0.6rem;
+	margin: 0 0 var(--space-5, 1.25rem);
+	font-size: var(--text-sm, 0.875rem);
+	color: var(--muted-foreground, #949398);
+}
+
+.contorno-ck__secure-icon {
+	flex: none;
+	width: 1.1rem;
+	height: 1.1rem;
+	color: var(--brand, #10b8b1);
+}
+
+.contorno-ck__card {
+	min-height: 8rem;
+	padding: var(--space-4, 1rem);
+	border: 1px dashed var(--border, #e6e8ea);
+	border-radius: var(--radius-xl, 16px);
+	background: #fff;
+}
+
+.contorno-ck__card-empty {
+	margin: 0;
+	font-size: var(--text-sm, 0.875rem);
+	color: var(--muted-foreground, #949398);
+}
+
+/* ---- resumo ---- */
+
+.contorno-ck__summary-title {
+	margin: 0 0 var(--space-4, 1rem);
+	font-size: var(--text-lg, 1.125rem);
+}
+
+.contorno-ck__summary-list {
+	display: grid;
+	gap: var(--space-3, 0.75rem);
+	margin: 0;
+}
+
+.contorno-ck__summary-list > div {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--space-4, 1rem);
+	padding-bottom: var(--space-3, 0.75rem);
+	border-bottom: 1px solid var(--border, #e6e8ea);
+}
+
+.contorno-ck__summary-list > div:last-child {
+	padding-bottom: 0;
+	border-bottom: 0;
+}
+
+.contorno-ck__summary-list dt {
+	font-size: var(--text-sm, 0.875rem);
+	color: var(--muted-foreground, #949398);
+}
+
+.contorno-ck__summary-list dd {
+	margin: 0;
+	font-size: var(--text-sm, 0.875rem);
+	font-weight: 600;
+	text-align: right;
+}
+
+.contorno-ck__summary-list [data-ck-sum="firstValue"] {
+	font-size: var(--text-lg, 1.125rem);
+	color: var(--brand, #10b8b1);
+}
+
+.contorno-ck__summary-note,
+.contorno-ck__noscript {
+	margin: var(--space-4, 1rem) 0 0;
+	font-size: var(--text-xs, 0.75rem);
+	color: var(--muted-foreground, #949398);
+}
+
+/* Comprovante na /matricula/confirmacao/ — só aparece no checkout nativo. */
+.contorno-confirm-receipt {
+	padding-top: var(--space-8, 2rem);
+}
+
+.contorno-confirm-receipt__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-5, 1.25rem) var(--space-10, 2.5rem);
+	margin: 0;
+	padding: var(--space-5, 1.25rem);
+	border: 1px solid var(--border, #e6e8ea);
+	border-radius: var(--radius-xl, 16px);
+	background: var(--card, #fff);
+}
+
+.contorno-confirm-receipt__list dt {
+	font-size: var(--text-xs, 0.75rem);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--muted-foreground, #949398);
+}
+
+.contorno-confirm-receipt__list dd {
+	margin: 0.2rem 0 0;
+	font-size: var(--text-base, 1rem);
+	font-weight: 600;
+}

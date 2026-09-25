@@ -19,6 +19,7 @@ require_once CONTORNO_CORE_DIR . 'includes/shortcodes/home-promos.php';
 require_once CONTORNO_CORE_DIR . 'includes/shortcodes/units.php';
 require_once CONTORNO_CORE_DIR . 'includes/shortcodes/ctn.php';
 require_once CONTORNO_CORE_DIR . 'includes/shortcodes/enrollment.php';
+require_once CONTORNO_CORE_DIR . 'includes/shortcodes/enrollment-native.php';
 require_once CONTORNO_CORE_DIR . 'includes/shortcodes/contact.php';
 require_once CONTORNO_CORE_DIR . 'includes/shortcodes/blog.php';
 

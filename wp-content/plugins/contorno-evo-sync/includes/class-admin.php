@@ -94,6 +94,13 @@ final class Contorno_Evo_Admin {
 				'add_new_plans'    => isset( $_POST['add_new_plans'] ),
 				'hide_inactive'    => isset( $_POST['hide_inactive'] ),
 				'fetch_mode'       => sanitize_key( (string) ( $_POST['fetch_mode'] ?? 'auto' ) ),
+
+				'checkout_mode'            => sanitize_key( (string) ( $_POST['checkout_mode'] ?? 'off' ) ),
+				'checkout_allowlist'       => wp_unslash( (string) ( $_POST['checkout_allowlist'] ?? '' ) ),
+				'checkout_payment_card'    => (int) ( $_POST['checkout_payment_card'] ?? 0 ),
+				'checkout_codes_confirmed' => isset( $_POST['checkout_codes_confirmed'] ),
+				'checkout_evopay_script'   => wp_unslash( (string) ( $_POST['checkout_evopay_script'] ?? '' ) ),
+				'checkout_require_address' => isset( $_POST['checkout_require_address'] ),
 			)
 		);
 
@@ -392,6 +399,70 @@ final class Contorno_Evo_Admin {
 						</td>
 					</tr>
 				</table>
+
+				<h2><?php esc_html_e( 'Checkout nativo (matrícula dentro do site)', 'contorno-evo' ); ?></h2>
+				<?php $blockers = Contorno_Evo_Settings::checkout_blockers(); ?>
+				<?php if ( array() !== $blockers ) : ?>
+					<div class="notice notice-warning inline">
+						<p><strong><?php esc_html_e( 'O checkout nativo não pode ser ligado ainda:', 'contorno-evo' ); ?></strong></p>
+						<ul style="list-style:disc;margin-left:1.5em">
+							<?php foreach ( $blockers as $blocker ) : ?>
+								<li><?php echo esc_html( $blocker ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+						<p><?php esc_html_e( 'Enquanto isso, /matricula/ continua levando ao checkout da EVO, como hoje.', 'contorno-evo' ); ?></p>
+					</div>
+				<?php endif; ?>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="contorno-evo-ck-mode"><?php esc_html_e( 'Modo', 'contorno-evo' ); ?></label></th>
+						<td>
+							<select id="contorno-evo-ck-mode" name="checkout_mode">
+								<option value="off" <?php selected( $settings['checkout_mode'], 'off' ); ?>><?php esc_html_e( 'OFF — redireciona para o checkout da EVO (comportamento atual)', 'contorno-evo' ); ?></option>
+								<option value="pilot" <?php selected( $settings['checkout_mode'], 'pilot' ); ?>><?php esc_html_e( 'PILOT — somente as unidades listadas abaixo', 'contorno-evo' ); ?></option>
+								<option value="on" <?php selected( $settings['checkout_mode'], 'on' ); ?>><?php esc_html_e( 'ON — todas as unidades vinculadas a uma filial', 'contorno-evo' ); ?></option>
+							</select>
+							<p class="description"><?php esc_html_e( 'Antes de sair de OFF: atualize a Política de Privacidade, que hoje afirma que /matricula/ não repassa dados. Com o checkout nativo os dados vão para a EVO.', 'contorno-evo' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="contorno-evo-ck-allow"><?php esc_html_e( 'Unidades do piloto', 'contorno-evo' ); ?></label></th>
+						<td>
+							<input type="text" class="regular-text" id="contorno-evo-ck-allow" name="checkout_allowlist" value="<?php echo esc_attr( implode( ', ', (array) $settings['checkout_allowlist'] ) ); ?>" />
+							<p class="description"><?php esc_html_e( 'Slugs separados por vírgula. Unidade fora da lista usa o checkout da EVO, sem erro para o visitante.', 'contorno-evo' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="contorno-evo-ck-pay"><?php esc_html_e( 'Código de pagamento — cartão', 'contorno-evo' ); ?></label></th>
+						<td>
+							<select id="contorno-evo-ck-pay" name="checkout_payment_card">
+								<option value="0" <?php selected( (int) $settings['checkout_payment_card'], 0 ); ?>><?php esc_html_e( '— não confirmado —', 'contorno-evo' ); ?></option>
+								<?php foreach ( Contorno_Evo_Settings::PAYMENT_CODES as $code ) : ?>
+									<option value="<?php echo esc_attr( (string) $code ); ?>" <?php selected( (int) $settings['checkout_payment_card'], $code ); ?>><?php echo esc_html( (string) $code ); ?></option>
+								<?php endforeach; ?>
+							</select>
+							<p class="description">
+								<?php esc_html_e( 'Campo `payment` de POST /api/v2/sales (enum EFormaPagamentoTotem). A especificação pública da EVO lista os valores válidos [1,2,3,4,5,6,7,13,14,15,16,17] mas NÃO diz o que cada número significa — a única tabela nomeada do swagger pertence a outro enum (filtro de /api/v1/receivables). Confirme com a EVO antes de vender.', 'contorno-evo' ); ?>
+							</p>
+							<label><input type="checkbox" name="checkout_codes_confirmed" value="1" <?php checked( (bool) $settings['checkout_codes_confirmed'] ); ?> /> <?php esc_html_e( 'Conferi este código contra a EVO real (sem isto, PILOT e ON não liberam o pagamento nativo)', 'contorno-evo' ); ?></label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="contorno-evo-ck-script"><?php esc_html_e( 'Componente EVO Pay', 'contorno-evo' ); ?></label></th>
+						<td>
+							<input type="url" class="large-text code" id="contorno-evo-ck-script" name="checkout_evopay_script" value="<?php echo esc_attr( (string) $settings['checkout_evopay_script'] ); ?>" placeholder="https://..." />
+							<p class="description"><?php esc_html_e( 'URL do script que renderiza <evo-cartao> e devolve o token. Só hosts da EVO são aceitos. Não consta da especificação pública — peça na homologação.', 'contorno-evo' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Endereço', 'contorno-evo' ); ?></th>
+						<td>
+							<label><input type="checkbox" name="checkout_require_address" value="1" <?php checked( (bool) Contorno_Evo_Settings::get( 'checkout_require_address', false ) ); ?> /> <?php esc_html_e( 'Pedir CEP e endereço no checkout', 'contorno-evo' ); ?></label>
+							<p class="description"><?php esc_html_e( 'Desligado por padrão: na especificação da EVO todo campo de endereço é opcional, tanto no prospect quanto na venda, e não há rota de leitura das regras de venda da filial. Ligue apenas se a EVO recusar a venda pedindo endereço.', 'contorno-evo' ); ?></p>
+						</td>
+					</tr>
+				</table>
+
 				<p class="submit">
 					<button type="submit" class="button button-primary"><?php esc_html_e( 'Salvar configurações', 'contorno-evo' ); ?></button>
 				</p>
