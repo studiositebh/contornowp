@@ -22,6 +22,8 @@
 		var dots = Array.prototype.slice.call(
 			root.querySelectorAll('[data-contorno-slider-dot]')
 		);
+		var prevButton = root.querySelector('[data-contorno-slider-prev]');
+		var nextButton = root.querySelector('[data-contorno-slider-next]');
 
 		if (slides.length < 2) {
 			return;
@@ -69,6 +71,20 @@
 				start();
 			});
 		});
+
+		if (prevButton) {
+			prevButton.addEventListener('click', function () {
+				goTo(index - 1);
+				start();
+			});
+		}
+
+		if (nextButton) {
+			nextButton.addEventListener('click', function () {
+				goTo(index + 1);
+				start();
+			});
+		}
 
 		if (pauseOnHover) {
 			root.addEventListener('mouseenter', stop);

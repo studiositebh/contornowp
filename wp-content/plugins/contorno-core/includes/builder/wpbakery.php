@@ -414,9 +414,10 @@ add_action(
 		/* ---------------------------------------------------------------
 		 * CONTORNO — Slider
 		 *
-		 * Um unico param: qual slider (cadastrado em Contorno > Slider
-		 * Contorno) renderizar aqui. Os slides em si NUNCA sao configurados
-		 * pelo WPBakery — isto so escolhe o id. Sendo um dropdown de verdade
+		 * Slides NUNCA sao configurados pelo WPBakery — so o id do slider
+		 * (cadastrado em Contorno > Slider Contorno) e, opcionalmente, a
+		 * busca de unidades sobreposta na base do banner (like o Hero
+		 * antigo tinha). Sendo um dropdown de verdade como primeiro param
 		 * (nao um param vazio), tambem evita o bug do round anterior onde
 		 * 'params' => array() literal quebrava o modal de edicao do
 		 * WPBakery ("Cannot read properties of null (reading 'get')" no
@@ -429,7 +430,16 @@ add_action(
 				'category'    => CONTORNO_VC_CATEGORY,
 				'icon'        => 'contorno-vc-icon',
 				'description' => __( 'Banners rotativos simples, sem escurecimento nem texto sobreposto. Escolha o slider cadastrado em Contorno > Slider Contorno.', 'contorno' ),
-				'params'      => array( contorno_vc_slider_picker() ),
+				'params'      => array(
+					contorno_vc_slider_picker(),
+					contorno_vc_toggle( 'show_search', __( 'Sobrepor busca de unidades', 'contorno' ), false, __( 'Busca', 'contorno' ) ),
+					contorno_vc_text(
+						'search_title',
+						__( 'Título do cartão de busca', 'contorno' ),
+						__( 'Busca', 'contorno' ),
+						__( 'Só aparece quando a busca está ativada. Vazio = padrão.', 'contorno' )
+					),
+				),
 			)
 		);
 

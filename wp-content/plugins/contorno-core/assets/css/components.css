@@ -4122,3 +4122,51 @@
 	width: 1.5rem;
 	background: #fff;
 }
+
+/* Setas — so existem quando ha 2+ slides (o proprio PHP nao as renderiza
+   com 1 slide so; nada de escondê-las so por CSS). Funcionam por toque
+   tambem: sao botoes reais, sem :hover exigido para aparecer. */
+
+.contorno-slider__arrow {
+	position: absolute;
+	top: 50%;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-full, 999px);
+	background: rgb(0 0 0 / 0.35);
+	color: #fff;
+	font-size: 1.5rem;
+	line-height: 1;
+	cursor: pointer;
+	transform: translateY(-50%);
+	transition: background-color 200ms var(--motion-ease, ease);
+}
+
+.contorno-slider__arrow:hover,
+.contorno-slider__arrow:focus-visible {
+	background: rgb(0 0 0 / 0.55);
+	outline: 2px solid #fff;
+	outline-offset: 2px;
+}
+
+.contorno-slider__arrow--prev {
+	left: var(--space-3, 0.75rem);
+}
+
+.contorno-slider__arrow--next {
+	right: var(--space-3, 0.75rem);
+}
+
+@media (max-width: 640px) {
+	.contorno-slider__arrow {
+		width: 2.1rem;
+		height: 2.1rem;
+		font-size: 1.25rem;
+	}
+}

@@ -897,6 +897,20 @@ ol {
 }
 
 /*
+ * Mesma ideia do Hero acima, mas para o Slider Contorno: o wrapper (nao o
+ * slider em si, que tem sua propria altura por aspect-ratio, sem depender
+ * de nenhum min-height fixo) e quem deixa o cartao de busca transbordar.
+ * O Slider Contorno funciona identico com ou sem este wrapper — so existe
+ * quando o bloco tem "Sobrepor busca de unidades" ativado.
+ */
+.contorno-banner-slider {
+	position: relative;
+	isolation: isolate;
+	overflow: visible;
+	z-index: 2;
+}
+
+/*
  * Alturas medidas no React (HomeHero): min-h-[700px] / md:min-h-[740px].
  * Nao usar svh aqui: em telas curtas o hero encolhia e a tipografia
  * desalinhava em relacao a versao aprovada.

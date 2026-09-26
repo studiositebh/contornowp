@@ -77,9 +77,31 @@ function contorno_render_slider_slide( array $slide, int $index, int $total, boo
 }
 
 /**
- * @param array<string,mixed> $slider Ja saneado (contorno_slider_get()/contorno_slider_sanitize()).
+ * Cartao de busca sobreposto ao banner — MESMAS classes/CSS que o hero
+ * antigo ja tinha (.contorno-hero__search-outer/__search-card/__search-title
+ * em site.css), so que agora num componente proprio: quem faz a caixa
+ * "flutuar" sobre o banner e o WRAPPER pai (.contorno-banner-slider, aqui
+ * embaixo), nao mais uma altura fixa do hero. Reaproveita o shortcode
+ * [contorno_units_search] que ja existia — busca em si nao foi reescrita.
  */
-function contorno_render_slider_markup( array $slider ): string {
+function contorno_render_slider_search_overlay( string $title ): string {
+	if ( '' === trim( $title ) ) {
+		$title = __( 'Encontre a unidade ideal para você', 'contorno' );
+	}
+
+	return sprintf(
+		'<div class="contorno-hero__search-outer"><div class="site-container"><div class="contorno-hero__search-card" role="search"><p class="contorno-hero__search-title">%s</p>%s</div></div></div>',
+		esc_html( $title ),
+		do_shortcode( '[contorno_units_search target="hero" placeholder="Digite o CEP, bairro ou cidade"]' )
+	);
+}
+
+/**
+ * @param array<string,mixed> $slider       Ja saneado (contorno_slider_get()/contorno_slider_sanitize()).
+ * @param bool                $show_search  Sobrepoe a busca de unidades na base do banner (como o Hero antigo).
+ * @param string              $search_title Titulo do cartao de busca; vazio = padrao.
+ */
+function contorno_render_slider_markup( array $slider, bool $show_search = false, string $search_title = '' ): string {
 	$slides = contorno_slider_active_slides( $slider );
 
 	if ( array() === $slides ) {
@@ -96,22 +118,33 @@ function contorno_render_slider_markup( array $slider ): string {
 		$markup .= contorno_render_slider_slide( $slide, $index, $total, 0 === $index );
 	}
 
-	$dots = '';
-	if ( $total > 1 && ! empty( $settings['show_dots'] ) ) {
-		$dot_buttons = '';
-		for ( $i = 0; $i < $total; $i++ ) {
-			$dot_buttons .= sprintf(
-				'<button type="button" class="contorno-slider__dot%s" data-contorno-slider-dot data-index="%d" aria-label="%s"></button>',
-				0 === $i ? ' is-active' : '',
-				$i,
-				esc_attr( sprintf( /* translators: %d: numero do slide */ __( 'Ir para o slide %d', 'contorno' ), $i + 1 ) )
-			);
+	$controls = '';
+	if ( $total > 1 ) {
+		$controls .= sprintf(
+			'<button type="button" class="contorno-slider__arrow contorno-slider__arrow--prev" data-contorno-slider-prev aria-label="%s">&#8249;</button>',
+			esc_attr__( 'Slide anterior', 'contorno' )
+		);
+		$controls .= sprintf(
+			'<button type="button" class="contorno-slider__arrow contorno-slider__arrow--next" data-contorno-slider-next aria-label="%s">&#8250;</button>',
+			esc_attr__( 'Próximo slide', 'contorno' )
+		);
+
+		if ( ! empty( $settings['show_dots'] ) ) {
+			$dot_buttons = '';
+			for ( $i = 0; $i < $total; $i++ ) {
+				$dot_buttons .= sprintf(
+					'<button type="button" class="contorno-slider__dot%s" data-contorno-slider-dot data-index="%d" aria-label="%s"></button>',
+					0 === $i ? ' is-active' : '',
+					$i,
+					esc_attr( sprintf( /* translators: %d: numero do slide */ __( 'Ir para o slide %d', 'contorno' ), $i + 1 ) )
+				);
+			}
+			$controls .= '<div class="contorno-slider__dots" data-contorno-slider-dots>' . $dot_buttons . '</div>';
 		}
-		$dots = '<div class="contorno-slider__dots" data-contorno-slider-dots>' . $dot_buttons . '</div>';
 	}
 
 	// Velocidade/autoplay/pausa-no-hover via atributos — nada de JS mexendo em estilo.
-	return sprintf(
+	$slider_html = sprintf(
 		'<div class="contorno-slider" data-contorno-slider data-interval="%d" data-autoplay="%s" data-pause-on-hover="%s" style="--contorno-slider-speed:%dms" role="region" aria-roledescription="carousel" aria-label="%s">%s%s</div>',
 		(int) $settings['interval'],
 		! empty( $settings['autoplay'] ) ? '1' : '0',
@@ -119,19 +152,36 @@ function contorno_render_slider_markup( array $slider ): string {
 		(int) $settings['speed'],
 		esc_attr__( 'Destaques', 'contorno' ),
 		$markup, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- montado por contorno_render_slider_slide(), ja escapado.
-		$dots // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- botoes montados acima com esc_attr().
+		$controls // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- botoes montados acima com esc_attr().
 	);
+
+	if ( ! $show_search ) {
+		return $slider_html;
+	}
+
+	// O wrapper (nao o slider em si) e quem fica position:relative e deixa a
+	// busca transbordar — o slider continua exatamente igual com ou sem ela.
+	return '<div class="contorno-banner-slider">' . $slider_html . contorno_render_slider_search_overlay( $search_title ) . '</div>';
 }
 
 /**
- * [contorno_slider id="home-principal"] — id e o identificador estavel
- * cadastrado em Contorno > Slider Contorno. Mesmo shortcode que o elemento
- * WPBakery usa (o elemento so escolhe o "id" por um dropdown).
+ * [contorno_slider id="home-principal" show_search="yes"] — id e o
+ * identificador estavel cadastrado em Contorno > Slider Contorno. Mesmo
+ * shortcode que o elemento WPBakery usa. show_search sobrepoe a busca de
+ * unidades na base do banner, como o Hero antigo fazia — util so na Home.
  */
 contorno_add_shortcode(
 	'contorno_slider',
 	static function ( array|string $atts ): string {
-		$a  = shortcode_atts( array( 'id' => '' ), (array) $atts, 'contorno_slider' );
+		$a  = shortcode_atts(
+			array(
+				'id'           => '',
+				'show_search'  => 'no',
+				'search_title' => '',
+			),
+			(array) $atts,
+			'contorno_slider'
+		);
 		$id = sanitize_key( (string) $a['id'] );
 
 		if ( '' === $id ) {
@@ -144,26 +194,37 @@ contorno_add_shortcode(
 			return '';
 		}
 
-		return contorno_render_slider_markup( $slider );
+		return contorno_render_slider_markup( $slider, 'yes' === $a['show_search'], (string) $a['search_title'] );
 	}
 );
 
 /**
- * Compatibilidade: o shortcode antigo (sem parametros, de quando so existia
- * UM slider global) continua funcionando caso ja tenha sido inserido em
- * alguma pagina — aponta pro slider migrado (CONTORNO_SLIDER_LEGACY_ID).
- * Nao aparece mais no seletor do WPBakery (substituido por
- * "CONTORNO — Slider"): so existe pra nao quebrar conteudo ja publicado.
+ * Compatibilidade: o shortcode antigo (de quando so existia UM slider
+ * global) continua funcionando caso ja tenha sido inserido em alguma
+ * pagina — aponta pro slider migrado (CONTORNO_SLIDER_LEGACY_ID). Aceita os
+ * mesmos atributos show_search/search_title do shortcode novo (nunca se
+ * sabe em qual dos dois a pagina ja existente ficou). Nao aparece mais no
+ * seletor do WPBakery (substituido por "CONTORNO — Slider"): so existe pra
+ * nao quebrar conteudo ja publicado.
  */
 contorno_add_shortcode(
 	'contorno_home_slider',
-	static function (): string {
+	static function ( array|string $atts ): string {
+		$a = shortcode_atts(
+			array(
+				'show_search'  => 'no',
+				'search_title' => '',
+			),
+			(array) $atts,
+			'contorno_home_slider'
+		);
+
 		$slider = contorno_slider_get( CONTORNO_SLIDER_LEGACY_ID );
 
 		if ( null === $slider || ! $slider['active'] ) {
 			return '';
 		}
 
-		return contorno_render_slider_markup( $slider );
+		return contorno_render_slider_markup( $slider, 'yes' === $a['show_search'], (string) $a['search_title'] );
 	}
 );
