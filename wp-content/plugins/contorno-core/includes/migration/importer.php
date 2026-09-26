@@ -692,7 +692,7 @@ final class Contorno_Migration {
 	 * (hash diferente do ultimo import) pode ser restaurada do dataset com
 	 * seguranca: algo vazio nao tem edicao nenhuma pra perder.
 	 */
-	private static function is_page_builder_shell_only( string $content ): bool {
+	public static function is_page_builder_shell_only( string $content ): bool {
 		$stripped = preg_replace(
 			'/\[\/?(vc_row|vc_row_inner|vc_column|vc_column_inner)[^\]]*\]/',
 			'',
