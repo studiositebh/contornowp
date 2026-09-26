@@ -287,7 +287,16 @@ function contorno_vc_ctn_picker(): array {
  * @return array<string,mixed>
  */
 function contorno_vc_slider_picker(): array {
-	$options = array();
+	/*
+	 * BUG CORRIGIDO (o real): sem uma primeira opcao "vazia", uma lista com
+	 * UM UNICO slider fazia o WPBakery tratar aquele valor como "padrao" e
+	 * descarta-lo silenciosamente ao salvar — o shortcode gravado ficava
+	 * so "[contorno_slider show_search=...]", sem nenhum id, mesmo com o
+	 * dropdown mostrando o slider certo selecionado na tela. Os outros
+	 * seletores deste arquivo (unidade, CTN) ja tinham esse "placeholder"
+	 * como primeira opcao — nunca sofreram disso. Aqui faltava.
+	 */
+	$options = array( __( '— Selecione um slider —', 'contorno' ) => '' );
 
 	foreach ( contorno_sliders_data() as $slider ) {
 		$label             = (string) $slider['name'];
@@ -295,15 +304,10 @@ function contorno_vc_slider_picker(): array {
 		$options[ $label ] = (string) $slider['id'];
 	}
 
-	if ( array() === $options ) {
-		$options[ __( 'Nenhum slider cadastrado — crie um em Contorno > Slider Contorno', 'contorno' ) ] = '';
-	}
-
 	/*
-	 * BUG CORRIGIDO: o param se chamava "id" — o WPBakery trata "id" como
-	 * nome reservado e descarta o atributo silenciosamente ao salvar (o
-	 * shortcode gravado ficava so "[contorno_slider show_search=...]", sem
-	 * nenhum slider selecionado). "slider_id" nao colide com nada.
+	 * Tambem corrigido nesta rodada: o param se chamava "id" — nome
+	 * reservado no WPBakery, mesmo problema (atributo descartado ao
+	 * salvar). Trocado para "slider_id", que nao colide com nada.
 	 */
 	return contorno_vc_select( 'slider_id', __( 'Slider', 'contorno' ), $options, __( 'Slider Contorno', 'contorno' ) );
 }
