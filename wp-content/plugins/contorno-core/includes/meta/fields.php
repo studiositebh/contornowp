@@ -313,16 +313,20 @@ function contorno_render_media_picker( string $input_name, string $stored_value,
 		$has_value ? 'hidden' : '',
 		'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>'
 	);
+	// Lixeira sobreposta no canto da miniatura — so existe visualmente
+	// quando ha imagem (JS mostra/esconde; some por completo sem imagem).
+	printf(
+		'<button type="button" class="contorno-media-picker__remove" data-contorno-media-remove aria-label="%s" title="%s" %s>%s</button>',
+		esc_attr( $remove_label ),
+		esc_attr( $remove_label ),
+		$has_value ? '' : 'hidden',
+		'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>'
+	);
 	echo '</span>';
 
 	printf(
 		'<button type="button" class="button contorno-media-picker__pick" data-contorno-media-pick>%s</button>',
 		esc_html( $has_value ? $change_label : $select_label )
-	);
-	printf(
-		'<button type="button" class="button-link-delete contorno-media-picker__remove" data-contorno-media-remove %s>%s</button>',
-		$has_value ? '' : 'hidden',
-		esc_html( $remove_label )
 	);
 	printf(
 		'<span class="contorno-media-picker__filename" data-contorno-media-filename>%s</span>',
@@ -380,12 +384,19 @@ function contorno_sanitize_field( mixed $value, array $definition ): mixed {
 		case 'money':
 			/*
 			 * Normaliza pro MESMO formato decimal-com-ponto que 'number' ja
-			 * gravava ("99.9") — contorno_format_price()/EVO/calculos
-			 * continuam lendo exatamente como antes. "R$" e so
-			 * apresentacao: nunca e gravado. Entrada que nao da pra
-			 * interpretar como valor (nem BR "1.299,90" nem solto
-			 * "99.90") preserva o texto digitado em vez de zerar —
-			 * mesmo cuidado ja usado em cep/phone/coordinate.
+			 * gravava — contorno_format_price()/EVO/calculos continuam
+			 * lendo exatamente como antes ((float) de "9.90" e "9.9" e o
+			 * mesmo numero). "R$" e so apresentacao: nunca e gravado.
+			 * Entrada que nao da pra interpretar como valor (nem BR
+			 * "1.299,90" nem solto "99.90") preserva o texto digitado em
+			 * vez de zerar — mesmo cuidado ja usado em cep/phone/coordinate.
+			 *
+			 * BUG CORRIGIDO: `(string) (float) $clean` arredondava a
+			 * REPRESENTACAO pro menor numero de casas que ainda descreve o
+			 * mesmo float — "9.90" virava "9.9" e "100.00" virava "100"
+			 * (sem nenhuma casa decimal). Sempre gravar com
+			 * number_format(...,2) garante as duas casas sempre, sem
+			 * mudar o valor numerico gravado.
 			 */
 			$raw = trim( (string) $value );
 
@@ -413,7 +424,7 @@ function contorno_sanitize_field( mixed $value, array $definition ): mixed {
 				return sanitize_text_field( $raw );
 			}
 
-			return (string) (float) $clean;
+			return number_format( (float) $clean, 2, '.', '' );
 
 		case 'media':
 			if ( is_numeric( $value ) ) {

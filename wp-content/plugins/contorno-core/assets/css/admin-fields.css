@@ -180,9 +180,11 @@
  * ---- Componente padrao de imagem (contorno_render_media_picker()) ----
  *
  * Uma linha so, sempre que houver espaco: preview pequeno, botao
- * Selecionar/Trocar, Remover e o nome do arquivo (nunca a URL tecnica).
- * flex-wrap deixa cair pra proxima linha so quando a coluna e realmente
- * estreita (mobile, admin em coluna unica).
+ * Selecionar/Trocar e o nome do arquivo (nunca a URL tecnica). flex-wrap
+ * deixa cair pra proxima linha so quando a coluna e realmente estreita
+ * (mobile, admin em coluna unica). Remover NAO e mais um botao de texto —
+ * e uma lixeira pequena sobreposta no canto da propria miniatura, so
+ * visivel quando ha imagem.
  */
 
 .contorno-media-picker__row {
@@ -193,13 +195,14 @@
 }
 
 .contorno-media-picker__preview-wrap {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 40px;
-	height: 40px;
+	width: 44px;
+	height: 44px;
 	flex: none;
-	overflow: hidden;
+	overflow: visible;
 	background: #f6f7f7;
 	border: 1px solid #dcdcde;
 	border-radius: 4px;
@@ -211,6 +214,7 @@
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
+	border-radius: 4px;
 }
 
 .contorno-media-picker__preview[hidden] {
@@ -226,10 +230,40 @@
 	display: none;
 }
 
-.contorno-media-picker__pick,
-.contorno-media-picker__remove {
+.contorno-media-picker__pick {
 	flex: none;
 	white-space: nowrap;
+}
+
+/* Lixeira: badge pequeno e redondo no canto superior-direito da miniatura. */
+.contorno-media-picker__remove {
+	position: absolute;
+	top: -6px;
+	right: -6px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	background: #d63638;
+	color: #fff;
+	border: 2px solid #fff;
+	border-radius: 999px;
+	box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+	cursor: pointer;
+	line-height: 0;
+}
+
+.contorno-media-picker__remove svg {
+	width: 12px;
+	height: 12px;
+}
+
+.contorno-media-picker__remove:hover,
+.contorno-media-picker__remove:focus-visible {
+	background: #a52d2f;
+	outline: none;
 }
 
 .contorno-media-picker__remove[hidden] {
@@ -704,7 +738,29 @@
 }
 
 .contorno-slider-slide-row__remove {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
 	flex: none;
 	margin-top: 4px;
+	padding: 6px 12px;
+	background: #d63638;
+	color: #fff;
+	border: 1px solid #b32d2e;
+	border-radius: 4px;
+	font-weight: 600;
 	white-space: nowrap;
+	cursor: pointer;
+}
+
+.contorno-slider-slide-row__remove svg {
+	width: 14px;
+	height: 14px;
+	flex: none;
+}
+
+.contorno-slider-slide-row__remove:hover,
+.contorno-slider-slide-row__remove:focus-visible {
+	background: #a52d2f;
+	outline: none;
 }

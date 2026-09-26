@@ -430,6 +430,13 @@
 				rowsWrap.appendChild(row);
 				bindRemove(row);
 				bindMediaPicker(row);
+				// BUG CORRIGIDO: uma linha nova (ex.: novo plano) nao tinha
+				// nenhuma mascara aplicada — o campo de preco ficava sem
+				// formatacao ao vivo ate a pagina recarregar.
+				bindMoneyMask(row);
+				bindCepMask(row);
+				bindPhoneMask(row);
+				bindCoordinateInput(row);
 			});
 		});
 	}
@@ -1167,7 +1174,12 @@
 					button.dataset.contornoBound = '1';
 					button.addEventListener('click', function (event) {
 						event.preventDefault();
-						row.remove();
+
+						var message = button.dataset.confirm || 'Excluir este slide?';
+
+						if (window.confirm(message)) {
+							row.remove();
+						}
 					});
 				}
 			}

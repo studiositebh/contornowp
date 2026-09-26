@@ -686,6 +686,69 @@ final class Contorno_Migration {
 	 * ========================================================== */
 
 	/**
+	 * Verdadeiro quando o conteudo e so "casca" do WPBakery — vc_row/
+	 * vc_column abrindo e fechando sem nenhum elemento real entre eles — ou
+	 * literalmente vazio. Usado so para decidir se uma pagina/linha "editada"
+	 * (hash diferente do ultimo import) pode ser restaurada do dataset com
+	 * seguranca: algo vazio nao tem edicao nenhuma pra perder.
+	 */
+	private static function is_page_builder_shell_only( string $content ): bool {
+		$stripped = preg_replace(
+			'/\[\/?(vc_row|vc_row_inner|vc_column|vc_column_inner)[^\]]*\]/',
+			'',
+			$content
+		);
+
+		return '' === trim( wp_strip_all_tags( (string) $stripped ) );
+	}
+
+	/**
+	 * Cada bloco [vc_row]...[/vc_row] de nivel raiz (nunca vc_row_inner —
+	 * o lookahead depois de "vc_row" exige espaco/colchete, entao
+	 * "vc_row_inner" nao casa).
+	 *
+	 * @return string[]
+	 */
+	private static function split_top_level_rows( string $content ): array {
+		if ( ! preg_match_all( '/\[vc_row(?=[\s\]])[^\]]*\].*?\[\/vc_row\]/s', $content, $matches ) ) {
+			return array();
+		}
+
+		return $matches[0];
+	}
+
+	/**
+	 * Tenta restaurar SO as linhas vazias de uma pagina editada, preservando
+	 * qualquer outra linha exatamente como o cliente deixou. So arrisca a
+	 * troca quando a pagina atual e a do dataset tem o MESMO NUMERO de
+	 * linhas (estrutura preservada, so conteudo de alguma ficou vazio) —
+	 * caso contrario devolve null e quem chamou cai no comportamento
+	 * conservador de sempre (preserva a pagina inteira, precisa de --force).
+	 */
+	private static function merge_empty_rows( string $current_content, string $dataset_content ): ?string {
+		$current_rows = self::split_top_level_rows( $current_content );
+		$dataset_rows = self::split_top_level_rows( $dataset_content );
+
+		if ( array() === $current_rows || count( $current_rows ) !== count( $dataset_rows ) ) {
+			return null;
+		}
+
+		$changed = false;
+		$result  = '';
+
+		foreach ( $current_rows as $i => $row ) {
+			if ( self::is_page_builder_shell_only( $row ) && ! self::is_page_builder_shell_only( $dataset_rows[ $i ] ) ) {
+				$result .= $dataset_rows[ $i ];
+				$changed = true;
+			} else {
+				$result .= $row;
+			}
+		}
+
+		return $changed ? $result : null;
+	}
+
+	/**
 	 * @param array<int,array<string,mixed>> $pages
 	 */
 	private function import_pages( array $pages ): void {
@@ -725,14 +788,38 @@ final class Contorno_Migration {
 			$keep_content = false;
 
 			if ( $post_id ) {
-				$imported_hash = (string) get_post_meta( $post_id, '_contorno_imported_hash', true );
-				$current_hash  = md5( (string) get_post_field( 'post_content', $post_id ) );
+				$imported_hash   = (string) get_post_meta( $post_id, '_contorno_imported_hash', true );
+				$current_content = (string) get_post_field( 'post_content', $post_id );
+				$current_hash    = md5( $current_content );
 
 				if ( '' !== $imported_hash && $imported_hash !== $current_hash && ! $this->force ) {
-					$keep_content = true;
-					$this->report->warn(
-						sprintf( 'Pagina /%s foi editada no painel — conteudo preservado. Use --force para sobrescrever.', $slug )
-					);
+					/*
+					 * EXCECAO: linha(s) que hoje estao VAZIAS (so cascas de
+					 * vc_row/vc_column, nenhum elemento de verdade dentro)
+					 * nunca tiveram algo do cliente pra perder — foram
+					 * limpas sem querer (ex.: removeram o Hero antigo e nao
+					 * chegaram a inserir o novo bloco no lugar). Restaurar
+					 * SO essas linhas do dataset e estritamente ganho; as
+					 * demais linhas, com conteudo do cliente, nunca sao
+					 * tocadas aqui.
+					 */
+					$merged = self::merge_empty_rows( $current_content, $content );
+
+					if ( null !== $merged ) {
+						$content = $merged;
+						$this->report->warn(
+							sprintf( 'Pagina /%s: linha(s) vazia(s) restauradas do dataset (demais edições preservadas).', $slug )
+						);
+					} elseif ( self::is_page_builder_shell_only( $current_content ) ) {
+						$this->report->warn(
+							sprintf( 'Pagina /%s estava com conteudo vazio (so estrutura do builder) — restaurada do dataset.', $slug )
+						);
+					} else {
+						$keep_content = true;
+						$this->report->warn(
+							sprintf( 'Pagina /%s foi editada no painel — conteudo preservado. Use --force para sobrescrever.', $slug )
+						);
+					}
 				}
 			}
 

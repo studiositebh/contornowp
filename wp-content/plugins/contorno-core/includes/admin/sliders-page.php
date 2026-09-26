@@ -251,8 +251,9 @@ function contorno_render_slider_slide_row( array $slide, string $index ): void {
 			</div>
 		</div>
 
-		<button type="button" class="button-link-delete contorno-slider-slide-row__remove" data-contorno-slider-slide-remove>
-			<?php esc_html_e( 'Remover slide', 'contorno' ); ?>
+		<button type="button" class="contorno-slider-slide-row__remove" data-contorno-slider-slide-remove data-confirm="<?php echo esc_attr__( 'Excluir este slide? Essa ação não pode ser desfeita.', 'contorno' ); ?>">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+			<?php esc_html_e( 'Excluir slide', 'contorno' ); ?>
 		</button>
 	</div>
 	<?php
