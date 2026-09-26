@@ -62,6 +62,7 @@ $contorno_core_modules = array(
 	'includes/data/geo.php',
 	'includes/data/ctn.php',
 	'includes/data/sliders.php',
+	'includes/data/content-self-heal.php',
 	'includes/helpers.php',
 	'includes/assets.php',
 	'includes/security.php',

@@ -725,7 +725,7 @@ final class Contorno_Migration {
 	 * caso contrario devolve null e quem chamou cai no comportamento
 	 * conservador de sempre (preserva a pagina inteira, precisa de --force).
 	 */
-	private static function merge_empty_rows( string $current_content, string $dataset_content ): ?string {
+	public static function merge_empty_rows( string $current_content, string $dataset_content ): ?string {
 		$current_rows = self::split_top_level_rows( $current_content );
 		$dataset_rows = self::split_top_level_rows( $dataset_content );
 
