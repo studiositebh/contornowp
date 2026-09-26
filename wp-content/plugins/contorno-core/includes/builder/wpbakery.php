@@ -299,7 +299,13 @@ function contorno_vc_slider_picker(): array {
 		$options[ __( 'Nenhum slider cadastrado — crie um em Contorno > Slider Contorno', 'contorno' ) ] = '';
 	}
 
-	return contorno_vc_select( 'id', __( 'Slider', 'contorno' ), $options, __( 'Slider Contorno', 'contorno' ) );
+	/*
+	 * BUG CORRIGIDO: o param se chamava "id" — o WPBakery trata "id" como
+	 * nome reservado e descarta o atributo silenciosamente ao salvar (o
+	 * shortcode gravado ficava so "[contorno_slider show_search=...]", sem
+	 * nenhum slider selecionado). "slider_id" nao colide com nada.
+	 */
+	return contorno_vc_select( 'slider_id', __( 'Slider', 'contorno' ), $options, __( 'Slider Contorno', 'contorno' ) );
 }
 
 /**

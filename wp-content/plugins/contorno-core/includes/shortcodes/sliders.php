@@ -165,16 +165,21 @@ function contorno_render_slider_markup( array $slider, bool $show_search = false
 }
 
 /**
- * [contorno_slider id="home-principal" show_search="yes"] — id e o
- * identificador estavel cadastrado em Contorno > Slider Contorno. Mesmo
- * shortcode que o elemento WPBakery usa. show_search sobrepoe a busca de
- * unidades na base do banner, como o Hero antigo fazia — util so na Home.
+ * [contorno_slider slider_id="home-principal" show_search="yes"] —
+ * slider_id e o identificador estavel cadastrado em Contorno > Slider
+ * Contorno. Mesmo shortcode que o elemento WPBakery usa (o dropdown salva
+ * em "slider_id" — nunca "id": o WPBakery trata "id" como atributo
+ * reservado e descarta silenciosamente qualquer valor gravado nele).
+ * "id" continua aceito como alias, pra quem digitar o shortcode a mao.
+ * show_search sobrepoe a busca de unidades na base do banner, como o Hero
+ * antigo fazia — util so na Home.
  */
 contorno_add_shortcode(
 	'contorno_slider',
 	static function ( array|string $atts ): string {
 		$a  = shortcode_atts(
 			array(
+				'slider_id'    => '',
 				'id'           => '',
 				'show_search'  => 'no',
 				'search_title' => '',
@@ -182,7 +187,7 @@ contorno_add_shortcode(
 			(array) $atts,
 			'contorno_slider'
 		);
-		$id = sanitize_key( (string) $a['id'] );
+		$id = sanitize_key( (string) ( '' !== $a['slider_id'] ? $a['slider_id'] : $a['id'] ) );
 
 		if ( '' === $id ) {
 			return '';
