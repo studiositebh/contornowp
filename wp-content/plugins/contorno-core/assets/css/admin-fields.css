@@ -473,8 +473,8 @@
 .contorno-icon-picker__popover {
 	position: absolute;
 	z-index: 30;
-	width: 380px;
-	max-width: min(380px, 90vw);
+	width: 620px;
+	max-width: min(620px, 94vw);
 	padding: 12px;
 	background: #fff;
 	border: 1px solid #c3c4c7;
@@ -495,7 +495,7 @@
 	display: grid;
 	gap: 4px;
 	grid-template-columns: repeat(8, 1fr);
-	max-height: 320px;
+	max-height: 440px;
 	overflow-y: auto;
 }
 
@@ -506,6 +506,7 @@
 }
 
 .contorno-icon-picker__result {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -518,9 +519,39 @@
 	cursor: pointer;
 }
 
-.contorno-icon-picker__result:hover {
+.contorno-icon-picker__result:hover,
+.contorno-icon-picker__result:focus-visible {
 	background: #f0f6fc;
 	border-color: #2271b1;
+	outline: none;
+}
+
+/*
+ * Nome do icone em hover/foco por teclado — o atributo title so aparece no
+ * hover do mouse, entao quem navega so com teclado nunca via o nome sem
+ * isto (requisito: tooltip tambem em :focus).
+ */
+.contorno-icon-picker__result-name {
+	position: absolute;
+	bottom: calc(100% + 4px);
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 2px 6px;
+	background: #1d2327;
+	color: #fff;
+	font-size: 10px;
+	line-height: 1.4;
+	white-space: nowrap;
+	border-radius: 4px;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 120ms ease;
+	z-index: 1;
+}
+
+.contorno-icon-picker__result:hover .contorno-icon-picker__result-name,
+.contorno-icon-picker__result:focus-visible .contorno-icon-picker__result-name {
+	opacity: 1;
 }
 
 /*

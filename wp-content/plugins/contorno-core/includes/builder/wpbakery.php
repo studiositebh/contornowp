@@ -390,6 +390,17 @@ add_action(
 
 		/* ---------------------------------------------------------------
 		 * CONTORNO — Slider da Home
+		 *
+		 * Elemento sem NENHUM parametro de instancia — os slides sao
+		 * cadastro GLOBAL em Contorno > Slider da Home, o bloco so posiciona
+		 * o slider na pagina. Um vc_map() com 'params' => array() (literal,
+		 * vazio) faz o modal de edicao do WPBakery quebrar (backend.min.js:
+		 * "Cannot read properties of null (reading 'get')" ao abrir o
+		 * formulario) — o form JS espera pelo menos um param pra montar o
+		 * model. Por isso ha exatamente UM param aqui, do tipo
+		 * "custom_markup" (documentado pelo proprio WPBakery para markup
+		 * estatico dentro do form — nunca vira atributo do shortcode: nao
+		 * ha <input> nele, so o aviso e o botao abaixo).
 		 * ------------------------------------------------------------- */
 		vc_map(
 			array(
@@ -398,7 +409,19 @@ add_action(
 				'category'    => CONTORNO_VC_CATEGORY,
 				'icon'        => 'contorno-vc-icon',
 				'description' => __( 'Banners rotativos simples, sem escurecimento nem texto sobreposto. Slides geridos em Contorno > Slider da Home.', 'contorno' ),
-				'params'      => array(),
+				'params'      => array(
+					array(
+						'type'       => 'custom_markup',
+						'heading'    => '',
+						'param_name' => 'contorno_info',
+						'value'      => sprintf(
+							'<p style="margin:0 0 12px;max-width:360px">%s</p><a class="button button-primary" href="%s" target="_blank" rel="noopener">%s</a>',
+							esc_html__( 'Este bloco exibe o Slider da Home configurado em Contorno → Slider da Home. Não há nada para configurar aqui — os slides são cadastrados naquela tela.', 'contorno' ),
+							esc_url( admin_url( 'admin.php?page=' . CONTORNO_HOME_SLIDER_PAGE ) ),
+							esc_html__( 'Gerenciar Slider da Home', 'contorno' )
+						),
+					),
+				),
 			)
 		);
 

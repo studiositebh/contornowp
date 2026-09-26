@@ -439,8 +439,11 @@
 	 *
 	 * A biblioteca (~1800 icones Lucide, gerada localmente — nunca via CDN)
 	 * so e buscada (uma vez, reaproveitada por todos os pickers da tela)
-	 * quando o popover abre pela primeira vez; o grid so mostra os
-	 * resultados da busca atual (no maximo 60), nunca a lista inteira.
+	 * quando o popover abre pela primeira vez. Sem busca, o grid deixa
+	 * NAVEGAR pela biblioteca inteira: mostra um primeiro lote e carrega
+	 * mais em lotes conforme rola (scroll), nunca os ~1800 de uma vez so.
+	 * Com busca, o filtro varre a biblioteca inteira (nao so o que ja foi
+	 * carregado na tela).
 	 */
 
 	// Termos em portugues -> chave/termo em ingles, pra busca tambem achar
@@ -497,7 +500,13 @@
 		return terms;
 	}
 
-	function searchIconLibrary(library, query) {
+	// Quantos icones por lote: primeira exibicao sem digitar nada (BROWSE) e
+	// teto de resultados de uma busca (SEARCH) — nunca a lista inteira de
+	// uma vez, mas generoso o bastante pra navegar rolando.
+	var ICON_BROWSE_BATCH = 96;
+	var ICON_SEARCH_LIMIT = 120;
+
+	function searchIconLibrary(library, query, limit) {
 		var normalized = normalizeIconTerm(query);
 
 		if ('' === normalized) {
@@ -507,7 +516,7 @@
 		var terms = expandIconQuery(normalized);
 		var results = [];
 
-		for (var i = 0; i < library.length && results.length < 60; i++) {
+		for (var i = 0; i < library.length && results.length < limit; i++) {
 			var icon = library[i];
 			var haystack = normalizeIconTerm(
 				icon.k + ' ' + icon.l + ' ' + (icon.t || []).join(' ')
@@ -524,18 +533,37 @@
 		return results;
 	}
 
-	// Grid inicial ao abrir o popover — antes de qualquer busca. Cerca de
-	// 30 icones relevantes pra academia/localizacao, pra nunca abrir
-	// mostrando so a busca vazia.
-	var POPULAR_ICONS = [
-		'wifi', 'car', 'parking-circle', 'bike', 'shower-head', 'dumbbell',
-		'heart-pulse', 'accessibility', 'coffee', 'baby', 'hand', 'wind',
-		'shield', 'camera', 'key', 'archive', 'waves', 'flame', 'users',
-		'clock', 'calendar', 'map-pin', 'music', 'headphones', 'tv', 'sun',
-		'leaf', 'building', 'home', 'footprints', 'scale', 'medal', 'star',
-		'check', 'bath'
-	];
+	function escapeIconAttr(value) {
+		return String(value || '').replace(/[&<>"']/g, function (char) {
+			return (
+				{ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[
+					char
+				] || char
+			);
+		});
+	}
 
+	function iconButtonMarkup(icon, selectedKey) {
+		var label = escapeIconAttr(icon.l);
+
+		return (
+			'<button type="button" class="contorno-icon-picker__result' +
+			(icon.k === selectedKey ? ' is-selected' : '') +
+			'" data-icon-key="' +
+			escapeIconAttr(icon.k) +
+			'" title="' +
+			label +
+			'" aria-label="' +
+			label +
+			'">' +
+			iconSvgMarkup(icon.s, 'contorno-icon-picker__result-svg') +
+			'<span class="contorno-icon-picker__result-name" aria-hidden="true">' +
+			label +
+			'</span></button>'
+		);
+	}
+
+	// Substitui o conteudo do grid (busca nova, ou reinicio da navegacao).
 	function renderIconResults(container, icons, emptyMessage, selectedKey) {
 		if (!icons.length) {
 			container.innerHTML = '<p class="description">' + emptyMessage + '</p>';
@@ -544,19 +572,26 @@
 
 		container.innerHTML = icons
 			.map(function (icon) {
-				return (
-					'<button type="button" class="contorno-icon-picker__result' +
-					(icon.k === selectedKey ? ' is-selected' : '') +
-					'" data-icon-key="' +
-					icon.k +
-					'" title="' +
-					icon.l +
-					'">' +
-					iconSvgMarkup(icon.s, 'contorno-icon-picker__result-svg') +
-					'</button>'
-				);
+				return iconButtonMarkup(icon, selectedKey);
 			})
 			.join('');
+	}
+
+	// Acrescenta um novo lote ao final do grid — usado ao rolar durante a
+	// navegacao (sem busca). Nunca redesenha o que ja estava la.
+	function appendIconResults(container, icons, selectedKey) {
+		if (!icons.length) {
+			return;
+		}
+
+		container.insertAdjacentHTML(
+			'beforeend',
+			icons
+				.map(function (icon) {
+					return iconButtonMarkup(icon, selectedKey);
+				})
+				.join('')
+		);
 	}
 
 	function iconSvgMarkup(inner, classes) {
@@ -590,6 +625,39 @@
 			var tabs = picker.querySelectorAll('[data-contorno-icon-tab]');
 			var iconPanel = picker.querySelector('[data-contorno-icon-panel]');
 			var imagePanel = picker.querySelector('[data-contorno-icon-image-panel]');
+
+			// Estado da navegacao pelo grid deste picker (cada picker tem o
+			// seu: nao ha um so popover compartilhado na tela).
+			var libraryCache = null;
+			var browseOffset = 0;
+			var searchActive = false;
+
+			function currentSelectedKey() {
+				return iconValue ? iconValue.value : '';
+			}
+
+			function renderBrowseBatch(reset) {
+				if (!libraryCache || !results) {
+					return;
+				}
+
+				if (reset) {
+					browseOffset = 0;
+					results.scrollTop = 0;
+					renderIconResults(
+						results,
+						libraryCache.slice(0, ICON_BROWSE_BATCH),
+						'Nenhum ícone na biblioteca.',
+						currentSelectedKey()
+					);
+					browseOffset = Math.min(ICON_BROWSE_BATCH, libraryCache.length);
+					return;
+				}
+
+				var next = libraryCache.slice(browseOffset, browseOffset + ICON_BROWSE_BATCH);
+				appendIconResults(results, next, currentSelectedKey());
+				browseOffset += next.length;
+			}
 
 			function setTab(which) {
 				if (typeValue) {
@@ -631,23 +699,33 @@
 							search.focus();
 						}
 
-						// Grid inicial: mostra logo, nao so depois de digitar.
+						// Grid inicial: mostra logo (navegavel), nao so depois de digitar.
 						if (results && !results.dataset.contornoFilled) {
 							results.innerHTML = '<p class="description">Carregando…</p>';
 							loadIconLibrary().then(function (library) {
 								results.dataset.contornoFilled = '1';
-								var byKey = {};
-								library.forEach(function (icon) {
-									byKey[icon.k] = icon;
-								});
-								var popular = POPULAR_ICONS.map(function (key) {
-									return byKey[key];
-								}).filter(Boolean);
-								renderIconResults(results, popular, 'Nada encontrado.', iconValue ? iconValue.value : '');
+								libraryCache = library;
+								renderBrowseBatch(true);
 							});
 						}
 					}
 				});
+
+				// Rolou perto do fim do grid, navegando (sem busca ativa) e ainda
+				// ha mais icones na biblioteca: acrescenta o proximo lote.
+				if (results) {
+					results.addEventListener('scroll', function () {
+						if (searchActive || !libraryCache || browseOffset >= libraryCache.length) {
+							return;
+						}
+
+						var remaining = results.scrollHeight - results.scrollTop - results.clientHeight;
+
+						if (remaining < 120) {
+							renderBrowseBatch(false);
+						}
+					});
+				}
 
 				document.addEventListener('click', function (event) {
 					if (!picker.contains(event.target)) {
@@ -663,20 +741,22 @@
 
 					loadIconLibrary().then(function (library) {
 						results.dataset.contornoFilled = '1';
+						libraryCache = library;
 
 						if ('' === normalizeIconTerm(query)) {
-							var byKey = {};
-							library.forEach(function (icon) {
-								byKey[icon.k] = icon;
-							});
-							var popular = POPULAR_ICONS.map(function (key) {
-								return byKey[key];
-							}).filter(Boolean);
-							renderIconResults(results, popular, 'Nada encontrado.', iconValue ? iconValue.value : '');
+							// Campo de busca esvaziado: volta a navegacao do zero.
+							searchActive = false;
+							renderBrowseBatch(true);
 							return;
 						}
 
-						renderIconResults(results, searchIconLibrary(library, query), 'Nada encontrado.', iconValue ? iconValue.value : '');
+						searchActive = true;
+						renderIconResults(
+							results,
+							searchIconLibrary(library, query, ICON_SEARCH_LIMIT),
+							'Nada encontrado.',
+							currentSelectedKey()
+						);
 					});
 				});
 

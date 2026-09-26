@@ -280,6 +280,10 @@ add_action(
 			return;
 		}
 
+		// Mesmo bug do catalogo de atributos: sem isto, wp.media nunca
+		// carrega aqui e os botoes de imagem nao abrem a Biblioteca de Midia.
+		wp_enqueue_media();
+
 		wp_enqueue_style(
 			'contorno-admin-fields',
 			contorno_core_url( 'assets/css/admin-fields.css' ),

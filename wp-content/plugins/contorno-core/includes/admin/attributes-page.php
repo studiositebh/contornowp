@@ -468,6 +468,14 @@ add_action(
 			return;
 		}
 
+		/*
+		 * BUG CORRIGIDO: sem isto, window.wp.media nunca existia nesta tela
+		 * e "Selecionar imagem" no modo Imagem do picker nao fazia nada —
+		 * bindMediaPicker() (admin-fields.js) aborta silenciosamente quando
+		 * wp.media esta indefinido.
+		 */
+		wp_enqueue_media();
+
 		wp_enqueue_style(
 			'contorno-admin-fields',
 			contorno_core_url( 'assets/css/admin-fields.css' ),
