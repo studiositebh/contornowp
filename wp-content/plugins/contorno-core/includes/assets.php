@@ -72,6 +72,7 @@ function contorno_enqueue_component( string $component ): void {
 		'enrollment-native' => 'assets/js/enrollment-native.js',
 		'contact-form'   => 'assets/js/contact-form.js',
 		'reveal'         => 'assets/js/reveal.js',
+		'home-slider'    => 'assets/js/home-slider.js',
 	);
 
 	if ( ! isset( $map[ $component ] ) ) {

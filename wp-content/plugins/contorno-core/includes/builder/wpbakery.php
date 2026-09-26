@@ -389,6 +389,20 @@ add_action(
 		);
 
 		/* ---------------------------------------------------------------
+		 * CONTORNO — Slider da Home
+		 * ------------------------------------------------------------- */
+		vc_map(
+			array(
+				'name'        => __( 'CONTORNO — Slider da Home', 'contorno' ),
+				'base'        => 'contorno_home_slider',
+				'category'    => CONTORNO_VC_CATEGORY,
+				'icon'        => 'contorno-vc-icon',
+				'description' => __( 'Banners rotativos simples, sem escurecimento nem texto sobreposto. Slides geridos em Contorno > Slider da Home.', 'contorno' ),
+				'params'      => array(),
+			)
+		);
+
+		/* ---------------------------------------------------------------
 		 * CONTORNO — PUV
 		 * ------------------------------------------------------------- */
 		vc_map(

@@ -639,3 +639,20 @@
 	border-color: #2271b1;
 	outline: none;
 }
+
+/* Tela "Slider da Home": duas imagens (desktop/mobile) lado a lado por linha. */
+
+.contorno-home-slider__images {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px;
+	min-width: 320px;
+}
+
+.contorno-home-slider__images .contorno-media--compact {
+	width: 220px;
+}
+
+.contorno-home-slider-delete-form {
+	display: none;
+}

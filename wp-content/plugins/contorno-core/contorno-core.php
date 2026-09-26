@@ -61,6 +61,7 @@ $contorno_core_modules = array(
 	'includes/data/google-maps.php',
 	'includes/data/geo.php',
 	'includes/data/ctn.php',
+	'includes/data/home-slider.php',
 	'includes/helpers.php',
 	'includes/assets.php',
 	'includes/security.php',
@@ -73,6 +74,7 @@ $contorno_core_modules = array(
 	'includes/admin/migration-page.php',
 	'includes/admin/location-page.php',
 	'includes/admin/attributes-page.php',
+	'includes/admin/home-slider-page.php',
 	'includes/cli/commands.php',
 );
 
