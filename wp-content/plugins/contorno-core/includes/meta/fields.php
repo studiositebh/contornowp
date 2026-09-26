@@ -250,6 +250,90 @@ function contorno_resolve_media( mixed $value, string $size = 'full' ): string {
 }
 
 /**
+ * Componente padrao de selecao de imagem (wp.media) — preview, trocar,
+ * remover e nome do arquivo numa unica linha compacta quando ha espaco.
+ * Nenhuma URL tecnica exposta ao usuario; JS unico (bindMediaPicker() em
+ * admin-fields.js) para toda tela que usa este componente.
+ *
+ * Resolver o valor gravado (attachment ID, URL ou caminho legado) e tarefa
+ * de quem chama — contorno_resolve_media() faz isso pros campos de meta,
+ * mas quem so trabalha com attachment ID pode usar wp_get_attachment_image_url()
+ * direto. Isto so desenha o picker a partir do que ja foi resolvido.
+ *
+ * @param string $stored_value O que vai no hidden input (reenviado como
+ *                              esta ate o usuario trocar/remover pelo JS —
+ *                              attachment ID novo ou string vazia).
+ * @param string $preview_url  URL ja resolvida da imagem atual, ou ''.
+ * @param array{
+ *     select_label?: string,
+ *     change_label?: string,
+ *     remove_label?: string,
+ *     empty_label?: string,
+ *     value_mode?: string,
+ * } $args value_mode 'id' (padrao — hidden guarda o attachment ID escolhido)
+ *                     ou 'url' (hidden guarda a URL — repeaters legados que
+ *                     ja gravam URL direto, ex.: logos de marca).
+ */
+function contorno_render_media_picker( string $input_name, string $stored_value, string $preview_url, array $args = array() ): void {
+	$url       = $preview_url;
+	$stored    = $stored_value;
+	$has_value = '' !== $url;
+	$filename  = $has_value ? wp_basename( $url ) : '';
+	$mode      = 'url' === ( $args['value_mode'] ?? 'id' ) ? 'url' : 'id';
+
+	$select_label = (string) ( $args['select_label'] ?? __( 'Selecionar imagem', 'contorno' ) );
+	$change_label = (string) ( $args['change_label'] ?? __( 'Trocar imagem', 'contorno' ) );
+	$remove_label = (string) ( $args['remove_label'] ?? __( 'Remover', 'contorno' ) );
+	$empty_label  = (string) ( $args['empty_label'] ?? __( 'Nenhuma imagem selecionada', 'contorno' ) );
+
+	printf(
+		'<div class="contorno-media-picker" data-contorno-media-picker data-contorno-media-mode="%s" data-select-label="%s" data-change-label="%s" data-empty-label="%s">',
+		esc_attr( $mode ),
+		esc_attr( $select_label ),
+		esc_attr( $change_label ),
+		esc_attr( $empty_label )
+	);
+
+	printf(
+		'<input type="hidden" name="%s" value="%s" data-contorno-media-input />',
+		esc_attr( $input_name ),
+		esc_attr( $stored )
+	);
+
+	echo '<div class="contorno-media-picker__row">';
+
+	echo '<span class="contorno-media-picker__preview-wrap">';
+	printf(
+		'<img class="contorno-media-picker__preview" src="%s" alt="" data-contorno-media-preview %s />',
+		esc_url( $url ),
+		$has_value ? '' : 'hidden'
+	);
+	printf(
+		'<span class="contorno-media-picker__preview-empty" data-contorno-media-empty-icon aria-hidden="true" %s>%s</span>',
+		$has_value ? 'hidden' : '',
+		'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>'
+	);
+	echo '</span>';
+
+	printf(
+		'<button type="button" class="button contorno-media-picker__pick" data-contorno-media-pick>%s</button>',
+		esc_html( $has_value ? $change_label : $select_label )
+	);
+	printf(
+		'<button type="button" class="button-link-delete contorno-media-picker__remove" data-contorno-media-remove %s>%s</button>',
+		$has_value ? '' : 'hidden',
+		esc_html( $remove_label )
+	);
+	printf(
+		'<span class="contorno-media-picker__filename" data-contorno-media-filename>%s</span>',
+		$has_value ? esc_html( $filename ) : esc_html( $empty_label )
+	);
+
+	echo '</div>';
+	echo '</div>';
+}
+
+/**
  * Serializa um valor para guardar em meta.
  *
  * JSON_UNESCAPED_UNICODE e obrigatorio aqui. Sem ele, "musculacao" com cedilha

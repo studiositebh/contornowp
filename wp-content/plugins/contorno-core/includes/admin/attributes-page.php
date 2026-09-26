@@ -258,28 +258,11 @@ function contorno_attributes_icon_picker( string $base_name, string $current_ico
 
 	// --- Painel: imagem personalizada -----------------------------------
 	printf( '<div class="contorno-icon-picker__panel" data-contorno-icon-image-panel %s>', $is_image ? '' : 'hidden' );
-	echo '<div class="contorno-media contorno-media--compact" data-contorno-media>';
-	printf(
-		'<input type="hidden" name="%s" value="%s" data-contorno-media-input />',
-		esc_attr( $field_name( 'image_id' ) ),
-		esc_attr( $is_image ? (string) $image_id : '' )
+	contorno_render_media_picker(
+		$field_name( 'image_id' ),
+		$is_image ? (string) $image_id : '',
+		$image_url
 	);
-	echo '<div class="contorno-media__preview-wrap contorno-media__preview-wrap--small">';
-	printf( '<img src="%s" alt="" class="contorno-media__preview" data-contorno-media-preview %s />', esc_url( $image_url ), '' === $image_url ? 'hidden' : '' );
-	printf( '<p class="contorno-media__placeholder" data-contorno-media-placeholder %s>%s</p>', '' !== $image_url ? 'hidden' : '', esc_html__( 'Nenhuma imagem selecionada.', 'contorno' ) );
-	echo '</div>';
-	echo '<div class="contorno-media__actions">';
-	printf(
-		'<button type="button" class="button" data-contorno-media-pick>%s</button>',
-		esc_html( $is_image ? __( 'Trocar imagem', 'contorno' ) : __( 'Selecionar imagem', 'contorno' ) )
-	);
-	printf(
-		'<button type="button" class="button button-link-delete" data-contorno-media-remove %s>%s</button>',
-		$is_image ? '' : 'hidden',
-		esc_html__( 'Remover imagem', 'contorno' )
-	);
-	echo '</div>';
-	echo '</div>';
 	printf( '<p class="description">%s</p>', esc_html__( 'Substitui o ícone acima nesta unidade e em toda página que usar este atributo.', 'contorno' ) );
 	echo '</div>';
 

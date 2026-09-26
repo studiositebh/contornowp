@@ -4044,15 +4044,17 @@
 }
 
 /* ======================================================================
- * CONTORNO — Slider da Home
+ * CONTORNO — Slider (Slider Contorno)
  *
  * Sem overlay/escurecimento e sem texto sobreposto — so as imagens,
  * empilhadas numa caixa de proporcao fixa (evita "pulos" de altura entre
  * fotos de tamanhos diferentes) e cruzando em fade via opacity. Sem JS, o
  * primeiro slide (is-active vem do PHP) fica visivel, parado — nunca some.
+ * Cada instancia (varios sliders, ate na mesma pagina) e independente: sem
+ * id no DOM, so classes/data-attrs por instancia.
  * ================================================================== */
 
-.contorno-home-slider {
+.contorno-slider {
 	position: relative;
 	overflow: hidden;
 	width: 100%;
@@ -4060,12 +4062,12 @@
 }
 
 @media (max-width: 640px) {
-	.contorno-home-slider {
+	.contorno-slider {
 		aspect-ratio: 4 / 5;
 	}
 }
 
-.contorno-home-slider__slide {
+.contorno-slider__slide {
 	position: absolute;
 	inset: 0;
 	opacity: 0;
@@ -4073,19 +4075,19 @@
 	pointer-events: none;
 }
 
-.contorno-home-slider__slide.is-active {
+.contorno-slider__slide.is-active {
 	opacity: 1;
 	pointer-events: auto;
 }
 
-.contorno-home-slider__link,
-.contorno-home-slider__picture {
+.contorno-slider__link,
+.contorno-slider__picture {
 	display: block;
 	width: 100%;
 	height: 100%;
 }
 
-.contorno-home-slider__img {
+.contorno-slider__img {
 	display: block;
 	width: 100%;
 	height: 100%;
@@ -4093,7 +4095,7 @@
 	object-position: center;
 }
 
-.contorno-home-slider__dots {
+.contorno-slider__dots {
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -4104,7 +4106,7 @@
 	gap: 0.4rem;
 }
 
-.contorno-home-slider__dot {
+.contorno-slider__dot {
 	width: 0.5rem;
 	height: 0.5rem;
 	padding: 0;
@@ -4116,7 +4118,7 @@
 	transition: width 200ms var(--motion-ease, ease), background-color 200ms var(--motion-ease, ease);
 }
 
-.contorno-home-slider__dot.is-active {
+.contorno-slider__dot.is-active {
 	width: 1.5rem;
 	background: #fff;
 }

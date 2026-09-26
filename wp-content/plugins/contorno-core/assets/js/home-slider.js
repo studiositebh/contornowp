@@ -1,31 +1,34 @@
 /**
- * CONTORNO — Slider da Home.
+ * CONTORNO — Slider (Slider Contorno).
  *
  * Slides ficam empilhados (CSS) e trocam so por opacity — este script apenas
- * alterna a classe is-active, sem nenhuma biblioteca externa. Autoplay pausa
- * no hover/foco e ao sair da aba. Sem JS, o primeiro slide (is-active vindo
- * do PHP) continua visivel, parado.
+ * alterna a classe is-active, sem nenhuma biblioteca externa. Cada instancia
+ * na pagina e independente (nao ha id no DOM, so o proprio elemento raiz),
+ * entao dois sliders na mesma pagina rodam sem conflito. Sem JS, o primeiro
+ * slide (is-active vindo do PHP) continua visivel, parado.
  */
 (function () {
 	'use strict';
 
 	function setupSlider(root) {
-		if (root.dataset.contornoHomeSliderReady === '1') {
+		if (root.dataset.contornoSliderReady === '1') {
 			return;
 		}
-		root.dataset.contornoHomeSliderReady = '1';
+		root.dataset.contornoSliderReady = '1';
 
 		var slides = Array.prototype.slice.call(
-			root.querySelectorAll('[data-contorno-home-slider-slide]')
+			root.querySelectorAll('[data-contorno-slider-slide]')
 		);
 		var dots = Array.prototype.slice.call(
-			root.querySelectorAll('[data-contorno-home-slider-dot]')
+			root.querySelectorAll('[data-contorno-slider-dot]')
 		);
 
 		if (slides.length < 2) {
 			return;
 		}
 
+		var autoplay = root.dataset.autoplay !== '0';
+		var pauseOnHover = root.dataset.pauseOnHover !== '0';
 		var interval = parseInt(root.dataset.interval, 10) || 6000;
 		var index = 0;
 		var timer = null;
@@ -44,6 +47,9 @@
 		}
 
 		function start() {
+			if (!autoplay) {
+				return;
+			}
 			stop();
 			timer = window.setInterval(function () {
 				goTo(index + 1);
@@ -64,10 +70,12 @@
 			});
 		});
 
-		root.addEventListener('mouseenter', stop);
-		root.addEventListener('mouseleave', start);
-		root.addEventListener('focusin', stop);
-		root.addEventListener('focusout', start);
+		if (pauseOnHover) {
+			root.addEventListener('mouseenter', stop);
+			root.addEventListener('mouseleave', start);
+			root.addEventListener('focusin', stop);
+			root.addEventListener('focusout', start);
+		}
 
 		document.addEventListener('visibilitychange', function () {
 			if (document.hidden) {
@@ -82,7 +90,7 @@
 
 	function init() {
 		Array.prototype.forEach.call(
-			document.querySelectorAll('[data-contorno-home-slider]'),
+			document.querySelectorAll('[data-contorno-slider]'),
 			setupSlider
 		);
 	}

@@ -13,8 +13,18 @@
 	 * Biblioteca de Midia
 	 * ------------------------------------------------------------- */
 
+	/**
+	 * Componente padrao de imagem (contorno_render_media_picker() no PHP):
+	 * preview + Selecionar/Trocar + Remover + nome do arquivo, sempre pelo
+	 * mesmo JS — nenhuma tela reimplementa o proprio binding de wp.media.
+	 *
+	 * data-contorno-media-mode no wrapper decide o que o hidden input guarda
+	 * ao escolher uma imagem: "id" (attachment ID — a maioria dos campos) ou
+	 * "url" (URL direta — repeaters legados, ex.: logo de marca, que sempre
+	 * gravaram URL e nao devem migrar de formato so por causa da UI).
+	 */
 	function bindMediaPicker(scope) {
-		var wrappers = scope.querySelectorAll('[data-contorno-media]');
+		var wrappers = scope.querySelectorAll('[data-contorno-media-picker]');
 
 		Array.prototype.forEach.call(wrappers, function (wrapper) {
 			if (wrapper.dataset.contornoMediaReady === '1') {
@@ -26,10 +36,24 @@
 			var remove = wrapper.querySelector('[data-contorno-media-remove]');
 			var input = wrapper.querySelector('[data-contorno-media-input]');
 			var preview = wrapper.querySelector('[data-contorno-media-preview]');
-			var placeholder = wrapper.querySelector('[data-contorno-media-placeholder]');
+			var emptyIcon = wrapper.querySelector('[data-contorno-media-empty-icon]');
+			var filename = wrapper.querySelector('[data-contorno-media-filename]');
 
 			if (!button || !input) {
 				return;
+			}
+
+			var mode = wrapper.dataset.contornoMediaMode === 'url' ? 'url' : 'id';
+			var selectLabel = wrapper.dataset.selectLabel || 'Selecionar imagem';
+			var changeLabel = wrapper.dataset.changeLabel || 'Trocar imagem';
+			var emptyLabel = wrapper.dataset.emptyLabel || 'Nenhuma imagem selecionada';
+
+			function basename(url) {
+				return String(url || '')
+					.split('#')[0]
+					.split('?')[0]
+					.split('/')
+					.pop();
 			}
 
 			function setEmpty() {
@@ -38,27 +62,33 @@
 					preview.src = '';
 					preview.hidden = true;
 				}
-				if (placeholder) {
-					placeholder.hidden = false;
+				if (emptyIcon) {
+					emptyIcon.hidden = false;
 				}
 				if (remove) {
 					remove.hidden = true;
 				}
-				button.textContent = 'Selecionar imagem';
+				if (filename) {
+					filename.textContent = emptyLabel;
+				}
+				button.textContent = selectLabel;
 			}
 
-			function setSelected(src) {
+			function setSelected(src, name) {
 				if (preview) {
 					preview.src = src;
 					preview.hidden = false;
 				}
-				if (placeholder) {
-					placeholder.hidden = true;
+				if (emptyIcon) {
+					emptyIcon.hidden = true;
 				}
 				if (remove) {
 					remove.hidden = false;
 				}
-				button.textContent = 'Trocar imagem';
+				if (filename) {
+					filename.textContent = name || basename(src);
+				}
+				button.textContent = changeLabel;
 			}
 
 			button.addEventListener('click', function (event) {
@@ -69,7 +99,7 @@
 				}
 
 				var frame = window.wp.media({
-					title: 'Selecionar imagem',
+					title: selectLabel,
 					button: { text: 'Usar esta imagem' },
 					multiple: false,
 					library: { type: 'image' }
@@ -77,14 +107,13 @@
 
 				frame.on('select', function () {
 					var attachment = frame.state().get('selection').first().toJSON();
-
-					input.value = attachment.id;
-
 					var src =
-						attachment.sizes && attachment.sizes.medium
+						(attachment.sizes && attachment.sizes.medium
 							? attachment.sizes.medium.url
-							: attachment.url;
-					setSelected(src);
+							: attachment.url) || '';
+
+					input.value = 'url' === mode ? src : attachment.id;
+					setSelected(src, attachment.filename);
 				});
 
 				frame.open();
@@ -1059,6 +1088,117 @@
 		});
 	}
 
+	/**
+	 * Abas simples e genericas (ex.: editor de slider — Slides/Configurações).
+	 * Os paineis sao irmaos do grupo de abas (mesmo pai); trocar de aba so
+	 * mostra/esconde, nunca perde o que foi preenchido na aba escondida —
+	 * um unico form cobre as duas.
+	 */
+	function bindSimpleTabs(scope) {
+		var groups = scope.querySelectorAll('[data-contorno-tabs]');
+
+		Array.prototype.forEach.call(groups, function (group) {
+			if (group.dataset.contornoTabsReady === '1') {
+				return;
+			}
+			group.dataset.contornoTabsReady = '1';
+
+			var buttons = group.querySelectorAll('[data-contorno-tab]');
+			var parent = group.parentElement;
+
+			if (!parent) {
+				return;
+			}
+
+			Array.prototype.forEach.call(buttons, function (button) {
+				button.addEventListener('click', function (event) {
+					event.preventDefault();
+
+					var which = button.getAttribute('data-contorno-tab');
+
+					Array.prototype.forEach.call(buttons, function (b) {
+						b.classList.toggle('is-active', b === button);
+						b.classList.toggle('nav-tab-active', b === button);
+					});
+
+					Array.prototype.forEach.call(
+						parent.querySelectorAll('[data-contorno-tab-panel]'),
+						function (panel) {
+							panel.hidden = panel.getAttribute('data-contorno-tab-panel') !== which;
+						}
+					);
+				});
+			});
+		});
+	}
+
+	/**
+	 * Adicionar/remover slides do editor de slider. Reaproveita bindSortable()
+	 * (arrastar/setas) e bindMediaPicker() (cada picker novo) — so o
+	 * add/remove e proprio daqui, porque o repeater generico (bindRepeaters)
+	 * calcula o proximo indice pela CONTAGEM atual de linhas, o que reusa um
+	 * indice ja existente depois de remover uma linha do meio (dois slides
+	 * com o mesmo indice colidem no POST e um sobrescreve o outro). Aqui o
+	 * contador so cresce, nunca reaproveita.
+	 */
+	function bindSliderSlideRows(scope) {
+		var containers = scope.querySelectorAll('[data-contorno-slider-slides]');
+
+		Array.prototype.forEach.call(containers, function (container) {
+			if (container.dataset.contornoSliderSlidesReady === '1') {
+				return;
+			}
+			container.dataset.contornoSliderSlidesReady = '1';
+
+			var rowsWrap = container.querySelector('[data-contorno-slider-slides-rows]');
+			var template = container.querySelector('[data-contorno-slider-slides-template]');
+			var add = container.querySelector('[data-contorno-slider-slides-add]');
+
+			if (!rowsWrap || !template || !add) {
+				return;
+			}
+
+			var nextIndex = rowsWrap.querySelectorAll('[data-contorno-sortable-row]').length;
+
+			function bindRemove(row) {
+				var button = row.querySelector('[data-contorno-slider-slide-remove]');
+
+				if (button && button.dataset.contornoBound !== '1') {
+					button.dataset.contornoBound = '1';
+					button.addEventListener('click', function (event) {
+						event.preventDefault();
+						row.remove();
+					});
+				}
+			}
+
+			Array.prototype.forEach.call(
+				rowsWrap.querySelectorAll('[data-contorno-sortable-row]'),
+				bindRemove
+			);
+
+			add.addEventListener('click', function (event) {
+				event.preventDefault();
+
+				var html = template.innerHTML.split('__INDEX__').join(String(nextIndex));
+				nextIndex++;
+
+				var holder = document.createElement('div');
+				holder.innerHTML = html.trim();
+
+				var row = holder.firstElementChild;
+
+				if (!row) {
+					return;
+				}
+
+				rowsWrap.appendChild(row);
+				bindRemove(row);
+				bindMediaPicker(row);
+			});
+		});
+	}
+
 	function init() {
 		bindMediaPicker(document);
 		bindGallery(document);
@@ -1072,6 +1212,8 @@
 		bindCharCounters(document);
 		bindConditionalFields(document);
 		bindMoneyMask(document);
+		bindSimpleTabs(document);
+		bindSliderSlideRows(document);
 	}
 
 	if (document.readyState !== 'loading') {

@@ -22,7 +22,7 @@ require_once CONTORNO_CORE_DIR . 'includes/shortcodes/enrollment.php';
 require_once CONTORNO_CORE_DIR . 'includes/shortcodes/enrollment-native.php';
 require_once CONTORNO_CORE_DIR . 'includes/shortcodes/contact.php';
 require_once CONTORNO_CORE_DIR . 'includes/shortcodes/blog.php';
-require_once CONTORNO_CORE_DIR . 'includes/shortcodes/home-slider.php';
+require_once CONTORNO_CORE_DIR . 'includes/shortcodes/sliders.php';
 
 /**
  * Resolve o post de contexto de um componente.

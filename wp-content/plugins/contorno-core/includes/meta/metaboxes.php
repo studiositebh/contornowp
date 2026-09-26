@@ -420,38 +420,11 @@ function contorno_render_field( int $post_id, string $name, array $definition ):
 
 		case 'media':
 			$has_value = is_scalar( $value ) && '' !== (string) $value;
-			$preview   = $has_value ? contorno_resolve_media( $value, 'medium' ) : '';
-			echo '<div class="contorno-media" data-contorno-media>';
-			printf(
-				'<input type="hidden" id="%s" name="%s" value="%s" data-contorno-media-input />',
-				esc_attr( $input_id ),
-				esc_attr( $input_name ),
-				esc_attr( $has_value ? (string) $value : '' )
+			contorno_render_media_picker(
+				$input_name,
+				$has_value ? (string) $value : '',
+				$has_value ? contorno_resolve_media( $value, 'medium' ) : ''
 			);
-			echo '<div class="contorno-media__preview-wrap">';
-			printf(
-				'<img src="%s" alt="" class="contorno-media__preview" data-contorno-media-preview %s />',
-				esc_url( $preview ),
-				'' === $preview ? 'hidden' : ''
-			);
-			printf(
-				'<p class="contorno-media__placeholder" data-contorno-media-placeholder %s>%s</p>',
-				'' !== $preview ? 'hidden' : '',
-				esc_html__( 'Nenhuma imagem selecionada.', 'contorno' )
-			);
-			echo '</div>';
-			echo '<div class="contorno-media__actions">';
-			printf(
-				'<button type="button" class="button" data-contorno-media-pick>%s</button>',
-				esc_html( $has_value ? __( 'Trocar imagem', 'contorno' ) : __( 'Selecionar imagem', 'contorno' ) )
-			);
-			printf(
-				'<button type="button" class="button button-link-delete" data-contorno-media-remove %s>%s</button>',
-				$has_value ? '' : 'hidden',
-				esc_html__( 'Remover imagem', 'contorno' )
-			);
-			echo '</div>';
-			echo '</div>';
 			break;
 
 		case 'attributes':
@@ -798,17 +771,13 @@ function contorno_render_repeater_row( string $name, array $subfields, array $ro
 				break;
 
 			case 'media':
-				echo '<span class="contorno-media" data-contorno-media>';
-				printf(
-					'<input type="text" name="%s" value="%s" data-contorno-media-input />',
-					esc_attr( $input_name ),
-					esc_attr( is_scalar( $sub_value ) ? (string) $sub_value : '' )
+				$sub_url = is_scalar( $sub_value ) ? trim( (string) $sub_value ) : '';
+				contorno_render_media_picker(
+					$input_name,
+					$sub_url,
+					$sub_url,
+					array( 'value_mode' => 'url' )
 				);
-				printf(
-					'<button type="button" class="button button-small" data-contorno-media-pick>%s</button>',
-					esc_html__( 'Selecionar', 'contorno' )
-				);
-				echo '</span>';
 				break;
 
 			default:
