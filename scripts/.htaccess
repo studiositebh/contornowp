@@ -1,0 +1,28 @@
+# Nada em scripts/ deve ser servido pela web.
+#
+# O deploy publica o repositorio dentro do proprio webroot (o
+# cpanel-auto-update.sh faz `git merge --ff-only` em
+# /home/voceconecta/contornowp.voceconecta.com.br, que E o DocumentRoot, e o
+# cpanel-deploy.sh pula o rsync porque origem e destino coincidem). Efeito
+# colateral: tudo que esta versionado fica baixavel, inclusive estes scripts,
+# que expoem caminhos absolutos do servidor, o binario do PHP, os diretorios
+# de destino e o mecanismo de publicacao.
+#
+# Isto NAO afeta o deploy: o cron e o cPanel executam os scripts pelo shell,
+# nunca por HTTP.
+#
+# Por que aqui e nao no .htaccess da raiz: o da raiz foi modificado no
+# servidor (ganhou o bloco BEGIN WordPress dos permalinks, que nao existe na
+# versao versionada). Um commit que tocasse nele cairia em
+# has_path_intersection() no cpanel-auto-update.sh e ABORTARIA o deploy
+# automatico para preservar a alteracao local. Este arquivo e caminho novo,
+# entao nao ha conflito.
+
+<IfModule mod_authz_core.c>
+	Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+	Order allow,deny
+	Deny from all
+</IfModule>

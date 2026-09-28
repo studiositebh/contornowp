@@ -84,6 +84,71 @@ add_action(
 	20
 );
 
+/**
+ * Os mesmos cabecalhos nas telas de login e do painel.
+ *
+ * O `send_headers` acima nao cobre nenhuma das duas: wp-login.php nao passa
+ * por wp() — que e quem dispara aquele hook — e no painel a funcao sai cedo
+ * no is_admin(). Resultado medido: /wp-login.php e /wp-admin/ tinham
+ * X-Frame-Options, CSP frame-ancestors e Referrer-Policy (mandados pelo core
+ * e pelo plugin de seguranca), mas ficavam sem nosniff, Permissions-Policy e
+ * HSTS.
+ *
+ * Regra desta funcao: so envia o que AINDA NAO existe na resposta. Assim o
+ * X-Frame-Options do core e a CSP do plugin de seguranca continuam sendo os
+ * deles, sem cabecalho repetido — e, se um dia esse plugin sair, estes aqui
+ * assumem sozinhos. Prioridade tardia (99) de proposito: quem manda cabecalho
+ * nesses hooks ja mandou quando chegamos.
+ */
+function contorno_security_headers_admin(): void {
+	if ( headers_sent() ) {
+		return;
+	}
+
+	$ja_enviados = array();
+
+	foreach ( headers_list() as $linha ) {
+		$nome = strtolower( trim( (string) strtok( $linha, ':' ) ) );
+
+		if ( '' !== $nome ) {
+			$ja_enviados[ $nome ] = true;
+		}
+	}
+
+	$base = contorno_security_headers();
+
+	/**
+	 * Cabecalhos das telas administrativas. Por padrao os mesmos do site,
+	 * porque nenhum deles depende de recurso que o painel use.
+	 *
+	 * @param array<string,string> $headers
+	 */
+	$headers = apply_filters( 'contorno_security_headers_admin', $base );
+
+	if ( ! is_array( $headers ) ) {
+		return;
+	}
+
+	if ( is_ssl() ) {
+		$headers['Strict-Transport-Security'] = 'max-age=15552000';
+	}
+
+	foreach ( $headers as $name => $value ) {
+		if ( ! is_string( $name ) || ! is_string( $value ) || '' === $value ) {
+			continue;
+		}
+
+		if ( isset( $ja_enviados[ strtolower( $name ) ] ) ) {
+			continue; // Ja veio do core ou do plugin de seguranca.
+		}
+
+		header( $name . ': ' . $value );
+	}
+}
+
+add_action( 'login_init', 'contorno_security_headers_admin', 99 );
+add_action( 'admin_init', 'contorno_security_headers_admin', 99 );
+
 /* ============================================================
  * 2. XML-RPC
  *

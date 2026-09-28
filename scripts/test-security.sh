@@ -163,6 +163,66 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+section "FIX-09  Cabecalhos tambem no login e no painel"
+
+for alvo in "/wp-login.php" "/wp-admin/"; do
+	h="$("${CURL[@]}" -D - -o /dev/null -L "$BASE_URL$alvo")"
+
+	for par in "X-Frame-Options:SAMEORIGIN" "Content-Security-Policy:frame-ancestors" \
+	           "X-Content-Type-Options:nosniff" "Referrer-Policy:strict-origin" \
+	           "Permissions-Policy:geolocation=()" "Strict-Transport-Security:max-age="; do
+		nome="${par%%:*}"
+		esperado="${par#*:}"
+		if grep -iq "^$nome:.*$esperado" <<<"$h"; then
+			pass "$alvo  $nome"
+		else
+			fail "$alvo  $nome ausente ou sem '$esperado'"
+		fi
+	done
+
+	# "Nao duplicar headers" e requisito: cada um tem de aparecer UMA vez.
+	dups="$(grep -ioE '^(content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|strict-transport-security)' <<<"$h" | sort | uniq -d | paste -sd' ')"
+	if [[ -z "$dups" ]]; then
+		pass "$alvo  nenhum cabecalho duplicado"
+	else
+		fail "$alvo  cabecalho duplicado: $dups"
+	fi
+done
+
+# ---------------------------------------------------------------------------
+section "FIX-10  REST: CORS reflete Origin, mas sem leitura autenticada"
+
+# O WordPress reflete qualquer Origin com Allow-Credentials: true. Isso so
+# seria exploravel se um pedido com cookie e SEM nonce contasse como
+# autenticado. rest_cookie_check_errors() faz wp_set_current_user(0) quando
+# nao ha nonce, entao nao conta. Estes testes travam esse comportamento: se
+# um plugin desligar o portao do nonce, eles quebram.
+ORIGEM_EXTERNA="https://evil.example"
+
+cors_status() { "${CURL[@]}" -o /dev/null -w '%{http_code}' -H "Origin: $ORIGEM_EXTERNA" "$@"; }
+
+s="$(cors_status "$BASE_URL/wp-json/wp/v2/settings")"
+if [[ "$s" == "401" || "$s" == "403" ]]; then
+	pass "endpoint que exige manage_options nega origem externa sem nonce ($s)"
+else
+	fail "/wp-json/wp/v2/settings devolveu $s para origem externa sem nonce; esperado 401/403"
+fi
+
+corpo_nonce="$("${CURL[@]}" -H "Origin: $ORIGEM_EXTERNA" -H "X-WP-Nonce: nonce-invalido-de-teste" "$BASE_URL/wp-json/wp/v2/posts?per_page=1")"
+if grep -q 'rest_cookie_invalid_nonce' <<<"$corpo_nonce"; then
+	pass "nonce invalido e recusado (portao do nonce ativo neste servidor)"
+else
+	fail "nonce invalido NAO foi recusado — rest_cookie_check_errors pode ter sido desligado por um plugin"
+fi
+
+s="$(cors_status -X POST -H 'Content-Type: application/json' -d '{"title":"teste"}' "$BASE_URL/wp-json/wp/v2/posts")"
+if [[ "$s" == "401" || "$s" == "403" ]]; then
+	pass "escrita cross-origin sem nonce negada ($s)"
+else
+	fail "POST cross-origin sem nonce devolveu $s; esperado 401/403"
+fi
+
+# ---------------------------------------------------------------------------
 section "PENDENCIAS MANUAIS (precisam de acesso ao servidor / GitHub)"
 
 deploy_status="$(status_of "$BASE_URL/deploy.php")"
@@ -172,12 +232,14 @@ else
 	pend "/deploy.php ainda responde $deploy_status — remover o arquivo e o webhook antigo do GitHub"
 fi
 
-for script_path in scripts/cpanel-deploy.sh scripts/cpanel-auto-update.sh; do
+# scripts/.htaccess (versionado) bloqueia o diretorio inteiro. Nao e mais
+# pendencia manual: se voltar a responder 200, e regressao.
+for script_path in scripts/cpanel-deploy.sh scripts/cpanel-auto-update.sh scripts/test-security.sh scripts/test-dataset-evo.sh; do
 	s="$(status_of "$BASE_URL/$script_path")"
 	if [[ "$s" == "403" || "$s" == "404" ]]; then
 		pass "/$script_path nao e baixavel"
 	else
-		pend "/$script_path responde $s — bloquear no .htaccess do servidor"
+		fail "/$script_path responde $s — scripts/.htaccess nao esta valendo"
 	fi
 done
 
