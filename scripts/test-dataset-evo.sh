@@ -129,6 +129,10 @@ foreach ( $d["units"] as $u ) {
 	$t( "coordenada na regiao de Venda Nova", $la > -19.85 && $la < -19.78 && $ln > -44.06 && $ln < -43.96, "$la,$ln" );
 	$t( "CEP 31578-300", "31578-300" === $u["fields"]["postal_code"] );
 }
+$ceps = [ "bh-funcionarios-lifecenter" => "30110-028", "bh-paqueta" => "31340-060" ];
+foreach ( $d["units"] as $u ) {
+	if ( isset( $ceps[ $u["slug"] ] ) ) { $t( $u["slug"] . " CEP " . $ceps[ $u["slug"] ], $ceps[ $u["slug"] ] === $u["fields"]["postal_code"] ); }
+}
 
 printf( "\n== Resultado: %d OK, %d falhas\n", $ok, $fail );
 exit( $fail > 0 ? 1 : 0 );
