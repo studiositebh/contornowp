@@ -106,20 +106,29 @@ foreach ( $esperado as $slug => $planos ) {
 }
 
 echo "\n== Coordenadas das unidades\n";
-$sem_coord = 0; $coords = [];
+$sem_coord = 0; $coords = []; $com_coord = 0;
 // Unidades em pre-venda cadastradas sem coordenada confirmada: a auto-migracao
 // (contorno_geocode_missing_units) preenche. Qualquer outra sem coordenada falha.
-$aguardando_geocode = [ "bh-ceu-azul", "bh-funcionarios-lifecenter", "bh-paqueta" ];
+$aguardando_geocode = [ "bh-funcionarios-lifecenter", "bh-paqueta" ];
 foreach ( $d["units"] as $u ) {
 	$la = $u["fields"]["latitude"] ?? ""; $ln = $u["fields"]["longitude"] ?? "";
 	if ( ! is_numeric( $la ) || ! is_numeric( $ln ) || ( 0.0 === (float) $la && 0.0 === (float) $ln ) ) {
 		if ( ! in_array( $u["slug"], $aguardando_geocode, true ) ) { $sem_coord++; }
 		continue;
 	}
+	$com_coord++;
 	$coords[ sprintf( "%.6f,%.6f", (float) $la, (float) $ln ) ] = true;
 }
-$t( "70/70 unidades (fora as 3 aguardando geocode) com lat/lng valida", 0 === $sem_coord, "$sem_coord sem" );
-$t( "nenhuma coordenada duplicada", count( $coords ) === 70, count( $coords ) . " distintas" );
+$t( "todas as unidades (fora as 2 aguardando geocode) com lat/lng valida", 0 === $sem_coord, "$sem_coord sem" );
+$t( "nenhuma coordenada duplicada", count( $coords ) === $com_coord, count( $coords ) . " distintas de " . $com_coord );
+
+echo "\n== BH Ceu Azul (Venda Nova, nao Centro)\n";
+foreach ( $d["units"] as $u ) {
+	if ( "bh-ceu-azul" !== $u["slug"] ) { continue; }
+	$la = (float) $u["fields"]["latitude"]; $ln = (float) $u["fields"]["longitude"];
+	$t( "coordenada na regiao de Venda Nova", $la > -19.85 && $la < -19.78 && $ln > -44.06 && $ln < -43.96, "$la,$ln" );
+	$t( "CEP 31578-300", "31578-300" === $u["fields"]["postal_code"] );
+}
 
 printf( "\n== Resultado: %d OK, %d falhas\n", $ok, $fail );
 exit( $fail > 0 ? 1 : 0 );

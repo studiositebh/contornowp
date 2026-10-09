@@ -10077,7 +10077,7 @@
     {
       "slug": "bh-ceu-azul",
       "title": "BH Céu Azul",
-      "excerpt": "Estrutura completa para treinar com conforto e consistência.",
+      "excerpt": "Ambiente climatizado de 1.200 m², com musculação completa, aulas coletivas e Contorno Cycling Presencial.",
       "menuOrder": 70,
       "terms": {
         "city": "Belo Horizonte",
@@ -10088,18 +10088,18 @@
         "kind": "standard",
         "badge": "",
         "featured": "",
-        "short_description": "Estrutura completa para treinar com conforto e consistência.",
+        "short_description": "Ambiente climatizado de 1.200 m², com musculação completa, aulas coletivas e Contorno Cycling Presencial.",
         "city": "Belo Horizonte",
         "state": "MG",
         "neighborhood": "Céu Azul",
         "address": "Rua Maria Gertrudes Santos, 840 – Céu Azul – Belo Horizonte - MG",
-        "postal_code": "",
+        "postal_code": "31578-300",
         "phone": "3140420177",
         "whatsapp": "3140420177",
-        "hours": "",
-        "maps_query": "Rua Maria Gertrudes Santos, 840 – Céu Azul – Belo Horizonte - MG",
-        "latitude": "",
-        "longitude": "",
+        "hours": "Segunda a sexta, 05h às 23h\nSábados e feriados, 07h às 16h\nDomingos, 09h às 13h",
+        "maps_query": "Rua Maria Gertrudes Santos, 840, Céu Azul, Belo Horizonte - MG, 31578-300",
+        "latitude": "-19.8156566",
+        "longitude": "-44.0020617",
         "image": "",
         "image_alt": "",
         "gallery": [],
@@ -10141,7 +10141,7 @@
     {
       "slug": "bh-funcionarios-lifecenter",
       "title": "BH Funcionários Lifecenter",
-      "excerpt": "Estrutura completa para treinar com conforto e consistência.",
+      "excerpt": "Ambiente climatizado de 1.200 m², com musculação completa, aulas coletivas e Contorno Cycling Presencial.",
       "menuOrder": 71,
       "terms": {
         "city": "Belo Horizonte",
@@ -10152,7 +10152,7 @@
         "kind": "standard",
         "badge": "",
         "featured": "",
-        "short_description": "Estrutura completa para treinar com conforto e consistência.",
+        "short_description": "Ambiente climatizado de 1.200 m², com musculação completa, aulas coletivas e Contorno Cycling Presencial.",
         "city": "Belo Horizonte",
         "state": "MG",
         "neighborhood": "Funcionários",
@@ -10160,7 +10160,7 @@
         "postal_code": "",
         "phone": "3140420177",
         "whatsapp": "3140420177",
-        "hours": "",
+        "hours": "Segunda a sexta, 05h às 23h\nSábados e feriados, 07h às 16h\nDomingos, 09h às 13h",
         "maps_query": "Av. do Contorno, 4570 – Funcionários – Belo Horizonte - MG",
         "latitude": "",
         "longitude": "",
@@ -10205,7 +10205,7 @@
     {
       "slug": "bh-paqueta",
       "title": "BH Paquetá",
-      "excerpt": "Estrutura completa para treinar com conforto e consistência.",
+      "excerpt": "Ambiente climatizado de 1.200 m², com musculação completa, aulas coletivas, Contorno Cycling Virtual e Espaço Kids.",
       "menuOrder": 72,
       "terms": {
         "city": "Belo Horizonte",
@@ -10216,7 +10216,7 @@
         "kind": "standard",
         "badge": "",
         "featured": "",
-        "short_description": "Estrutura completa para treinar com conforto e consistência.",
+        "short_description": "Ambiente climatizado de 1.200 m², com musculação completa, aulas coletivas, Contorno Cycling Virtual e Espaço Kids.",
         "city": "Belo Horizonte",
         "state": "MG",
         "neighborhood": "Paquetá",
@@ -10224,7 +10224,7 @@
         "postal_code": "",
         "phone": "3140420177",
         "whatsapp": "3140420177",
-        "hours": "",
+        "hours": "Segunda a sexta, 05h às 23h\nSábados e feriados, 07h às 16h\nDomingos, 09h às 13h",
         "maps_query": "Rua Póvoa de Varzim, 400 – Paquetá – Belo Horizonte - MG",
         "latitude": "",
         "longitude": "",
@@ -11671,5 +11671,42 @@
     "/units/xml/xangri-la/gallery-07.jpg",
     "/units/xml/xangri-la/hero-01.jpg"
   ],
-  "retiredUnits": []
+  "retiredUnits": [],
+  "staleCorrections": [
+    {
+      "slug": "bh-ceu-azul",
+      "field": "latitude",
+      "stale": "-19.9227318",
+      "value": "-19.8156566",
+      "reason": "geocodificacao automatica caiu no Centro; Ceu Azul fica em Venda Nova"
+    },
+    {
+      "slug": "bh-ceu-azul",
+      "field": "longitude",
+      "stale": "-43.9450948",
+      "value": "-44.0020617",
+      "reason": "idem"
+    },
+    {
+      "slug": "campos-ourique-betim",
+      "field": "image_alt",
+      "stale": "Fachada da academia Contorno do Corpo - Campos de Ourique Betim",
+      "value": "Fachada da academia Contorno do Corpo - Betim Av. Campos de Ourique",
+      "reason": "nome oficial"
+    },
+    {
+      "slug": "divinopolis-2",
+      "field": "image_alt",
+      "stale": "Fachada da academia Contorno do Corpo - Divinópolis 2 Sidil",
+      "value": "Fachada da academia Contorno do Corpo - Divinópolis Sidil Prime",
+      "reason": "nome oficial"
+    },
+    {
+      "slug": "itamarandiba-divinopolis",
+      "field": "image_alt",
+      "stale": "Fachada da academia Contorno do Corpo - Itamarandiba Divinópolis",
+      "value": "Fachada da academia Contorno do Corpo - Divinópolis Bom Pastor",
+      "reason": "nome oficial"
+    }
+  ]
 }

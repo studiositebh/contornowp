@@ -203,6 +203,7 @@ final class Contorno_Migration {
 		if ( in_array( 'units', $steps, true ) ) {
 			$this->import_entities( (array) ( $dataset['units'] ?? array() ), CONTORNO_CPT_UNIT, 'units' );
 			$this->retire_entities( (array) ( $dataset['retiredUnits'] ?? array() ), CONTORNO_CPT_UNIT );
+			$this->apply_stale_corrections( (array) ( $dataset['staleCorrections'] ?? array() ), CONTORNO_CPT_UNIT );
 		}
 
 		if ( in_array( 'ctns', $steps, true ) ) {
@@ -678,6 +679,59 @@ final class Contorno_Migration {
 
 			wp_trash_post( $found[0]->ID );
 			$this->report->log( sprintf( 'Retirado do dataset, na lixeira: %s/%s (%s)', $post_type, $slug, (string) ( $item['reason'] ?? '' ) ) );
+		}
+	}
+
+	/**
+	 * Corrige UM campo protegido de uma unidade que ja guarda um valor errado
+	 * conhecido (ex.: coordenada de geocodificacao automatica no lugar errado).
+	 *
+	 * Seguro por construcao: so troca quando o valor atual ainda e EXATAMENTE o
+	 * valor `stale` declarado. Campo editado no painel (qualquer outro valor)
+	 * nunca e tocado, e depois de aplicada a correcao vira no-op.
+	 *
+	 * @param array<int,array<string,string>> $items Itens {slug, field, stale, value, reason}.
+	 */
+	private function apply_stale_corrections( array $items, string $post_type ): void {
+		foreach ( $items as $item ) {
+			$slug  = sanitize_title( (string) ( $item['slug'] ?? '' ) );
+			$field = (string) ( $item['field'] ?? '' );
+			$stale = (string) ( $item['stale'] ?? '' );
+			$value = (string) ( $item['value'] ?? '' );
+
+			if ( '' === $slug || '' === $field || '' === $stale || '' === $value ) {
+				continue;
+			}
+
+			$found = get_posts(
+				array(
+					'post_type'      => $post_type,
+					'name'           => $slug,
+					'post_status'    => 'any',
+					'posts_per_page' => 1,
+				)
+			);
+
+			if ( ! isset( $found[0] ) ) {
+				continue;
+			}
+
+			$current = trim( contorno_field_text( $field, (int) $found[0]->ID ) );
+			$same    = is_numeric( $stale ) && is_numeric( $current )
+				? abs( (float) $current - (float) $stale ) < 0.000001
+				: $current === $stale;
+
+			if ( ! $same ) {
+				continue;
+			}
+
+			if ( $this->dry_run ) {
+				$this->report->log( sprintf( 'Corrigiria %s/%s: %s', $post_type, $slug, $field ) );
+				continue;
+			}
+
+			contorno_update_field( (int) $found[0]->ID, $field, $value );
+			$this->report->log( sprintf( 'Valor desatualizado corrigido: %s/%s %s (%s)', $post_type, $slug, $field, (string) ( $item['reason'] ?? '' ) ) );
 		}
 	}
 
