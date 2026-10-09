@@ -655,6 +655,109 @@ $sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['met
 t( 'nenhuma venda extra foi enviada', 1 === count( $sales ), count( $sales ) . ' tentativas' );
 
 /* -------------------------------------------------------------
+ * 7b. Formato REAL da EVO (validado com a chave da rede em 09/10/2026)
+ *
+ * O swagger diz array em /api/v3/membership e inteiro em
+ * /sales/by-session-id. A API real devolve envelope e objeto com idVenda.
+ * Estes testes usam o formato observado, nao o documentado.
+ * ----------------------------------------------------------- */
+
+section( 'Formato real da EVO: envelope de planos e idVenda' );
+
+/** Envelope real de GET /api/v3/membership: planos em `list`, `lista` vazio. */
+function fx_envelope( array $plans, ?int $total = null ): array {
+	return fx_json(
+		array(
+			'qtde'                 => $total ?? count( $plans ),
+			'lista'                => array(),
+			'list'                 => $plans,
+			'ids'                  => null,
+			'informacoesIndicados' => null,
+			'idUltimaConciliacao'  => null,
+		)
+	);
+}
+
+/** Resposta real de GET /api/v1/sales/by-session-id. */
+function fx_by_session( int $id_venda ): array {
+	return fx_json( array( 'idVenda' => $id_venda, 'idCliente' => 0 === $id_venda ? 0 : 3141, 'clienteContratos' => array() ) );
+}
+
+// D1 — leitura do envelope.
+$rows = Contorno_Evo_Client::rows( array( 'qtde' => 447, 'lista' => array(), 'list' => array( fx_membership() ), 'ids' => null ) );
+t( 'envelope: planos saem de `list`', 1 === count( $rows['items'] ) && LOURDES_BLACK === (int) $rows['items'][0]['idMembership'] );
+t( 'envelope: `qtde` vira o total da consulta', 447 === $rows['total'] );
+t( 'envelope: chaves do envelope NAO viram planos', ! isset( $rows['items'][0]['list'] ) && ! isset( $rows['items'][0]['lista'] ) );
+$rows = Contorno_Evo_Client::rows( array( fx_membership() ) );
+t( 'array documentado continua aceito', 1 === count( $rows['items'] ) && null === $rows['total'] );
+$rows = Contorno_Evo_Client::rows( array( 'qtde' => 0, 'lista' => array(), 'list' => array() ) );
+t( 'envelope vazio = zero planos (nao um "plano" vazio)', array() === $rows['items'] && 0 === $rows['total'] );
+
+// D1 — checkout resolve preco a partir do envelope.
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v3/membership'] = fx_envelope( array( fx_membership() ) );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+t( 'checkout abre com a resposta em envelope', ! empty( $opened->data['ok'] ) );
+t( 'preco vem do plano dentro do envelope (219,90)', abs( (float) ( $opened->data['summary']['value'] ?? 0 ) - 219.90 ) < 0.001 );
+
+// D1 — paginacao do sync pelo `qtde`.
+fx_reset();
+$page_calls = 0;
+$GLOBALS['routes']['/api/v3/membership'] = static function ( string $url ) use ( &$page_calls ) {
+	++$page_calls;
+	parse_str( (string) parse_url( $url, PHP_URL_QUERY ), $q );
+	$skip  = (int) ( $q['skip'] ?? 0 );
+	$plans = array();
+	for ( $i = $skip; $i < min( $skip + 50, 120 ); $i++ ) {
+		$plans[] = array( 'idMembership' => 1000 + $i, 'idBranch' => 8 ) + fx_membership();
+		$plans[ count( $plans ) - 1 ]['idMembership'] = 1000 + $i;
+	}
+	return fx_envelope( $plans, 120 );
+};
+$all = ( new Contorno_Evo_Client() )->memberships( 8 );
+t( 'sync com envelope traz os 120 planos (3 paginas)', $all['ok'] && 120 === count( $all['items'] ), count( $all['items'] ) . ' planos' );
+t( 'paginacao para no total, sem chamada extra', 3 === $page_calls, $page_calls . ' chamadas' );
+
+// D2 — reconciliacao com idVenda.
+t( 'sale_id: objeto real {idVenda}', 445566 === Contorno_Evo_Client::sale_id( array( 'idVenda' => 445566, 'idCliente' => 1, 'clienteContratos' => array() ) ) );
+t( 'sale_id: inteiro documentado', 445566 === Contorno_Evo_Client::sale_id( 445566 ) );
+t( 'sale_id: {idSale}', 445566 === Contorno_Evo_Client::sale_id( array( 'idSale' => 445566 ) ) );
+t( 'sale_id: sessao sem venda {idVenda: 0} = 0', 0 === Contorno_Evo_Client::sale_id( array( 'idVenda' => 0, 'idCliente' => 0 ) ) );
+t( 'sale_id: lixo = 0', 0 === Contorno_Evo_Client::sale_id( array( 'idVenda' => 'abc' ) ) && 0 === Contorno_Evo_Client::sale_id( null ) );
+
+// D2 — o cenario que importa: timeout no POST /sales, venda EXISTIA,
+// by-session-id responde no formato real. Antes: idSale ausente -> 0 ->
+// "nao ha venda" -> nova tentativa liberada -> cobranca dupla.
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v2/sales'] = static fn () => new WP_Error( 'http_request_failed', 'Operation timed out' );
+$GLOBALS['routes']['/api/v1/sales/by-session-id'] = fx_by_session( 445566 );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+$paid   = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'timeout + {idVenda} real: venda reconhecida, fluxo conclui', ! empty( $paid->data['ok'] ) && 'success' === ( $paid->data['status'] ?? '' ) );
+$state = Contorno_Evo_Checkout::load( $token );
+t( 'timeout + {idVenda} real: idSale gravado = 445566', 445566 === (int) ( $state['id_sale'] ?? 0 ) );
+$retry = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) );
+t( 'timeout + {idVenda} real: repetir o pagamento NAO gera segunda venda', 1 === count( $sales ), count( $sales ) . ' POST /sales' );
+
+// D2 — sessao sem venda no formato real: libera nova tentativa (como antes).
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v2/sales'] = static fn () => new WP_Error( 'http_request_failed', 'Operation timed out' );
+$GLOBALS['routes']['/api/v1/sales/by-session-id'] = fx_by_session( 0 );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$paid   = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'timeout + {idVenda: 0} real: sem venda, permite nova tentativa', 'evo_indisponivel' === ( $paid->data['error'] ?? '' ) );
+
+// D2 — venda aprovada cuja resposta traz idVenda (nao idSale).
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v2/sales'] = fx_json( array( 'idVenda' => 778899 ) );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'POST /sales com {idVenda}: comprovante recebe o numero da venda', 778899 === (int) ( Contorno_Evo_Checkout::load( $token )['id_sale'] ?? 0 ) );
+
+/* -------------------------------------------------------------
  * 8. Preco mudou entre abrir e pagar
  * ----------------------------------------------------------- */
 

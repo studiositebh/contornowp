@@ -483,11 +483,10 @@ final class Contorno_Evo_Checkout_Rest {
 	 * @param mixed               $data
 	 */
 	private static function succeed( array $state, mixed $data, Contorno_Evo_Client $client ): WP_REST_Response {
-		$id_sale = 0;
-
-		if ( is_array( $data ) ) {
-			$id_sale = (int) ( $data['idSale'] ?? $data['idSaleResult'] ?? 0 );
-		}
+		// Mesma leitura tolerante da reconciliacao (idVenda/idSale/inteiro):
+		// a resposta real de by-session-id usa idVenda, e nada garante que a
+		// de POST /sales use outro nome.
+		$id_sale = Contorno_Evo_Client::sale_id( $data );
 
 		// NewSaleViewModel, o schema de resposta documentado, nao declara
 		// idSale. Quando ele nao vem, o id sai do sessionId — que e nosso.

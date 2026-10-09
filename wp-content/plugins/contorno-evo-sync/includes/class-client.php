@@ -68,14 +68,84 @@ final class Contorno_Evo_Client {
 			return array( 'ok' => false, 'message' => $result['message'], 'http' => $result['http'] );
 		}
 
-		$data = $result['data'];
-
 		return array(
 			'ok'      => true,
 			'message' => __( 'Conexão realizada com sucesso.', 'contorno-evo' ),
 			'http'    => $result['http'],
-			'count'   => is_array( $data ) ? count( $data ) : 0,
+			'count'   => count( self::rows( $result['data'] )['items'] ),
 		);
+	}
+
+	/**
+	 * Linhas de uma resposta de listagem, no formato que a EVO REALMENTE usa.
+	 *
+	 * O swagger declara GET /api/v3/membership como array de
+	 * ContratosResumoApiViewModel. Na API real (validado em 09/10/2026 com a
+	 * chave da rede) a resposta vem num envelope:
+	 *
+	 *   { "qtde": 447, "lista": [], "list": [ {plano}, ... ], "ids": ...,
+	 *     "informacoesIndicados": ..., "idUltimaConciliacao": ... }
+	 *
+	 * Os planos ficam em `list`; `lista` vem vazio; `qtde` e o total da
+	 * consulta (para paginar). Aceitamos as duas formas: se a EVO voltar ao
+	 * array documentado, nada quebra.
+	 *
+	 * Tratar o envelope como lista foi o defeito D1: array_filter($data,
+	 * 'is_array') pegava `lista`/`list` como se fossem planos.
+	 *
+	 * @return array{items:array<int,array<string,mixed>>,total:?int}
+	 */
+	public static function rows( mixed $data ): array {
+		if ( ! is_array( $data ) ) {
+			return array( 'items' => array(), 'total' => null );
+		}
+
+		$total = null;
+
+		if ( ! array_is_list( $data ) ) {
+			$total = isset( $data['qtde'] ) && is_numeric( $data['qtde'] ) ? (int) $data['qtde'] : null;
+			$list  = array();
+
+			foreach ( array( 'list', 'lista' ) as $key ) {
+				if ( isset( $data[ $key ] ) && is_array( $data[ $key ] ) && array_is_list( $data[ $key ] ) && array() !== $data[ $key ] ) {
+					$list = $data[ $key ];
+					break;
+				}
+			}
+
+			$data = $list;
+		}
+
+		return array(
+			'items' => array_values( array_filter( $data, 'is_array' ) ),
+			'total' => $total,
+		);
+	}
+
+	/**
+	 * idSale de uma resposta de venda, no formato que a EVO REALMENTE usa.
+	 *
+	 * GET /api/v1/sales/by-session-id esta documentado como inteiro, mas a
+	 * API real (09/10/2026) devolve { "idVenda", "idCliente",
+	 * "clienteContratos" }. O codigo lia `idSale` e recebia sempre 0 — uma
+	 * venda criada apos timeout seria dada como inexistente (defeito D2,
+	 * risco de cobranca dupla). Aceitamos inteiro, string numerica, idVenda,
+	 * idSale e idSaleResult.
+	 */
+	public static function sale_id( mixed $data ): int {
+		if ( is_int( $data ) || ( is_string( $data ) && ctype_digit( $data ) ) ) {
+			return max( 0, (int) $data );
+		}
+
+		if ( is_array( $data ) ) {
+			foreach ( array( 'idVenda', 'idSale', 'idSaleResult' ) as $key ) {
+				if ( isset( $data[ $key ] ) && is_numeric( $data[ $key ] ) && (int) $data[ $key ] > 0 ) {
+					return (int) $data[ $key ];
+				}
+			}
+		}
+
+		return 0;
 	}
 
 	/**
@@ -105,12 +175,19 @@ final class Contorno_Evo_Client {
 				return array( 'ok' => false, 'message' => $result['message'], 'http' => $result['http'], 'items' => $items, 'pages' => $pages );
 			}
 
-			$batch = is_array( $result['data'] ) ? array_values( array_filter( $result['data'], 'is_array' ) ) : array();
+			$rows  = self::rows( $result['data'] );
+			$batch = $rows['items'];
 			$items = array_merge( $items, $batch );
 			$skip += self::PAGE_SIZE;
 
 			// Guarda contra loop infinito (api devolvendo sempre pagina cheia).
 			if ( $pages > 200 ) {
+				break;
+			}
+
+			// Com envelope, `qtde` diz o total: para assim que alcancado, sem
+			// gastar uma chamada a mais so para receber a pagina vazia.
+			if ( null !== $rows['total'] && $skip >= $rows['total'] ) {
 				break;
 			}
 		} while ( count( $batch ) >= self::PAGE_SIZE );
@@ -189,7 +266,7 @@ final class Contorno_Evo_Client {
 			return array( 'ok' => false, 'message' => $result['message'], 'http' => $result['http'], 'item' => null );
 		}
 
-		$rows = is_array( $result['data'] ) ? array_values( array_filter( $result['data'], 'is_array' ) ) : array();
+		$rows = self::rows( $result['data'] )['items'];
 		$item = null;
 
 		foreach ( $rows as $row ) {
@@ -426,17 +503,7 @@ final class Contorno_Evo_Client {
 	 */
 	public function sale_by_session( string $session_id ): array {
 		$result = $this->get( '/api/v1/sales/by-session-id', array( 'sessionId' => $session_id ) );
-		$id     = 0;
-
-		if ( $result['ok'] ) {
-			$data = $result['data'];
-
-			if ( is_int( $data ) || ( is_string( $data ) && ctype_digit( $data ) ) ) {
-				$id = (int) $data;
-			} elseif ( is_array( $data ) ) {
-				$id = (int) ( $data['idSale'] ?? 0 );
-			}
-		}
+		$id     = $result['ok'] ? self::sale_id( $result['data'] ) : 0;
 
 		return array( 'ok' => $result['ok'], 'message' => $result['message'], 'http' => $result['http'], 'id_sale' => $id );
 	}
