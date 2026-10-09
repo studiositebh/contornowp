@@ -219,7 +219,7 @@ add_action(
 			'url'    => CONTORNO_CANONICAL_URL,
 			'logo'   => contorno_asset_url( (string) $brand['logo'] ),
 			'image'  => contorno_asset_url( (string) $brand['og_image'] ),
-			'sameAs' => array_values( array_filter( array( (string) $brand['instagram'] ) ) ),
+			'sameAs' => contorno_brand_same_as(),
 			'email'  => $brand['email'],
 		);
 

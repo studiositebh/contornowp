@@ -8898,7 +8898,7 @@
     },
     {
       "slug": "divinopolis-2",
-      "title": "Divinópolis 2 Sidil",
+      "title": "Divinópolis Sidil Prime",
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 59,
       "terms": {
@@ -8906,7 +8906,7 @@
         "kind": "standard"
       },
       "fields": {
-        "short_name": "Divinópolis 2 Sidil",
+        "short_name": "Divinópolis Sidil Prime",
         "kind": "standard",
         "badge": "",
         "featured": "",
@@ -8923,7 +8923,7 @@
         "latitude": "-20.1447272",
         "longitude": "-44.9002654",
         "image": "/units/xml/divinopolis-2/hero-01.png",
-        "image_alt": "Fachada da academia Contorno do Corpo - Divinópolis 2 Sidil",
+        "image_alt": "Fachada da academia Contorno do Corpo - Divinópolis Sidil Prime",
         "gallery": [
           "/units/xml/divinopolis-2/hero-01.png"
         ],
@@ -9273,7 +9273,7 @@
     },
     {
       "slug": "campos-ourique-betim",
-      "title": "Campos de Ourique Betim",
+      "title": "Betim Av. Campos de Ourique",
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 62,
       "terms": {
@@ -9281,7 +9281,7 @@
         "kind": "standard"
       },
       "fields": {
-        "short_name": "Campos de Ourique Betim",
+        "short_name": "Betim Av. Campos de Ourique",
         "kind": "standard",
         "badge": "",
         "featured": "",
@@ -9298,7 +9298,7 @@
         "latitude": "-19.9476162",
         "longitude": "-44.1602196",
         "image": "/units/xml/campos-ourique-betim/hero-01.png",
-        "image_alt": "Fachada da academia Contorno do Corpo - Campos de Ourique Betim",
+        "image_alt": "Fachada da academia Contorno do Corpo - Betim Av. Campos de Ourique",
         "gallery": [
           "/units/xml/campos-ourique-betim/hero-01.png"
         ],
@@ -9950,7 +9950,7 @@
     },
     {
       "slug": "itamarandiba-divinopolis",
-      "title": "Itamarandiba Divinópolis",
+      "title": "Divinópolis Bom Pastor",
       "excerpt": "Estrutura completa para treinar com conforto e consistência.",
       "menuOrder": 69,
       "terms": {
@@ -9958,7 +9958,7 @@
         "kind": "standard"
       },
       "fields": {
-        "short_name": "Itamarandiba Divinópolis",
+        "short_name": "Divinópolis Bom Pastor",
         "kind": "standard",
         "badge": "",
         "featured": "",
@@ -9975,7 +9975,7 @@
         "latitude": "-20.1190925",
         "longitude": "-44.8951583",
         "image": "/units/xml/itamarandiba-divinopolis/hero-01.jpg",
-        "image_alt": "Fachada da academia Contorno do Corpo - Itamarandiba Divinópolis",
+        "image_alt": "Fachada da academia Contorno do Corpo - Divinópolis Bom Pastor",
         "gallery": [
           "/units/xml/itamarandiba-divinopolis/hero-01.jpg"
         ],
@@ -10068,6 +10068,198 @@
         "evo_branch_id": "",
         "classes_url": "",
         "classes_title": "",
+        "erp_id": "",
+        "sync_source": "manual",
+        "ctn_slug": "",
+        "editorial_position": "none"
+      }
+    },
+    {
+      "slug": "bh-ceu-azul",
+      "title": "BH Céu Azul",
+      "excerpt": "Estrutura completa para treinar com conforto e consistência.",
+      "menuOrder": 70,
+      "terms": {
+        "city": "Belo Horizonte",
+        "kind": "standard"
+      },
+      "fields": {
+        "short_name": "BH Céu Azul",
+        "kind": "standard",
+        "badge": "",
+        "featured": "",
+        "short_description": "Estrutura completa para treinar com conforto e consistência.",
+        "city": "Belo Horizonte",
+        "state": "MG",
+        "neighborhood": "Céu Azul",
+        "address": "Rua Maria Gertrudes Santos, 840 – Céu Azul – Belo Horizonte - MG",
+        "postal_code": "",
+        "phone": "3140420177",
+        "whatsapp": "3140420177",
+        "hours": "",
+        "maps_query": "Rua Maria Gertrudes Santos, 840 – Céu Azul – Belo Horizonte - MG",
+        "latitude": "",
+        "longitude": "",
+        "image": "",
+        "image_alt": "",
+        "gallery": [],
+        "video_url": "",
+        "differentials": [],
+        "facilities": [
+          "Cadeira de Massagem",
+          "Vestiários",
+          "Balança de bioimpedância",
+          "Ambiente Climatizado",
+          "Equipamentos de Última Geração",
+          "Sonorização Especial",
+          "Televisões de LED",
+          "Acesso WIFI"
+        ],
+        "modalities": [
+          "Musculação",
+          "Aulas coletivas"
+        ],
+        "starting_price": "",
+        "checkout_url": "",
+        "prescricao_url": "",
+        "plans": [],
+        "status": "pre_sale",
+        "presale_label": "",
+        "presale_opening_label": "Condições exclusivas de pré-inauguração",
+        "presale_opening_date": "",
+        "presale_promo_text": "",
+        "classes_enabled": "",
+        "evo_branch_id": "",
+        "classes_url": "",
+        "classes_title": "Aulas Coletivas - Horários",
+        "erp_id": "",
+        "sync_source": "manual",
+        "ctn_slug": "",
+        "editorial_position": "none"
+      }
+    },
+    {
+      "slug": "bh-funcionarios-lifecenter",
+      "title": "BH Funcionários Lifecenter",
+      "excerpt": "Estrutura completa para treinar com conforto e consistência.",
+      "menuOrder": 71,
+      "terms": {
+        "city": "Belo Horizonte",
+        "kind": "standard"
+      },
+      "fields": {
+        "short_name": "BH Funcionários Lifecenter",
+        "kind": "standard",
+        "badge": "",
+        "featured": "",
+        "short_description": "Estrutura completa para treinar com conforto e consistência.",
+        "city": "Belo Horizonte",
+        "state": "MG",
+        "neighborhood": "Funcionários",
+        "address": "Av. do Contorno, 4570 – Funcionários – Belo Horizonte - MG",
+        "postal_code": "",
+        "phone": "3140420177",
+        "whatsapp": "3140420177",
+        "hours": "",
+        "maps_query": "Av. do Contorno, 4570 – Funcionários – Belo Horizonte - MG",
+        "latitude": "",
+        "longitude": "",
+        "image": "",
+        "image_alt": "",
+        "gallery": [],
+        "video_url": "",
+        "differentials": [],
+        "facilities": [
+          "Cadeira de Massagem",
+          "Vestiários",
+          "Balança de bioimpedância",
+          "Ambiente Climatizado",
+          "Equipamentos de Última Geração",
+          "Sonorização Especial",
+          "Televisões de LED",
+          "Acesso WIFI"
+        ],
+        "modalities": [
+          "Musculação",
+          "Aulas coletivas"
+        ],
+        "starting_price": "",
+        "checkout_url": "",
+        "prescricao_url": "",
+        "plans": [],
+        "status": "pre_sale",
+        "presale_label": "",
+        "presale_opening_label": "Condições exclusivas de pré-inauguração",
+        "presale_opening_date": "",
+        "presale_promo_text": "",
+        "classes_enabled": "",
+        "evo_branch_id": "",
+        "classes_url": "",
+        "classes_title": "Aulas Coletivas - Horários",
+        "erp_id": "",
+        "sync_source": "manual",
+        "ctn_slug": "",
+        "editorial_position": "none"
+      }
+    },
+    {
+      "slug": "bh-paqueta",
+      "title": "BH Paquetá",
+      "excerpt": "Estrutura completa para treinar com conforto e consistência.",
+      "menuOrder": 72,
+      "terms": {
+        "city": "Belo Horizonte",
+        "kind": "standard"
+      },
+      "fields": {
+        "short_name": "BH Paquetá",
+        "kind": "standard",
+        "badge": "",
+        "featured": "",
+        "short_description": "Estrutura completa para treinar com conforto e consistência.",
+        "city": "Belo Horizonte",
+        "state": "MG",
+        "neighborhood": "Paquetá",
+        "address": "Rua Póvoa de Varzim, 400 – Paquetá – Belo Horizonte - MG",
+        "postal_code": "",
+        "phone": "3140420177",
+        "whatsapp": "3140420177",
+        "hours": "",
+        "maps_query": "Rua Póvoa de Varzim, 400 – Paquetá – Belo Horizonte - MG",
+        "latitude": "",
+        "longitude": "",
+        "image": "",
+        "image_alt": "",
+        "gallery": [],
+        "video_url": "",
+        "differentials": [],
+        "facilities": [
+          "Cadeira de Massagem",
+          "Vestiários",
+          "Balança de bioimpedância",
+          "Ambiente Climatizado",
+          "Equipamentos de Última Geração",
+          "Sonorização Especial",
+          "Televisões de LED",
+          "Acesso WIFI"
+        ],
+        "modalities": [
+          "Musculação",
+          "Aulas coletivas"
+        ],
+        "starting_price": "",
+        "checkout_url": "",
+        "prescricao_url": "",
+        "plans": [],
+        "status": "pre_sale",
+        "presale_label": "",
+        "presale_opening_label": "Condições exclusivas de pré-inauguração",
+        "presale_opening_date": "",
+        "presale_promo_text": "",
+        "classes_enabled": "",
+        "evo_branch_id": "",
+        "classes_url": "",
+        "classes_title": "Aulas Coletivas - Horários",
         "erp_id": "",
         "sync_source": "manual",
         "ctn_slug": "",

@@ -32,7 +32,7 @@ $t = function ( $nome, $cond, $extra = "" ) use ( &$ok, &$fail ) {
 $PAT = "#/contornodocorpo/(\d+)/site/landing-page/checkout/(\d+)/#i";
 
 echo "\n== Estrutura\n";
-$t( "70 unidades", 70 === count( $d["units"] ), count( $d["units"] ) . " encontradas" );
+$t( "73 unidades", 73 === count( $d["units"] ), count( $d["units"] ) . " encontradas" );
 $t( "2 CTNs", 2 === count( $d["ctns"] ), count( $d["ctns"] ) . " encontradas" );
 
 $registros = [];
@@ -107,13 +107,19 @@ foreach ( $esperado as $slug => $planos ) {
 
 echo "\n== Coordenadas das unidades\n";
 $sem_coord = 0; $coords = [];
+// Unidades em pre-venda cadastradas sem coordenada confirmada: a auto-migracao
+// (contorno_geocode_missing_units) preenche. Qualquer outra sem coordenada falha.
+$aguardando_geocode = [ "bh-ceu-azul", "bh-funcionarios-lifecenter", "bh-paqueta" ];
 foreach ( $d["units"] as $u ) {
 	$la = $u["fields"]["latitude"] ?? ""; $ln = $u["fields"]["longitude"] ?? "";
-	if ( ! is_numeric( $la ) || ! is_numeric( $ln ) || ( 0.0 === (float) $la && 0.0 === (float) $ln ) ) { $sem_coord++; continue; }
+	if ( ! is_numeric( $la ) || ! is_numeric( $ln ) || ( 0.0 === (float) $la && 0.0 === (float) $ln ) ) {
+		if ( ! in_array( $u["slug"], $aguardando_geocode, true ) ) { $sem_coord++; }
+		continue;
+	}
 	$coords[ sprintf( "%.6f,%.6f", (float) $la, (float) $ln ) ] = true;
 }
-$t( "70/70 unidades com lat/lng valida", 0 === $sem_coord, "$sem_coord sem" );
-$t( "nenhuma coordenada duplicada", 70 === count( $coords ), count( $coords ) . " distintas" );
+$t( "70/70 unidades (fora as 3 aguardando geocode) com lat/lng valida", 0 === $sem_coord, "$sem_coord sem" );
+$t( "nenhuma coordenada duplicada", count( $coords ) === 70, count( $coords ) . " distintas" );
 
 printf( "\n== Resultado: %d OK, %d falhas\n", $ok, $fail );
 exit( $fail > 0 ? 1 : 0 );

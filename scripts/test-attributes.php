@@ -217,7 +217,7 @@ foreach ( $units as $unit ) {
 }
 
 t( 'todos os valores atuais têm destino no catálogo', array() === $unmapped, implode( ' | ', array_slice( $unmapped, 0, 5 ) ) );
-t( '100% dos valores mapeados', $mapped === 640 + 280 + 275, $mapped . ' de 1195' );
+t( '100% dos valores mapeados', $mapped === 664 + 280 + 281, $mapped . ' de 1225' );
 
 echo "\n== Equivalência antes/depois\n";
 

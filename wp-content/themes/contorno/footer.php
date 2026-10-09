@@ -45,7 +45,7 @@ $contorno_phone_label  = function_exists( 'contorno_format_phone' ) ? contorno_f
 
 			<?php
 			/*
-			 * Redes sociais como no React: quatro circulos; os canais ainda sem
+			 * Redes sociais como no React: circulos; os canais ainda sem
 			 * URL aparecem esmaecidos ("em breve") em vez de sumir.
 			 */
 			$contorno_social = array(
@@ -53,6 +53,7 @@ $contorno_phone_label  = function_exists( 'contorno_format_phone' ) ? contorno_f
 				'facebook'  => array( __( 'Facebook', 'contorno' ), (string) ( $contorno_brand['facebook'] ?? '' ) ),
 				'youtube'   => array( __( 'YouTube', 'contorno' ), (string) ( $contorno_brand['youtube'] ?? '' ) ),
 				'tiktok'    => array( __( 'TikTok', 'contorno' ), (string) ( $contorno_brand['tiktok'] ?? '' ) ),
+				'linkedin'  => array( __( 'LinkedIn', 'contorno' ), (string) ( $contorno_brand['linkedin'] ?? '' ) ),
 			);
 			?>
 			<ul class="site-footer__social">

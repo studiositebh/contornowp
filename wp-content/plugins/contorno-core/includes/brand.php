@@ -33,11 +33,12 @@ function contorno_brand(): array {
 		'phone'         => '3140420177',
 		'whatsapp'      => '3140420177',
 		'email'         => 'contato@contornodocorpo.com.br',
+		// Canais oficiais. Canal sem URL aparece esmaecido ("em breve") no rodape.
 		'instagram'     => 'https://www.instagram.com/contornodocorpo/',
-		// Canais ainda sem URL aparecem esmaecidos no rodape (como no React).
-		'facebook'      => '',
-		'youtube'       => '',
-		'tiktok'        => '',
+		'facebook'      => 'https://www.facebook.com/AcademiaContornoDoCorpo/',
+		'youtube'       => 'https://www.youtube.com/@AcademiaContornodoCorpo',
+		'tiktok'        => 'https://www.tiktok.com/@contornodocorpo',
+		'linkedin'      => 'https://www.linkedin.com/company/contornodocorpo/',
 		// Imagem social oficial (400x200) — nao substituir por logo generico.
 		'og_image'      => '/brand/Logocompartilhamento.webp',
 		'og_image_w'    => 400,
@@ -63,6 +64,27 @@ function contorno_brand_get( string $key, string $default = '' ): string {
 	$brand = contorno_brand();
 
 	return isset( $brand[ $key ] ) ? (string) $brand[ $key ] : $default;
+}
+
+/**
+ * Perfis sociais oficiais para o `sameAs` do JSON-LD da Organization.
+ *
+ * Deriva de contorno_brand(), a fonte unica; canal sem URL fica de fora.
+ *
+ * @return string[]
+ */
+function contorno_brand_same_as(): array {
+	$urls = array();
+
+	foreach ( array( 'instagram', 'facebook', 'youtube', 'tiktok', 'linkedin' ) as $network ) {
+		$url = esc_url_raw( contorno_brand_get( $network ) );
+
+		if ( '' !== $url ) {
+			$urls[] = $url;
+		}
+	}
+
+	return $urls;
 }
 
 /**
