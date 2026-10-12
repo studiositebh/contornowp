@@ -233,7 +233,11 @@
 
 		// Etapa nova começa no topo: em telefone, o formulário longo deixaria
 		// o botão fora da vista.
-		var top = this.root.getBoundingClientRect().top + window.pageYOffset - 24;
+		// Desconta o header fixo do tema (e a barra do admin): sem isso a
+		// trilha de etapas ficava escondida atrás dele.
+		var header = document.querySelector('[data-contorno-header]');
+		var covered = header && /fixed|sticky/.test(getComputedStyle(header).position) ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+		var top = this.root.getBoundingClientRect().top + window.pageYOffset - covered - 16;
 		window.scrollTo({ top: top < 0 ? 0 : top, behavior: 'smooth' });
 	};
 
@@ -896,6 +900,35 @@
 				self.pay();
 			});
 		}
+
+		// Sem aceite dos termos o botão fica com aparência de desabilitado,
+		// mas clicável: pay() explica o motivo junto da caixa.
+		var terms = this.root.querySelector('[name="acceptedTerms"]');
+		if (terms) {
+			terms.addEventListener('change', function () {
+				self.syncTerms();
+				if (terms.checked) self.showError('acceptedTerms', '');
+			});
+			this.syncTerms();
+		}
+
+		// CPF: erro discreto ao sair do campo; some assim que fica válido.
+		var cpf = this.root.querySelector('[name="document"]');
+		if (cpf) {
+			cpf.addEventListener('blur', function () {
+				var value = digits(cpf.value);
+				self.showError('document', value && !validCpf(value) ? T.cpf : '');
+			});
+			cpf.addEventListener('input', function () {
+				if (validCpf(cpf.value)) self.showError('document', '');
+			});
+		}
+	};
+
+	Checkout.prototype.syncTerms = function () {
+		var terms = this.root.querySelector('[name="acceptedTerms"]');
+		var pay = this.$('[data-ck-pay]');
+		if (pay && terms) pay.setAttribute('aria-disabled', terms.checked ? 'false' : 'true');
 	};
 
 	function init() {

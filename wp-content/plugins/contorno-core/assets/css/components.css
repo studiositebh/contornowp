@@ -3890,6 +3890,42 @@
 	margin-top: 0.1rem;
 }
 
+/* Aceite contratual (pagamento): logo acima dos botões, 12px entre eles. */
+.contorno-ck__terms--accept {
+	align-items: flex-start;
+	gap: 0.45rem;
+	margin-top: var(--space-5, 1.25rem);
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+.contorno-ck__terms--accept input {
+	margin-top: 0.1rem;
+}
+
+.contorno-ck__terms--consent a,
+.contorno-ck__terms--accept a {
+	color: var(--brand-ink, #018075); /* turquesa da marca com contraste AA em 12px */
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.contorno-ck__terms--accept + .contorno-field-error {
+	margin-top: 0.35rem;
+}
+
+.contorno-ck__actions.contorno-ck__actions--pay {
+	margin-top: 12px;
+}
+
+/* Sem aceite: o botão parece desabilitado mas continua clicável, para
+   explicar o motivo em vez de não responder. */
+.contorno-ck__pay[aria-disabled="true"] {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
 .contorno-ck__actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -3987,7 +4023,8 @@
 .contorno-ck__secure {
 	display: flex;
 	gap: 0.6rem;
-	margin: 0 0 var(--space-5, 1.25rem);
+	/* Fica depois do cartão (ordem de 12/10/2026). */
+	margin: var(--space-4, 1rem) 0 0;
 	font-size: var(--text-sm, 0.875rem);
 	color: var(--muted-foreground, #949398);
 }
@@ -4011,6 +4048,120 @@
 	margin: 0;
 	font-size: var(--text-sm, 0.875rem);
 	color: var(--muted-foreground, #949398);
+}
+
+/*
+ * <evo-cartao> (EVO Pay oficial). Sem Shadow DOM e montado com classes do
+ * Bootstrap (row/col-sm-6/form-control/custom-select), que o site nao
+ * carrega; com classes="form-no-style" o proprio componente tambem nao
+ * aplica estilo. Aqui: grade propria + mesmo visual de .contorno-field-row.
+ * Escopo restrito ao container do checkout.
+ */
+.contorno-ck__card evo-cartao {
+	display: block;
+}
+
+/* Ilustracao do cartao (jp-card): decorativa e sobrepunha os campos. */
+.contorno-ck__card evo-cartao .card-container,
+.contorno-ck__card evo-cartao .jp-card-container {
+	display: none !important;
+}
+
+.contorno-ck__card evo-cartao .container,
+.contorno-ck__card evo-cartao .bloco-branco {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	padding: 0;
+}
+
+.contorno-ck__card evo-cartao .row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-4, 1rem);
+	margin: 0 0 var(--space-4, 1rem);
+	padding: 0;
+}
+
+.contorno-ck__card evo-cartao .row:empty {
+	display: none;
+}
+
+.contorno-ck__card evo-cartao .row:last-child {
+	margin-bottom: 0;
+}
+
+.contorno-ck__card evo-cartao .row > [class*="col"] {
+	flex: 1 1 0;
+	min-width: 0;
+	max-width: none;
+	padding: 0;
+}
+
+/* Numero e titular ocupam o dobro de bandeira/vencimento/CVV. */
+.contorno-ck__card evo-cartao .row > .col-sm-6 {
+	flex-grow: 2;
+}
+
+.contorno-ck__card evo-cartao .container-input {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	margin: 0;
+}
+
+.contorno-ck__card evo-cartao .container-input label,
+.contorno-ck__card evo-cartao label.label {
+	position: static;
+	margin: 0;
+	font-size: var(--text-sm, 0.875rem);
+	font-weight: 600;
+	color: var(--foreground, #000);
+	transform: none;
+}
+
+.contorno-ck__card evo-cartao input,
+.contorno-ck__card evo-cartao select {
+	width: 100%;
+	min-height: 3rem;
+	padding: 0.65rem 0.9rem;
+	border: 1px solid var(--border, #e6e8ea);
+	border-radius: 12px;
+	background-color: #fff;
+	font: inherit;
+	font-size: var(--text-base, 1rem);
+	color: var(--foreground, #000);
+	box-shadow: none;
+}
+
+.contorno-ck__card evo-cartao select {
+	appearance: none;
+	padding-right: 2.4rem;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23949398' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 0.9rem center;
+}
+
+.contorno-ck__card evo-cartao input:focus-visible,
+.contorno-ck__card evo-cartao select:focus-visible {
+	outline: none;
+	border-color: var(--brand, #10b8b1);
+	box-shadow: 0 0 0 3px rgb(16 184 177 / 0.18);
+}
+
+.contorno-ck__card evo-cartao .ng-touched.ng-invalid {
+	border-color: #b81e52;
+}
+
+/* Telefone: uma coluna, exceto vencimento + CVV lado a lado. */
+@media (max-width: 599px) {
+	.contorno-ck__card evo-cartao .row > [class*="col"] {
+		flex-basis: 100%;
+	}
+
+	.contorno-ck__card evo-cartao .row > .col:not(.col-sm-6):not(.col-12) {
+		flex-basis: calc(50% - var(--space-4, 1rem) / 2);
+	}
 }
 
 /* ---- resumo ---- */

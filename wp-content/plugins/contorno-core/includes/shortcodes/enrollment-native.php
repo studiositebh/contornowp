@@ -134,7 +134,6 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 	// checkout_require_address em Contorno_Evo_Settings.
 	$with_address = ! empty( $boot['requiresAddress'] );
 	$steps        = contorno_native_checkout_steps( $with_address );
-	$terms        = get_page_by_path( 'termos-de-uso' );
 	$privacy_page = get_page_by_path( 'politica-de-privacidade' );
 
 	contorno_enqueue_component( 'enrollment-native' );
@@ -163,8 +162,8 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 				'required'    => __( 'Preencha este campo.', 'contorno' ),
 				'email'       => __( 'Informe um e-mail válido.', 'contorno' ),
 				'phone'       => __( 'Informe um WhatsApp válido com DDD, ex.: (31) 99999-9999.', 'contorno' ),
-				'cpf'         => __( 'Informe um CPF válido.', 'contorno' ),
-				'terms'       => __( 'É necessário aceitar os termos.', 'contorno' ),
+				'cpf'         => __( 'CPF inválido. Confira os 11 números.', 'contorno' ),
+				'terms'       => __( 'Para finalizar, marque que leu e concorda com os termos e a política de privacidade.', 'contorno' ),
 				'fullName'    => __( 'Informe nome e sobrenome.', 'contorno' ),
 				'consent'     => __( 'Para continuar, autorize o contato da unidade.', 'contorno' ),
 				'saving'      => __( 'Salvando seus dados...', 'contorno' ),
@@ -325,33 +324,6 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 							?>
 						</div>
 
-						<label class="contorno-ck__terms">
-							<input type="checkbox" name="acceptedTerms" value="1" required />
-							<span>
-								<?php
-								printf(
-									/* translators: 1: terms link, 2: privacy policy link */
-									esc_html__( 'Li e concordo com os %1$s e a %2$s', 'contorno' ),
-									sprintf(
-										'<a href="%s" target="_blank" rel="noopener">%s</a>',
-										esc_url( $terms instanceof WP_Post ? (string) get_permalink( $terms ) : home_url( '/termos-de-uso/' ) ),
-										esc_html__( 'termos', 'contorno' )
-									),
-									sprintf(
-										'<a href="%s" target="_blank" rel="noopener">%s</a>',
-										esc_url( $privacy_page instanceof WP_Post ? (string) get_permalink( $privacy_page ) : home_url( '/politica-de-privacidade/' ) ),
-										esc_html__( 'política de privacidade', 'contorno' )
-									)
-								);
-								?>
-							</span>
-						</label>
-						<p class="contorno-field-error" data-error-for="acceptedTerms" hidden></p>
-						<p class="contorno-ck__secure">
-							<?php echo contorno_icon( 'lock', 'contorno-ck__secure-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-							<span><?php esc_html_e( 'Os dados do seu cartão são enviados direto ao processador de pagamento da academia. Este site não recebe nem armazena o número do cartão.', 'contorno' ); ?></span>
-						</p>
-
 						<?php
 						/*
 						 * O componente do EVO Pay e montado pelo script oficial
@@ -375,7 +347,42 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 
 						<p class="contorno-field-error" data-error-for="card" hidden></p>
 
-						<div class="contorno-ck__actions">
+						<p class="contorno-ck__secure">
+							<?php echo contorno_icon( 'lock', 'contorno-ck__secure-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<span><?php esc_html_e( 'Os dados do seu cartão são enviados direto ao processador de pagamento da academia. Este site não recebe nem armazena o número do cartão.', 'contorno' ); ?></span>
+						</p>
+
+						<?php
+						/*
+						 * Aceite contratual: colado nos botoes (mesma posicao para
+						 * qualquer forma de pagamento), separado do aviso de
+						 * seguranca acima e do contato comercial da etapa 1.
+						 */
+						?>
+						<label class="contorno-ck__terms contorno-ck__terms--accept">
+							<input type="checkbox" name="acceptedTerms" value="1" required />
+							<span>
+								<?php
+								printf(
+									/* translators: 1: terms link, 2: privacy policy link */
+									esc_html__( 'Li e concordo com os %1$s e a %2$s', 'contorno' ),
+									sprintf(
+										'<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
+										esc_url( home_url( '/termos-de-uso/' ) ),
+										esc_html__( 'termos', 'contorno' )
+									),
+									sprintf(
+										'<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
+										esc_url( home_url( '/politica-de-privacidade/' ) ),
+										esc_html__( 'política de privacidade', 'contorno' )
+									)
+								);
+								?>
+							</span>
+						</label>
+						<p class="contorno-field-error" data-error-for="acceptedTerms" hidden></p>
+
+						<div class="contorno-ck__actions contorno-ck__actions--pay">
 							<button type="button" class="contorno-btn contorno-btn--primary cta-label contorno-ck__pay" data-ck-pay disabled>
 								<span data-ck-pay-label><?php esc_html_e( 'Finalizar matrícula', 'contorno' ); ?></span>
 								<span class="contorno-ck__spinner" data-ck-pay-spinner aria-hidden="true" hidden></span>

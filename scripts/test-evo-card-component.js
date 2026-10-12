@@ -180,5 +180,34 @@ t('campo: type tel, autocomplete tel-national, inputmode numeric', /'type' => 't
 t('campo: prefixo +55 visual (fora do input)', /'prefix' => '\+55'/.test(phoneField) && /contorno-input__prefix" aria-hidden="true"/.test(tpl));
 t('campo: maxlength nao trunca autofill com DDI (>= 19)', parseInt((phoneField.match(/'maxlength' => '(\d+)'/) || [0, 0])[1], 10) >= 19);
 
+console.log('\n== Etapa de pagamento: CPF, ordem, aceite (12/10/2026)');
+
+const cpfCtx = {};
+vm.runInNewContext([
+	grab(/function digits\(value\) \{[\s\S]*?\n\t\}/, 'digits()'),
+	grab(/function maskCpf\(value\) \{[\s\S]*?\n\t\}/, 'maskCpf()'),
+	grab(/function validCpf\(value\) \{[\s\S]*?\n\t\}/, 'validCpf()'),
+	'this.validCpf = validCpf; this.maskCpf = maskCpf;'
+].join('\n'), cpfCtx);
+t('CPF valido (529.982.247-25) aceito', cpfCtx.validCpf('529.982.247-25') && cpfCtx.validCpf('52998224725'));
+t('CPF com digito verificador errado recusado', !cpfCtx.validCpf('529.982.247-24'));
+t('CPF incompleto recusado', !cpfCtx.validCpf('529.982.247'));
+t('CPF repetido (111.111.111-11, 000...) recusado', !cpfCtx.validCpf('111.111.111-11') && !cpfCtx.validCpf('00000000000'));
+t('mascara 000.000.000-00', cpfCtx.maskCpf('52998224725') === '529.982.247-25' && cpfCtx.maskCpf('529982247259999') === '529.982.247-25');
+
+const panel = (tpl.match(/data-ck-panel="payment"[\s\S]*?<\/section>/) || [''])[0];
+const at = (needle) => panel.indexOf(needle);
+const order = ["'name'      => 'document'", "'name' => 'birthday'", 'data-ck-card-mount', 'contorno-ck__secure"', 'contorno-ck__terms--accept', 'data-ck-pay '];
+t('ordem: CPF -> nascimento -> cartao -> seguranca -> aceite -> botoes', order.every((n, i) => at(n) > -1 && (i === 0 || at(order[i - 1]) < at(n))), order.map(at).join(' < '));
+t('aceite: texto exato', /esc_html__\( 'Li e concordo com os %1\$s e a %2\$s'/.test(panel) && /'termos'/.test(panel) && /'política de privacidade'/.test(panel));
+t('aceite: links /termos-de-uso/ e /politica-de-privacidade/ em nova aba seguros',
+	/home_url\( '\/termos-de-uso\/' \)/.test(panel) && /home_url\( '\/politica-de-privacidade\/' \)/.test(panel) && (panel.match(/target="_blank" rel="noopener noreferrer"/g) || []).length === 2);
+t('aceite: obrigatorio e inicialmente desmarcado', /name="acceptedTerms" value="1" required \/>/.test(panel) && !/name="acceptedTerms"[^>]*checked/.test(panel));
+t('aceite separado do aviso de seguranca e do consentimento da etapa 1', at('contorno-ck__terms--accept') > at('contorno-ck__secure"') && !/name="consent"/.test(panel));
+t('sem aceite: botao com aria-disabled e motivo explicado', /setAttribute\('aria-disabled', terms\.checked \? 'false' : 'true'\)/.test(src) && /errors\.acceptedTerms = T\.terms/.test(src));
+t('CPF: erro discreto ao sair do campo', /cpf\.addEventListener\('blur'/.test(src));
+t('rolagem entre etapas desconta o header fixo', /data-contorno-header/.test(src) && /- covered - 16/.test(src));
+t('cartao: componente sem estilo proprio recebe o visual do site (CSS escopado)', /\.contorno-ck__card evo-cartao input,/.test(fs.readFileSync(path.join(__dirname, '..', 'wp-content', 'plugins', 'contorno-core', 'assets', 'css', 'components.css'), 'utf8')));
+
 console.log('\n== Resultado: ' + ok + ' OK, ' + fail + ' falhas');
 process.exit(fail > 0 ? 1 : 0);

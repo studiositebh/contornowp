@@ -699,6 +699,24 @@ Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) )
 $paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '111.111.111-11', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
 t( 'pagamento apos lead com CPF invalido e recusado, sem venda', 'dados_invalidos' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
 
+// C2) CPF no servidor: algoritmo oficial (nao e consulta a Receita).
+t( 'valid_cpf: valido aceito', Contorno_Evo_Checkout_Rest::valid_cpf( '52998224725' ) );
+t( 'valid_cpf: digito errado, incompleto e repetido recusados', ! Contorno_Evo_Checkout_Rest::valid_cpf( '52998224724' ) && ! Contorno_Evo_Checkout_Rest::valid_cpf( '529982247' ) && ! Contorno_Evo_Checkout_Rest::valid_cpf( '00000000000' ) );
+foreach ( array( 'incompleto' => '529.982.247', 'digito errado' => '529.982.247-24', 'repetido' => '000.000.000-00' ) as $label => $cpf ) {
+	fx_reset( fx_routes_happy() );
+	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+	$token  = (string) $opened->data['token'];
+	Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+	$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => $cpf, 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+	t( "pagamento com CPF $label: recusado, sem PATCH e sem venda", 'dados_invalidos' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'PATCH', '/api/v1/prospects' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
+}
+fx_reset( fx_routes_happy() );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725' ), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'pagamento sem aceite dos termos: recusado no servidor, sem venda', 'dados_invalidos' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
+
 // D) CPF do pagamento e de um ALUNO: venda vai para o membro
 fx_reset( fx_routes_happy() );
 $GLOBALS['routes']['/api/v1/members/basic'] = static fn ( string $url ) => str_contains( $url, 'document=' ) ? fx_json( array( array( 'idMember' => 4242 ) ) ) : fx_json( array() );
