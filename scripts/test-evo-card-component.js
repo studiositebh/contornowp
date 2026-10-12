@@ -117,5 +117,21 @@ t('a venda (call pay) so sai de submit()', /this\.call\('pay'/.test(submitFn) &&
 t('erro do componente libera o botao (tokenFailed)', /EVENT_ERROR, function \(event\) \{[\s\S]*?self\.tokenFailed\(/.test(mountFn));
 t('botao "Finalizar" habilita quando o componente monta', /self\.cardElement = element;[\s\S]*?pay\.disabled = false;/.test(mountFn));
 
+console.log('\n== Fluxo com lead na 1a etapa (12/10/2026)');
+
+const ctorFn = grab(/function Checkout\(root\) \{[\s\S]*?\n\t\}/, 'Checkout()');
+const submitDataFn = grab(/Checkout\.prototype\.submitData = function \(button\) \{[\s\S]*?\n\t\};/, 'submitData()');
+const validateDataFn = grab(/Checkout\.prototype\.validateData = function \(\) \{[\s\S]*?\n\t\};/, 'validateData()');
+
+t('1a etapa e "data" (sem etapa de confirmar plano)', /this\.order = \['data'\]/.test(ctorFn) && !/'plan'\]/.test(ctorFn));
+t('init abre em "data"', /checkout\.go\('data'\)/.test(src) && !/go\('plan'\)/.test(src));
+t('lead vai para a rota "lead" com nome completo, WhatsApp, e-mail e consentimento',
+	/this\.call\('lead'/.test(submitDataFn) && /fullName:/.test(submitDataFn) && /phone:/.test(submitDataFn) && /email:/.test(submitDataFn) && /consent: true/.test(submitDataFn));
+t('1a etapa NAO pede CPF', !/document/.test(validateDataFn) && !/document/.test(submitDataFn));
+t('1a etapa exige nome + sobrenome e consentimento', /errors\.fullName/.test(validateDataFn) && /errors\.consent/.test(validateDataFn));
+t('pagamento valida CPF e termos antes de gerar token', /this\.report\('payment', this\.validatePayment\(\)\)/.test(payFn));
+t('pagamento nao reenvia nome/e-mail/telefone (ja estao no lead)', !/firstName|lastName|email:|phone:/.test(submitFn));
+t('rota antiga "identify" nao e mais usada pelo front', !/this\.call\('identify'/.test(src));
+
 console.log('\n== Resultado: ' + ok + ' OK, ' + fail + ' falhas');
 process.exit(fail > 0 ? 1 : 0);

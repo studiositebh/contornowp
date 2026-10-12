@@ -10,6 +10,7 @@
  *
  *   POST /checkout/open      selecao -> token de sessao + resumo oficial
  *   POST /checkout/identify  e-mail/CPF/telefone -> membro | prospect | novo
+ *   POST /checkout/lead      nome completo, e-mail, WhatsApp, aceite -> prospect na EVO (1a etapa)
  *   POST /checkout/pay       token + dados + cartao tokenizado -> venda
  *   POST /checkout/status    token -> situacao (para reabrir a aba)
  *
@@ -46,6 +47,9 @@ final class Contorno_Evo_Checkout_Rest {
 	private const LIMITS = array(
 		'open'     => array( 30, 300 ),
 		'identify' => array( 20, 300 ),
+		// Lead: cada envio cria cadastro na EVO. Folga para corrigir o e-mail,
+		// aperto para nao virar gerador de prospect.
+		'lead'     => array( 8, 900 ),
 		// Venda: generoso o bastante para quem errou o cartao duas vezes e
 		// apertado o bastante para nao servir de teste de cartao roubado.
 		'pay'      => array( 6, 900 ),
@@ -64,6 +68,7 @@ final class Contorno_Evo_Checkout_Rest {
 
 		register_rest_route( self::NAMESPACE, '/checkout/open', $common + array( 'callback' => array( __CLASS__, 'open' ) ) );
 		register_rest_route( self::NAMESPACE, '/checkout/identify', $common + array( 'callback' => array( __CLASS__, 'identify' ) ) );
+		register_rest_route( self::NAMESPACE, '/checkout/lead', $common + array( 'callback' => array( __CLASS__, 'lead' ) ) );
 		register_rest_route( self::NAMESPACE, '/checkout/pay', $common + array( 'callback' => array( __CLASS__, 'pay' ) ) );
 		register_rest_route( self::NAMESPACE, '/checkout/status', $common + array( 'callback' => array( __CLASS__, 'status' ) ) );
 	}
@@ -310,6 +315,84 @@ final class Contorno_Evo_Checkout_Rest {
 		);
 	}
 
+	/**
+	 * Primeira etapa: registra o LEAD na EVO antes de qualquer pagamento.
+	 *
+	 * Quem desiste no meio da matricula continua na base da unidade
+	 * (prospect com marketingType "Site" e currentStep "Lead site"). Nada
+	 * fica guardado no WordPress: na sessao entram so os IDs da EVO.
+	 *
+	 * Ja e aluno ou ja e prospect (por e-mail/WhatsApp): reaproveita, nao
+	 * cria outro. Reenvio da mesma sessao: nao cria de novo.
+	 */
+	public static function lead( WP_REST_Request $request ): WP_REST_Response {
+		$guard = self::guard( $request, 'lead' );
+
+		if ( ! $guard['ok'] ) {
+			return self::fail( $guard['code'] );
+		}
+
+		$state = Contorno_Evo_Checkout::load( (string) $request->get_param( 'token' ) );
+
+		if ( null === $state ) {
+			return self::fail( 'sessao_expirada', array( 'fallback' => true ) );
+		}
+
+		if ( ! empty( $state['lead'] ) && ( (int) $state['id_prospect'] > 0 || (int) $state['id_member'] > 0 ) ) {
+			return new WP_REST_Response( array( 'ok' => true, 'kind' => (int) $state['id_member'] > 0 ? 'member' : 'prospect' ), 200 );
+		}
+
+		$name  = Contorno_Evo_Checkout::split_name( (string) $request->get_param( 'fullName' ) );
+		$email = sanitize_email( (string) $request->get_param( 'email' ) );
+		$phone = preg_replace( '/\D/', '', (string) $request->get_param( 'phone' ) ) ?? '';
+
+		if ( null === $name
+			|| '' === $email || ! is_email( $email ) || mb_strlen( $email ) > 254
+			|| strlen( $phone ) < 10 || strlen( $phone ) > 11
+			// LGPD: o contato da unidade depende deste aceite.
+			|| empty( $request->get_param( 'consent' ) )
+		) {
+			return self::fail( 'dados_invalidos' );
+		}
+
+		$found = Contorno_Evo_Checkout::identify( array( 'email' => $email, 'phone' => $phone ), (int) $state['id_branch'] );
+
+		if ( ! $found['ok'] ) {
+			return self::fail( $found['error'], array( 'fallback' => 'evo_indisponivel' === $found['error'] ) );
+		}
+
+		$kind = $found['kind'];
+
+		if ( 'new' === $kind ) {
+			$created = ( new Contorno_Evo_Client() )->create_prospect(
+				Contorno_Evo_Checkout::lead_payload(
+					array( 'first_name' => $name[0], 'last_name' => $name[1], 'email' => $email, 'phone' => $phone ),
+					(int) $state['id_branch'],
+					(string) ( $state['quote']['name'] ?? '' )
+				)
+			);
+
+			if ( ! $created['ok'] ) {
+				Contorno_Evo_Checkout::log( 'error', 'falha ao registrar lead: ' . $created['message'], $state + array( 'http' => $created['http'] ) );
+
+				return self::fail( 400 === $created['http'] ? 'dados_invalidos' : 'evo_indisponivel', array( 'fallback' => 400 !== $created['http'] ) );
+			}
+
+			$found['id_prospect'] = $created['id_prospect'];
+			$kind                 = 'prospect';
+			Contorno_Evo_Checkout::log( 'info', 'lead registrado na EVO (prospect novo)', $state );
+		}
+
+		$state['lead']        = true;
+		$state['id_member']   = (int) $found['id_member'];
+		$state['id_prospect'] = (int) $found['id_prospect'];
+		$state['status']      = 'identified';
+		Contorno_Evo_Checkout::save( $state );
+
+		// Nenhum dado do cadastro volta para o navegador, so o tipo.
+		return new WP_REST_Response( array( 'ok' => true, 'kind' => 'member' === $kind ? 'member' : 'prospect' ), 200 );
+	}
+
 	public static function status( WP_REST_Request $request ): WP_REST_Response {
 		$guard = self::guard( $request, 'status' );
 
@@ -400,7 +483,8 @@ final class Contorno_Evo_Checkout_Rest {
 			$state['quote'] = $fresh['quote'];
 
 			// 2. Dados da pessoa.
-			$person = self::person( $request );
+			// Sessao com lead (1a etapa): nome, e-mail e WhatsApp ja estao na EVO.
+			$person = self::person( $request, ! empty( $state['lead'] ) );
 
 			if ( ! $person['ok'] ) {
 				return self::fail( $person['code'] );
@@ -446,6 +530,19 @@ final class Contorno_Evo_Checkout_Rest {
 			}
 
 			$installments = max( 1, min( (int) $state['quote']['max_installments'], (int) $request->get_param( 'installments' ) ) );
+
+			// 4a. Lead da 1a etapa: completa o MESMO cadastro com o CPF (ou
+			// descobre que o CPF e de um aluno). Nada de prospect novo.
+			if ( ! empty( $state['lead'] ) && (int) $state['id_member'] <= 0 && (int) $state['id_prospect'] > 0 ) {
+				$completed = Contorno_Evo_Checkout::complete_lead( $state, $person['data'] );
+
+				if ( ! $completed['ok'] ) {
+					return self::fail( $completed['error'], array( 'fallback' => 'evo_indisponivel' === $completed['error'] ) );
+				}
+
+				$state['id_member']   = $completed['id_member'];
+				$state['id_prospect'] = $completed['id_prospect'];
+			}
 
 			// 4. Quem e a pessoa, se ainda nao sabemos.
 			if ( (int) $state['id_member'] <= 0 && (int) $state['id_prospect'] <= 0 ) {
@@ -589,9 +686,12 @@ final class Contorno_Evo_Checkout_Rest {
 	/**
 	 * Dados pessoais do pedido, validados. Nao sao gravados em lugar nenhum.
 	 *
+	 * $lead = true: a sessao ja registrou o lead (nome, e-mail, WhatsApp
+	 * estao na EVO); aqui so CPF, nascimento, termos e endereco.
+	 *
 	 * @return array{ok:bool,code:string,data:array<string,string>}
 	 */
-	private static function person( WP_REST_Request $request ): array {
+	private static function person( WP_REST_Request $request, bool $lead = false ): array {
 		$raw = (array) $request->get_param( 'person' );
 
 		$first = trim( sanitize_text_field( (string) ( $raw['firstName'] ?? '' ) ) );
@@ -602,20 +702,22 @@ final class Contorno_Evo_Checkout_Rest {
 
 		$fail = static fn (): array => array( 'ok' => false, 'code' => 'dados_invalidos', 'data' => array() );
 
-		if ( mb_strlen( $first ) < 2 || mb_strlen( $first ) > 60 ) {
-			return $fail();
-		}
+		if ( ! $lead ) {
+			if ( mb_strlen( $first ) < 2 || mb_strlen( $first ) > 60 ) {
+				return $fail();
+			}
 
-		if ( mb_strlen( $last ) < 2 || mb_strlen( $last ) > 80 ) {
-			return $fail();
-		}
+			if ( mb_strlen( $last ) < 2 || mb_strlen( $last ) > 80 ) {
+				return $fail();
+			}
 
-		if ( '' === $email || ! is_email( $email ) || mb_strlen( $email ) > 254 ) {
-			return $fail();
-		}
+			if ( '' === $email || ! is_email( $email ) || mb_strlen( $email ) > 254 ) {
+				return $fail();
+			}
 
-		if ( strlen( $phone ) < 10 || strlen( $phone ) > 11 ) {
-			return $fail();
+			if ( strlen( $phone ) < 10 || strlen( $phone ) > 11 ) {
+				return $fail();
+			}
 		}
 
 		if ( 11 !== strlen( $doc ) || ! self::valid_cpf( $doc ) ) {

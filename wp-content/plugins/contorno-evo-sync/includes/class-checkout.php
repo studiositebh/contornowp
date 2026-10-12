@@ -415,6 +415,141 @@ final class Contorno_Evo_Checkout {
 	 * @param array<string,string> $person
 	 * @return array<string,mixed>
 	 */
+	/* ---------------------------------------------------------------
+	 * Lead (primeira etapa)
+	 * ------------------------------------------------------------- */
+
+	/** Etapas do funil gravadas em currentStep do prospect na EVO. */
+	public const STEP_LEAD    = 'Lead site';
+	public const STEP_PAYMENT = 'Pagamento site';
+
+	/**
+	 * "Maria de Souza Lima" -> ["Maria", "de Souza Lima"].
+	 *
+	 * A EVO exige name E lastName no prospect; o site pede um campo so.
+	 * Menos de duas palavras = nao da para separar = recusa (o front avisa).
+	 *
+	 * @return array{0:string,1:string}|null
+	 */
+	public static function split_name( string $full ): ?array {
+		$full  = trim( (string) preg_replace( '/\s+/u', ' ', sanitize_text_field( $full ) ) );
+		$parts = '' === $full ? array() : explode( ' ', $full, 2 );
+
+		if ( 2 !== count( $parts ) || mb_strlen( $parts[0] ) < 2 || mb_strlen( $parts[1] ) < 1 || mb_strlen( $full ) > 140 ) {
+			return null;
+		}
+
+		return array( $parts[0], $parts[1] );
+	}
+
+	/**
+	 * Prospect da primeira etapa: nome, e-mail e WhatsApp, sem CPF.
+	 * name, lastName e email sao os obrigatorios de POST /api/v1/prospects.
+	 *
+	 * @param array{first_name:string,last_name:string,email:string,phone:string} $lead
+	 * @return array<string,mixed>
+	 */
+	public static function lead_payload( array $lead, int $id_branch, string $plan_name ): array {
+		$payload = array(
+			'name'          => $lead['first_name'],
+			'lastName'      => $lead['last_name'],
+			'email'         => $lead['email'],
+			'ddi'           => '55',
+			'cellphone'     => $lead['phone'],
+			'idBranch'      => $id_branch,
+			'marketingType' => 'Site',
+			'currentStep'   => self::STEP_LEAD,
+			// O que a pessoa estava comprando: a unidade retoma o contato
+			// sabendo o plano. Nenhum dado pessoal aqui.
+			'notes'         => '' !== $plan_name ? mb_substr( 'Matrícula online iniciada no site. Plano: ' . $plan_name, 0, 250 ) : 'Matrícula online iniciada no site.',
+		);
+
+		return array_filter( $payload, static fn ( $v ): bool => '' !== $v && null !== $v );
+	}
+
+	/**
+	 * Segunda etapa: o lead ja existe; o CPF chega agora.
+	 *
+	 * 1. CPF de aluno existente -> a venda vai para o MEMBRO (o lead fica
+	 *    como historico na EVO; nao se cria nada novo).
+	 * 2. Senao, completa o MESMO prospect (PATCH: cpf, nascimento, etapa).
+	 * 3. PATCH recusado (ex.: CPF ja usado por outro prospect) -> procura o
+	 *    prospect dono do CPF e usa esse. Nao achou -> dados_invalidos.
+	 *
+	 * Qualquer falha de consulta para o fluxo ANTES da venda (fallback
+	 * seguro): "nao consegui verificar" nunca vira "nao existe".
+	 *
+	 * @param array<string,mixed>  $state
+	 * @param array<string,string> $person  saida validada de person()
+	 * @return array{ok:bool,error:string,id_member:int,id_prospect:int}
+	 */
+	public static function complete_lead( array $state, array $person ): array {
+		$client   = new Contorno_Evo_Client();
+		$document = (string) $person['document'];
+		$fail     = static fn ( string $error ): array => array( 'ok' => false, 'error' => $error, 'id_member' => 0, 'id_prospect' => 0 );
+
+		$members = $client->members_basic( array( 'document' => $document ) );
+
+		if ( ! $members['ok'] ) {
+			return $fail( 'evo_indisponivel' );
+		}
+
+		foreach ( $members['items'] as $item ) {
+			if ( (int) ( $item['idMember'] ?? 0 ) > 0 ) {
+				return array( 'ok' => true, 'error' => '', 'id_member' => (int) $item['idMember'], 'id_prospect' => 0 );
+			}
+		}
+
+		$id_prospect = (int) $state['id_prospect'];
+		$patch       = array(
+			'idProspect'  => $id_prospect,
+			'cpf'         => $document,
+			'currentStep' => self::STEP_PAYMENT,
+		);
+
+		if ( '' !== (string) ( $person['birthday'] ?? '' ) ) {
+			$patch['birthday'] = (string) $person['birthday'];
+		}
+
+		if ( Contorno_Evo_Settings::get( 'checkout_require_address', false ) ) {
+			$patch += self::address_payload( $person );
+		}
+
+		$updated = $client->update_prospect( $patch );
+
+		if ( $updated['ok'] ) {
+			return array( 'ok' => true, 'error' => '', 'id_member' => 0, 'id_prospect' => $id_prospect );
+		}
+
+		if ( 400 !== $updated['http'] ) {
+			self::log( 'error', 'falha ao completar o lead: ' . $updated['message'], $state + array( 'http' => $updated['http'] ) );
+
+			return $fail( 'evo_indisponivel' );
+		}
+
+		// 400: provavelmente o CPF ja pertence a outro prospect.
+		$owner = $client->prospects( array( 'document' => $document ) );
+
+		if ( ! $owner['ok'] ) {
+			return $fail( 'evo_indisponivel' );
+		}
+
+		foreach ( $owner['items'] as $item ) {
+			if ( (int) ( $item['idMember'] ?? 0 ) > 0 ) {
+				return array( 'ok' => true, 'error' => '', 'id_member' => (int) $item['idMember'], 'id_prospect' => 0 );
+			}
+			if ( (int) ( $item['idProspect'] ?? 0 ) > 0 ) {
+				self::log( 'warning', 'CPF ja era de outro prospect; venda usa o cadastro existente', $state );
+
+				return array( 'ok' => true, 'error' => '', 'id_member' => 0, 'id_prospect' => (int) $item['idProspect'] );
+			}
+		}
+
+		self::log( 'warning', 'EVO recusou completar o lead: ' . $updated['message'], $state + array( 'http' => 400 ) );
+
+		return $fail( 'dados_invalidos' );
+	}
+
 	public static function address_payload( array $person ): array {
 		$out = array(
 			'zipCode'      => preg_replace( '/\D/', '', (string) ( $person['zip_code'] ?? '' ) ) ?? '',

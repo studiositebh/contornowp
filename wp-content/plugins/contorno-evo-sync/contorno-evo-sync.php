@@ -160,6 +160,7 @@ function contorno_evo_checkout_boot_data(): array {
 		'routes'          => array(
 			'open'     => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/open' ),
 			'identify' => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/identify' ),
+			'lead'     => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/lead' ),
 			'pay'      => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/pay' ),
 			'status'   => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/status' ),
 		),

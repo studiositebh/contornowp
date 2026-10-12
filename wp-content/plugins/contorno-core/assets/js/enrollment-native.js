@@ -137,8 +137,10 @@
 		this.card = null;
 		this.busy = false;
 		this.withAddress = root.getAttribute('data-address') === '1';
-		this.order = ['plan', 'data'].concat(this.withAddress ? ['address'] : [], ['payment', 'done']);
-		this.current = 'plan';
+		// 1ª etapa = lead (nome, WhatsApp, e-mail), salvo na EVO antes do
+		// resto. O plano fica no resumo ao lado; não há etapa de "confirmar".
+		this.order = ['data'].concat(this.withAddress ? ['address'] : [], ['payment', 'done']);
+		this.current = 'data';
 
 		this.alert = root.querySelector('[data-ck-alert]');
 		this.progress = root.querySelector('[data-ck-progress]');
@@ -326,7 +328,9 @@
 	Checkout.prototype.start = function () {
 		var self = this;
 		var loading = this.$('[data-ck-loading]');
-		var actions = this.$('[data-ck-plan-actions]');
+		// "Continuar" só depois da sessão aberta: sem token não há onde
+		// registrar o lead.
+		var next = this.$('[data-ck-next="data"]');
 
 		this.call('open', { slug: CFG.slug, plan: CFG.plan }).then(function (data) {
 			if (loading) loading.hidden = true;
@@ -346,7 +350,7 @@
 			self.gateway = data.gateway || {};
 			self.paint(data.summary);
 
-			if (actions) actions.hidden = false;
+			if (next) next.disabled = false;
 		});
 	};
 
@@ -384,15 +388,28 @@
 		return input ? String(input.value || '').trim() : '';
 	};
 
+	/** 1ª etapa (lead): nome completo, WhatsApp, e-mail e consentimento. */
 	Checkout.prototype.validateData = function () {
 		var errors = {};
 
-		if (this.value('firstName').length < 2) errors.firstName = T.required;
-		if (this.value('lastName').length < 2) errors.lastName = T.required;
-		if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(this.value('email'))) errors.email = T.email;
+		// Nome + sobrenome: a EVO exige os dois no prospect.
+		var name = this.value('fullName').replace(/\s+/g, ' ').split(' ');
+		if (name.length < 2 || name[0].length < 2 || !name[1]) errors.fullName = T.fullName || T.required;
 
 		var phone = digits(this.value('phone'));
 		if (phone.length < 10 || phone.length > 11) errors.phone = T.phone;
+
+		if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(this.value('email'))) errors.email = T.email;
+
+		var consent = this.root.querySelector('[name="consent"]');
+		if (consent && !consent.checked) errors.consent = T.consent || T.required;
+
+		return errors;
+	};
+
+	/** Etapa de pagamento: CPF e termos (o cartão é do componente). */
+	Checkout.prototype.validatePayment = function () {
+		var errors = {};
 
 		if (!validCpf(this.value('document'))) errors.document = T.cpf;
 
@@ -443,20 +460,22 @@
 		var previous = label ? label.textContent : '';
 
 		if (button) button.disabled = true;
-		if (label && T.validating) label.textContent = T.validating;
+		if (label) label.textContent = T.saving || T.validating || previous;
 
 		var restore = function () {
 			if (button) button.disabled = false;
 			if (label) label.textContent = previous;
 		};
 
-		// Identificar antes de pagar: se a pessoa já é aluna ou já é prospect,
-		// a venda usa o cadastro dela em vez de criar outro.
-		this.call('identify', {
+		// O lead vai para a EVO AGORA: se a pessoa desistir no pagamento, a
+		// unidade já tem o contato. Aluno ou prospect existente é
+		// reaproveitado pelo servidor, sem cadastro duplicado.
+		this.call('lead', {
 			token: this.token,
-			email: this.value('email'),
+			fullName: this.value('fullName'),
 			phone: digits(this.value('phone')),
-			document: digits(this.value('document'))
+			email: this.value('email'),
+			consent: true
 		}).then(function (data) {
 			restore();
 
@@ -657,6 +676,9 @@
 			return;
 		}
 
+		// CPF e termos antes do cartão: token só é gerado se a venda pode sair.
+		if (!this.report('payment', this.validatePayment())) return;
+
 		if (this.withAddress && !this.report('address', this.validateAddress())) {
 			this.go('address');
 			return;
@@ -693,11 +715,9 @@
 		if (label && T.processing) label.textContent = T.processing;
 		this.say(T.dontClose || '', 'info');
 
+		// Nome, e-mail e WhatsApp já foram para a EVO no lead (1ª etapa); o
+		// servidor completa o mesmo cadastro com o CPF.
 		var person = {
-			firstName: this.value('firstName'),
-			lastName: this.value('lastName'),
-			email: this.value('email'),
-			phone: digits(this.value('phone')),
 			document: digits(this.value('document')),
 			birthday: this.value('birthday'),
 			acceptedTerms: true
@@ -733,12 +753,11 @@
 			self.busy = false;
 			if (label) label.textContent = T.payLabel || 'Finalizar matrícula';
 
-			// Preço mudou: o resumo é repintado e a pessoa precisa confirmar de
-			// novo. Não reenviamos sozinhos com o valor novo.
+			// Preço mudou: o resumo ao lado é repintado e a pessoa vê o valor
+			// novo antes de clicar de novo. Não reenviamos sozinhos.
 			if (data.error === 'preco_mudou') {
 				if (data.summary) self.paint(data.summary);
 				self.say(data.message, 'warning');
-				self.go('plan');
 				return;
 			}
 
@@ -792,11 +811,6 @@
 			button.addEventListener('click', function () {
 				var from = button.getAttribute('data-ck-next');
 
-				if (from === 'plan') {
-					self.go('data');
-					return;
-				}
-
 				if (from === 'data') {
 					self.submitData(button);
 					return;
@@ -831,7 +845,7 @@
 
 			var checkout = new Checkout(root);
 			checkout.bind();
-			checkout.go('plan');
+			checkout.go('data');
 			checkout.start();
 		});
 	}

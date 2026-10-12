@@ -56,8 +56,10 @@ function contorno_native_checkout_active( ?WP_Post $post ): bool {
  * @return array<int,array{key:string,label:string}>
  */
 function contorno_native_checkout_steps( bool $with_address ): array {
+	// Sem etapa "Confirme seu plano": o resumo fica fixo ao lado. A primeira
+	// etapa e o LEAD (nome, WhatsApp, e-mail), salvo na EVO antes do resto —
+	// quem desiste no meio continua na base da unidade.
 	$steps = array(
-		array( 'key' => 'plan', 'label' => __( 'Seu plano', 'contorno' ) ),
 		array( 'key' => 'data', 'label' => __( 'Seus dados', 'contorno' ) ),
 	);
 
@@ -161,6 +163,9 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 				'phone'       => __( 'Informe o telefone com DDD.', 'contorno' ),
 				'cpf'         => __( 'Informe um CPF válido.', 'contorno' ),
 				'terms'       => __( 'É necessário aceitar os termos.', 'contorno' ),
+				'fullName'    => __( 'Informe nome e sobrenome.', 'contorno' ),
+				'consent'     => __( 'Para continuar, autorize o contato da unidade.', 'contorno' ),
+				'saving'      => __( 'Salvando seus dados...', 'contorno' ),
 				'loading'     => __( 'Carregando seu plano...', 'contorno' ),
 				'validating'  => __( 'Validando seus dados...', 'contorno' ),
 				'processing'  => __( 'Processando o pagamento...', 'contorno' ),
@@ -209,19 +214,47 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 					<?php /* Mensagem global de estado — erro, aviso de preco, sucesso. */ ?>
 					<div class="contorno-ck__alert" data-ck-alert role="status" aria-live="polite" hidden></div>
 
-					<?php /* ---------------- Etapa 1 — plano ---------------- */ ?>
-					<section class="contorno-ck__panel is-current" data-ck-panel="plan">
-						<h1 class="contorno-ck__title"><?php esc_html_e( 'Confirme seu plano', 'contorno' ); ?></h1>
-						<p class="contorno-ck__lead"><?php esc_html_e( 'Estes são os valores oficiais do seu plano nesta unidade.', 'contorno' ); ?></p>
+					<?php /* ---------------- Etapa 1 — lead ---------------- */ ?>
+					<section class="contorno-ck__panel is-current" data-ck-panel="data">
+						<h1 class="contorno-ck__title"><?php esc_html_e( 'Seus dados', 'contorno' ); ?></h1>
+						<p class="contorno-ck__lead"><?php esc_html_e( 'Comece sua matrícula. Se precisar parar no meio, a unidade entra em contato para ajudar.', 'contorno' ); ?></p>
 
 						<div class="contorno-ck__loading" data-ck-loading>
 							<span class="contorno-ck__spinner" aria-hidden="true"></span>
 							<span><?php esc_html_e( 'Carregando seu plano...', 'contorno' ); ?></span>
 						</div>
 
-						<div class="contorno-ck__actions" data-ck-plan-actions hidden>
-							<button type="button" class="contorno-btn contorno-btn--primary cta-label" data-ck-next="plan">
-								<?php esc_html_e( 'Continuar', 'contorno' ); ?>
+						<div class="contorno-ck__fields">
+							<?php
+							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- markup escapado na funcao.
+							echo contorno_native_field( array( 'name' => 'fullName', 'label' => __( 'Nome completo', 'contorno' ), 'icon' => 'user', 'autocomplete' => 'name', 'maxlength' => '140', 'wide' => true ) );
+							echo contorno_native_field( array( 'name' => 'phone', 'label' => __( 'WhatsApp', 'contorno' ), 'type' => 'tel', 'icon' => 'phone', 'autocomplete' => 'tel', 'inputmode' => 'tel', 'maxlength' => '20', 'mask' => 'phone', 'placeholder' => '(31) 99999-9999' ) );
+							echo contorno_native_field( array( 'name' => 'email', 'label' => __( 'E-mail', 'contorno' ), 'type' => 'email', 'icon' => 'mail', 'autocomplete' => 'email', 'maxlength' => '254', 'placeholder' => 'seu@email.com' ) );
+							// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+							?>
+						</div>
+
+						<label class="contorno-ck__terms">
+							<input type="checkbox" name="consent" value="1" required />
+							<span>
+								<?php
+								printf(
+									/* translators: %s: privacy policy link */
+									esc_html__( 'Autorizo a Contorno do Corpo a entrar em contato comigo sobre a minha matrícula (WhatsApp, e-mail ou telefone) e li a %s.', 'contorno' ),
+									sprintf(
+										'<a href="%s" target="_blank" rel="noopener">%s</a>',
+										esc_url( $privacy_page instanceof WP_Post ? (string) get_permalink( $privacy_page ) : home_url( '/politica-de-privacidade/' ) ),
+										esc_html__( 'política de privacidade', 'contorno' )
+									)
+								);
+								?>
+							</span>
+						</label>
+						<p class="contorno-field-error" data-error-for="consent" hidden></p>
+
+						<div class="contorno-ck__actions">
+							<button type="button" class="contorno-btn contorno-btn--primary cta-label" data-ck-next="data" disabled>
+								<span data-ck-label><?php esc_html_e( 'Continuar', 'contorno' ); ?></span>
 								<?php echo contorno_icon( 'arrow-right', 'contorno-btn__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</button>
 							<a class="contorno-btn contorno-btn--outline cta-label" href="<?php echo esc_url( $back_url ); ?>">
@@ -230,18 +263,41 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 						</div>
 					</section>
 
-					<?php /* ---------------- Etapa 2 — dados ---------------- */ ?>
-					<section class="contorno-ck__panel" data-ck-panel="data" hidden>
-						<h2 class="contorno-ck__title"><?php esc_html_e( 'Seus dados', 'contorno' ); ?></h2>
-						<p class="contorno-ck__lead"><?php esc_html_e( 'Precisamos identificar você para emitir o contrato.', 'contorno' ); ?></p>
+					<?php /* ---------------- Endereco (condicional) ---------------- */ ?>
+					<?php if ( $with_address ) : ?>
+						<section class="contorno-ck__panel" data-ck-panel="address" hidden>
+							<h2 class="contorno-ck__title"><?php esc_html_e( 'Endereço', 'contorno' ); ?></h2>
+							<p class="contorno-ck__lead"><?php esc_html_e( 'Usado no seu contrato de matrícula.', 'contorno' ); ?></p>
+
+							<div class="contorno-ck__fields">
+								<?php
+								// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+								echo contorno_native_field( array( 'name' => 'zipCode', 'label' => __( 'CEP', 'contorno' ), 'icon' => 'map-pin', 'inputmode' => 'numeric', 'maxlength' => '9', 'mask' => 'cep', 'autocomplete' => 'postal-code' ) );
+								echo contorno_native_field( array( 'name' => 'address', 'label' => __( 'Endereço', 'contorno' ), 'autocomplete' => 'address-line1', 'maxlength' => '120', 'wide' => true ) );
+								echo contorno_native_field( array( 'name' => 'number', 'label' => __( 'Número', 'contorno' ), 'inputmode' => 'numeric', 'maxlength' => '10' ) );
+								echo contorno_native_field( array( 'name' => 'complement', 'label' => __( 'Complemento', 'contorno' ), 'maxlength' => '60', 'optional' => true ) );
+								echo contorno_native_field( array( 'name' => 'neighborhood', 'label' => __( 'Bairro', 'contorno' ), 'maxlength' => '80' ) );
+								echo contorno_native_field( array( 'name' => 'city', 'label' => __( 'Cidade', 'contorno' ), 'maxlength' => '80' ) );
+								echo contorno_native_field( array( 'name' => 'state', 'label' => __( 'Estado (UF)', 'contorno' ), 'maxlength' => '2', 'placeholder' => 'MG' ) );
+								// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+								?>
+							</div>
+
+							<div class="contorno-ck__actions">
+								<button type="button" class="contorno-btn contorno-btn--primary cta-label" data-ck-next="address"><?php esc_html_e( 'Continuar', 'contorno' ); ?></button>
+								<button type="button" class="contorno-btn contorno-btn--outline cta-label" data-ck-back><?php esc_html_e( 'Voltar', 'contorno' ); ?></button>
+							</div>
+						</section>
+					<?php endif; ?>
+
+					<?php /* ---------------- Pagamento: CPF + cartao ---------------- */ ?>
+					<section class="contorno-ck__panel" data-ck-panel="payment" hidden>
+						<h2 class="contorno-ck__title"><?php esc_html_e( 'Pagamento', 'contorno' ); ?></h2>
+						<p class="contorno-ck__lead"><?php esc_html_e( 'Para emitir o contrato, informe seu CPF e os dados do cartão de crédito.', 'contorno' ); ?></p>
 
 						<div class="contorno-ck__fields">
 							<?php
 							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- markup escapado na funcao.
-							echo contorno_native_field( array( 'name' => 'firstName', 'label' => __( 'Nome', 'contorno' ), 'icon' => 'user', 'autocomplete' => 'given-name', 'maxlength' => '60' ) );
-							echo contorno_native_field( array( 'name' => 'lastName', 'label' => __( 'Sobrenome', 'contorno' ), 'icon' => 'user', 'autocomplete' => 'family-name', 'maxlength' => '80' ) );
-							echo contorno_native_field( array( 'name' => 'email', 'label' => __( 'E-mail', 'contorno' ), 'type' => 'email', 'icon' => 'mail', 'autocomplete' => 'email', 'maxlength' => '254', 'placeholder' => 'seu@email.com' ) );
-							echo contorno_native_field( array( 'name' => 'phone', 'label' => __( 'Telefone com DDD', 'contorno' ), 'type' => 'tel', 'icon' => 'phone', 'autocomplete' => 'tel', 'inputmode' => 'tel', 'maxlength' => '20', 'mask' => 'phone', 'placeholder' => '(31) 99999-9999' ) );
 							echo contorno_native_field(
 								array(
 									'name'      => 'document',
@@ -284,48 +340,6 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 							</span>
 						</label>
 						<p class="contorno-field-error" data-error-for="acceptedTerms" hidden></p>
-
-						<div class="contorno-ck__actions">
-							<button type="button" class="contorno-btn contorno-btn--primary cta-label" data-ck-next="data">
-								<span data-ck-label><?php esc_html_e( 'Continuar', 'contorno' ); ?></span>
-								<?php echo contorno_icon( 'arrow-right', 'contorno-btn__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-							</button>
-							<button type="button" class="contorno-btn contorno-btn--outline cta-label" data-ck-back><?php esc_html_e( 'Voltar', 'contorno' ); ?></button>
-						</div>
-					</section>
-
-					<?php /* ---------------- Etapa 3 — endereco (condicional) ---------------- */ ?>
-					<?php if ( $with_address ) : ?>
-						<section class="contorno-ck__panel" data-ck-panel="address" hidden>
-							<h2 class="contorno-ck__title"><?php esc_html_e( 'Endereço', 'contorno' ); ?></h2>
-							<p class="contorno-ck__lead"><?php esc_html_e( 'Usado no seu contrato de matrícula.', 'contorno' ); ?></p>
-
-							<div class="contorno-ck__fields">
-								<?php
-								// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-								echo contorno_native_field( array( 'name' => 'zipCode', 'label' => __( 'CEP', 'contorno' ), 'icon' => 'map-pin', 'inputmode' => 'numeric', 'maxlength' => '9', 'mask' => 'cep', 'autocomplete' => 'postal-code' ) );
-								echo contorno_native_field( array( 'name' => 'address', 'label' => __( 'Endereço', 'contorno' ), 'autocomplete' => 'address-line1', 'maxlength' => '120', 'wide' => true ) );
-								echo contorno_native_field( array( 'name' => 'number', 'label' => __( 'Número', 'contorno' ), 'inputmode' => 'numeric', 'maxlength' => '10' ) );
-								echo contorno_native_field( array( 'name' => 'complement', 'label' => __( 'Complemento', 'contorno' ), 'maxlength' => '60', 'optional' => true ) );
-								echo contorno_native_field( array( 'name' => 'neighborhood', 'label' => __( 'Bairro', 'contorno' ), 'maxlength' => '80' ) );
-								echo contorno_native_field( array( 'name' => 'city', 'label' => __( 'Cidade', 'contorno' ), 'maxlength' => '80' ) );
-								echo contorno_native_field( array( 'name' => 'state', 'label' => __( 'Estado (UF)', 'contorno' ), 'maxlength' => '2', 'placeholder' => 'MG' ) );
-								// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
-								?>
-							</div>
-
-							<div class="contorno-ck__actions">
-								<button type="button" class="contorno-btn contorno-btn--primary cta-label" data-ck-next="address"><?php esc_html_e( 'Continuar', 'contorno' ); ?></button>
-								<button type="button" class="contorno-btn contorno-btn--outline cta-label" data-ck-back><?php esc_html_e( 'Voltar', 'contorno' ); ?></button>
-							</div>
-						</section>
-					<?php endif; ?>
-
-					<?php /* ---------------- Etapa 4 — pagamento ---------------- */ ?>
-					<section class="contorno-ck__panel" data-ck-panel="payment" hidden>
-						<h2 class="contorno-ck__title"><?php esc_html_e( 'Pagamento', 'contorno' ); ?></h2>
-						<p class="contorno-ck__lead"><?php esc_html_e( 'Pagamento com cartão de crédito, processado pela academia.', 'contorno' ); ?></p>
-
 						<p class="contorno-ck__secure">
 							<?php echo contorno_icon( 'lock', 'contorno-ck__secure-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							<span><?php esc_html_e( 'Os dados do seu cartão são enviados direto ao processador de pagamento da academia. Este site não recebe nem armazena o número do cartão.', 'contorno' ); ?></span>

@@ -633,6 +633,159 @@ $found  = Contorno_Evo_Checkout_Rest::identify( request( array( 'token' => (stri
 t( 'falha na consulta de membro para o fluxo em vez de criar duplicado', empty( $found->data['ok'] ) && 'evo_indisponivel' === $found->data['error'] );
 
 /* -------------------------------------------------------------
+ * 5b. Lead na primeira etapa (12/10/2026)
+ *
+ * Nome completo + WhatsApp + e-mail + consentimento viram prospect na EVO
+ * ANTES do pagamento; o CPF completa o MESMO cadastro depois.
+ * ----------------------------------------------------------- */
+
+section( 'Lead na 1a etapa: salvo na EVO antes do pagamento' );
+
+/** @return array<string,mixed> */
+function fx_lead( array $override = array() ): array {
+	return array_merge(
+		array( 'fullName' => 'Maria de Souza Lima', 'phone' => '31999991234', 'email' => 'maria@example.com', 'consent' => true ),
+		$override
+	);
+}
+
+/** Chamadas por metodo + rota desde o ultimo fx_reset. */
+function fx_calls( string $method, string $path ): array {
+	return array_values( array_filter( $GLOBALS['calls'], static fn ( $c ) => $method === $c['method'] && str_contains( $c['url'], $path ) ) );
+}
+
+t( 'split_name: "Maria de Souza Lima" -> Maria / de Souza Lima', array( 'Maria', 'de Souza Lima' ) === Contorno_Evo_Checkout::split_name( '  Maria   de Souza Lima ' ) );
+t( 'split_name: so um nome e recusado (EVO exige sobrenome)', null === Contorno_Evo_Checkout::split_name( 'Maria' ) );
+t( 'split_name: primeiro nome de 1 letra e recusado', null === Contorno_Evo_Checkout::split_name( 'M Souza' ) );
+
+// A) pessoa nova
+fx_reset( fx_routes_happy() );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+$lead   = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$posts  = fx_calls( 'POST', '/api/v1/prospects' );
+$body   = (array) ( $posts[0]['body'] ?? array() );
+
+t( 'lead novo: ok, kind prospect', ! empty( $lead->data['ok'] ) && 'prospect' === ( $lead->data['kind'] ?? '' ), (string) ( $lead->data['error'] ?? '' ) );
+t( 'lead novo: UM prospect criado na EVO', 1 === count( $posts ) );
+t( 'lead: name/lastName vem do nome completo', 'Maria' === ( $body['name'] ?? '' ) && 'de Souza Lima' === ( $body['lastName'] ?? '' ) );
+t( 'lead: e-mail, WhatsApp (ddi 55) e filial', 'maria@example.com' === ( $body['email'] ?? '' ) && '31999991234' === ( $body['cellphone'] ?? '' ) && '55' === ( $body['ddi'] ?? '' ) && 21 === (int) ( $body['idBranch'] ?? 0 ) );
+t( 'lead: origem Site e etapa "Lead site" no funil', 'Site' === ( $body['marketingType'] ?? '' ) && Contorno_Evo_Checkout::STEP_LEAD === ( $body['currentStep'] ?? '' ) );
+t( 'lead: notes cita o plano (para a unidade retomar o contato)', str_contains( (string) ( $body['notes'] ?? '' ), 'Black' ) );
+t( 'lead: SEM CPF (ainda nao foi pedido)', ! array_key_exists( 'cpf', $body ) );
+t( 'lead: resposta nao devolve dado do cadastro', ! str_contains( (string) json_encode( $lead->data ), 'maria' ) && ! array_key_exists( 'idProspect', (array) $lead->data ) );
+$state = Contorno_Evo_Checkout::load( $token );
+t( 'lead: sessao guarda so o idProspect, sem nome/e-mail', 5551 === (int) $state['id_prospect'] && ! empty( $state['lead'] ) && ! str_contains( (string) json_encode( $state ), 'maria@' ) );
+
+$again = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+t( 'lead reenviado na mesma sessao NAO cria outro prospect', ! empty( $again->data['ok'] ) && 1 === count( fx_calls( 'POST', '/api/v1/prospects' ) ) );
+
+// B) pagamento depois do lead: completa o MESMO prospect
+$paid    = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '529.982.247-25', 'birthday' => '1990-05-20', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+$patches = fx_calls( 'PATCH', '/api/v1/prospects' );
+$sales   = fx_calls( 'POST', '/api/v2/sales' );
+$pbody   = (array) ( $patches[0]['body'] ?? array() );
+t( 'pagamento apos lead: venda concluida so com CPF + termos', ! empty( $paid->data['ok'] ) && 'success' === ( $paid->data['status'] ?? '' ), (string) ( $paid->data['error'] ?? '' ) );
+t( 'pagamento apos lead: PATCH no MESMO prospect com CPF', 5551 === (int) ( $pbody['idProspect'] ?? 0 ) && '52998224725' === ( $pbody['cpf'] ?? '' ) );
+t( 'pagamento apos lead: nascimento e etapa "Pagamento site"', '1990-05-20' === ( $pbody['birthday'] ?? '' ) && Contorno_Evo_Checkout::STEP_PAYMENT === ( $pbody['currentStep'] ?? '' ) );
+t( 'pagamento apos lead: nenhum prospect novo', 1 === count( fx_calls( 'POST', '/api/v1/prospects' ) ) );
+t( 'venda usa o prospect do lead', 1 === count( $sales ) && 5551 === (int) ( $sales[0]['body']['idProspect'] ?? 0 ) && 0 === ( $sales[0]['body']['memberData']['idMember'] ?? null ) );
+
+// C) pagamento apos lead sem CPF valido
+fx_reset( fx_routes_happy() );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '111.111.111-11', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'pagamento apos lead com CPF invalido e recusado, sem venda', 'dados_invalidos' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
+
+// D) CPF do pagamento e de um ALUNO: venda vai para o membro
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/members/basic'] = static fn ( string $url ) => str_contains( $url, 'document=' ) ? fx_json( array( array( 'idMember' => 4242 ) ) ) : fx_json( array() );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+$sales = fx_calls( 'POST', '/api/v2/sales' );
+t( 'CPF de aluno: venda para memberData.idMember, sem idProspect', 4242 === (int) ( $sales[0]['body']['memberData']['idMember'] ?? 0 ) && ! array_key_exists( 'idProspect', (array) ( $sales[0]['body'] ?? array() ) ) );
+t( 'CPF de aluno: lead NAO e alterado', array() === fx_calls( 'PATCH', '/api/v1/prospects' ) );
+
+// E) PATCH recusado: CPF ja e de outro prospect -> usa esse
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/prospects'] = static function ( string $url, array $args ) {
+	$method = $args['method'] ?? 'GET';
+	if ( 'POST' === $method ) {
+		return fx_json( 5551 );
+	}
+	if ( 'PATCH' === $method ) {
+		return fx_json( array( 'mensagens' => array( 'CPF ja cadastrado' ) ), 400 );
+	}
+	return str_contains( $url, 'document=' ) ? fx_json( array( array( 'idProspect' => 7777 ) ) ) : fx_json( array() );
+};
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+$sales = fx_calls( 'POST', '/api/v2/sales' );
+t( 'CPF de outro prospect: venda usa o cadastro dono do CPF', 7777 === (int) ( $sales[0]['body']['idProspect'] ?? 0 ) );
+
+// F) PATCH com EVO fora: nenhuma venda, fallback seguro
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/prospects'] = static function ( string $url, array $args ) {
+	$method = $args['method'] ?? 'GET';
+	return 'POST' === $method ? fx_json( 5551 ) : ( 'PATCH' === $method ? fx_json( array( 'mensagens' => array( 'x' ) ), 503 ) : fx_json( array() ) );
+};
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'falha ao completar o lead: sem venda, fallback seguro', 'evo_indisponivel' === ( $paid->data['error'] ?? '' ) && ! empty( $paid->data['fallback'] ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
+
+// G) aluno/prospect ja existentes no lead: reaproveita
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( array( 'idMember' => 4242 ) ) );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
+t( 'lead de aluno existente: kind member, nenhum prospect criado', 'member' === ( $res->data['kind'] ?? '' ) && array() === fx_calls( 'POST', '/api/v1/prospects' ) );
+
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131 ) ) );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+t( 'lead de prospect existente: reaproveita, nao cria outro', array() === fx_calls( 'POST', '/api/v1/prospects' ) && 3131 === (int) Contorno_Evo_Checkout::load( $token )['id_prospect'] );
+
+// H) validacao e falhas do lead
+$cases = array(
+	'so um nome'          => array( 'fullName' => 'Maria' ),
+	'sem consentimento'   => array( 'consent' => false ),
+	'WhatsApp curto'      => array( 'phone' => '3199' ),
+	'e-mail invalido'     => array( 'email' => 'maria@' ),
+);
+foreach ( $cases as $label => $override ) {
+	fx_reset( fx_routes_happy() );
+	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+	$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array_merge( array( 'token' => (string) $opened->data['token'] ), $override ) ) ) );
+	t( "lead recusado: $label (nada enviado a EVO)", 'dados_invalidos' === ( $res->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v1/prospects' ) );
+}
+
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( 'mensagens' => array( 'x' ) ), 500 );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
+t( 'consulta indisponivel no lead: NAO cria prospect as cegas (duplicaria)', 'evo_indisponivel' === ( $res->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v1/prospects' ) );
+
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( array( 'mensagens' => array( 'E-mail invalido' ) ), 400 ) : fx_json( array() );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
+t( 'EVO recusa o lead (400): pessoa corrige, sem fallback', 'dados_invalidos' === ( $res->data['error'] ?? '' ) && empty( $res->data['fallback'] ) );
+
+fx_reset( fx_routes_happy() );
+$res = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => str_repeat( 'a', 32 ) ) ) ) );
+t( 'lead com sessao inexistente: sessao_expirada', 'sessao_expirada' === ( $res->data['error'] ?? '' ) );
+
+/* -------------------------------------------------------------
  * 6. Idempotencia
  * ----------------------------------------------------------- */
 

@@ -492,6 +492,19 @@ final class Contorno_Evo_Client {
 	}
 
 	/**
+	 * Completa um prospect existente. PATCH /api/v1/prospects — so os campos
+	 * enviados mudam (api.abcevo.com, "Atualizar Prospect"); idProspect e
+	 * obrigatorio. Usado para acrescentar CPF/nascimento ao lead criado na
+	 * primeira etapa, sem criar outro cadastro.
+	 *
+	 * @param array<string,mixed> $payload  ProspectApiIntegracaoAtualizacaoViewModel
+	 * @return array{ok:bool,message:string,http:int,data:mixed}
+	 */
+	public function update_prospect( array $payload ): array {
+		return $this->request( 'PATCH', '/api/v1/prospects', array(), $payload, self::TIMEOUT );
+	}
+
+	/**
 	 * Cria a venda. POST /api/v2/sales.
 	 *
 	 * @param array<string,mixed> $payload  NewSaleViewModel
