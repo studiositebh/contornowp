@@ -149,9 +149,23 @@ echo "== Comportamento (fixtures, sem rede)"
 behaviour=$?
 
 echo
+echo "== Componente <evo-cartao> (JS real, sem rede)"
+
+NODE_BIN="${CONTORNO_NODE_BIN:-node}"
+component=0
+if command -v "$NODE_BIN" >/dev/null 2>&1; then
+	"$NODE_BIN" "$SCRIPT_DIR/test-evo-card-component.js"
+	component=$?
+else
+	# Sem Node o contrato do componente nao e verificado: falha alta, nao
+	# silenciosa — senao a suite fica verde sem testar o cartao.
+	bad 'Node nao encontrado: contrato do <evo-cartao> NAO verificado (CONTORNO_NODE_BIN)'
+fi
+
+echo
 printf '== Estatico: %d OK, %d falhas\n' "$static_ok" "$static_fail"
 
-if [[ "$static_fail" -gt 0 || "$behaviour" -ne 0 ]]; then
+if [[ "$static_fail" -gt 0 || "$behaviour" -ne 0 || "$component" -ne 0 ]]; then
 	exit 1
 fi
 

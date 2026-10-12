@@ -24,13 +24,23 @@
  * Depois de uma resposta ambígua o servidor responde `indeterminado` e
  * NÃO manda fallback — mostrar esse caminho cobraria duas vezes.
  *
- * TOKENIZAÇÃO — o que falta homologar
- * -----------------------------------
- * A especificação pública da EVO não documenta o script do EVO Pay nem o nome
- * do evento de "token gerado". Em vez de fixar um chute, escutamos os nomes
- * plausíveis E expomos window.contornoCheckoutCardToken(payload) para o
- * componente chamar. Na homologação confirma-se qual dos dois caminhos a EVO
- * usa e o outro pode sair.
+ * TOKENIZAÇÃO — contrato do componente oficial
+ * --------------------------------------------
+ * Lido do próprio evo-pay.js (w12evopay.com/evocartao) e do checkout da EVO
+ * que o usa, em 09/10/2026:
+ *  - <evo-cartao> é um custom element (Angular Elements). A configuração
+ *    entra pela PROPRIEDADE `gateway` = { tipoGateway, dadosGateway } —
+ *    objeto, não atributo.
+ *  - Com tokenização no navegador (tipo 9 = Pagar.me), o cartão vai do
+ *    navegador direto para api.pagar.me; nada passa por este arquivo.
+ *  - O resultado sai no evento `eventoTokenGerado`, disparado NO ELEMENTO,
+ *    com event.detail = { token, tokenFranquia, nmIgualCartao,
+ *    mesVencimento, anoVencimento, ultimoDigitosCartao, bandeira,
+ *    numeroParcelas, tipo, idCartaoCliente }. Erros em `eventoOcorreuErro`
+ *    (event.detail = mensagem).
+ *  - O checkout da EVO grava token e tokenTemporario com o MESMO valor e
+ *    tokenFranquia à parte; aqui viram token, temporaryToken e branchToken
+ *    do cardData da venda, montado no servidor (evoCard()).
  */
 (function () {
 	'use strict';
@@ -52,7 +62,9 @@
 		'cardExpirationMonth'
 	];
 
-	var TOKEN_EVENTS = ['evo-cartao-token', 'evoCardToken', 'tokenGenerated', 'evo-pay-token'];
+	/** Eventos do <evo-cartao> (outputs do componente). */
+	var EVENT_TOKEN = 'eventoTokenGerado';
+	var EVENT_ERROR = 'eventoOcorreuErro';
 
 	/* ------------------------------------------------------------------
 	 * Utilidades
@@ -479,6 +491,31 @@
 		return out;
 	}
 
+	/**
+	 * event.detail do <evo-cartao> -> campos de CardDataViewModel.
+	 *
+	 * Só mapeia o que o componente devolve; número completo e CVV nem
+	 * existem no detail (ultimoDigitosCartao já vem "****1234").
+	 */
+	function evoCard(detail) {
+		if (!detail || typeof detail !== 'object') return {};
+
+		var year = parseInt(detail.anoVencimento, 10);
+		// "MM/AA" no componente: ano de 2 dígitos vira 20AA.
+		if (year > 0 && year < 100) year += 2000;
+
+		return pickCard({
+			token: detail.token,
+			temporaryToken: detail.token,
+			branchToken: detail.tokenFranquia,
+			truncatedCardNumber: detail.ultimoDigitosCartao,
+			brand: detail.bandeira,
+			cardHolderName: detail.nmIgualCartao,
+			cardExpirationMonth: parseInt(detail.mesVencimento, 10) || undefined,
+			cardExpirationYear: year || undefined
+		});
+	}
+
 	Checkout.prototype.acceptToken = function (payload) {
 		var card = pickCard(payload);
 
@@ -502,8 +539,9 @@
 		if (!mount || mount.getAttribute('data-ready') === '1') return;
 
 		var url = this.gateway && this.gateway.scriptUrl;
+		var config = this.gateway && this.gateway.component;
 
-		if (!url) {
+		if (!url || !config) {
 			// Sem o componente oficial não existe caminho seguro de cartão
 			// nesta página — e construir um formulário próprio postaria PAN
 			// para o WordPress. Continua no checkout da academia.
@@ -513,18 +551,6 @@
 		}
 
 		mount.setAttribute('data-ready', '1');
-
-		// Caminho 1: o componente dispara um evento com o token.
-		TOKEN_EVENTS.forEach(function (name) {
-			document.addEventListener(name, function (event) {
-				self.acceptToken((event && (event.detail || event.data)) || {});
-			});
-		});
-
-		// Caminho 2: o componente chama uma função global.
-		window.contornoCheckoutCardToken = function (payload) {
-			self.acceptToken(payload || {});
-		};
 
 		var script = document.createElement('script');
 		script.src = url;
@@ -536,12 +562,21 @@
 		script.onload = function () {
 			var element = document.createElement('evo-cartao');
 
-			// Só dado público do gateway vai para o componente: o servidor já
-			// filtrou gatewayData por lista fechada antes de mandar para cá.
-			Object.keys(self.gateway.data || {}).forEach(function (key) {
-				element.setAttribute(key.replace(/[A-Z]/g, function (c) {
-					return '-' + c.toLowerCase();
-				}), String(self.gateway.data[key]));
+			// Propriedades, não atributos: `gateway` é objeto. Só dado público
+			// do gateway chega aqui — o servidor já reduziu dadosGateway a uma
+			// lista fechada (publicKey, publicKeyFranquia, origemFranquia).
+			element.gateway = config;
+			element.flTokenizaBackend = false;
+			element.exibirTipo = !!self.gateway.showCardType;
+			element.cultura = 'pt-BR';
+
+			// O componente dispara no PRÓPRIO elemento.
+			element.addEventListener(EVENT_TOKEN, function (event) {
+				self.acceptToken(evoCard(event && event.detail));
+			});
+			element.addEventListener(EVENT_ERROR, function (event) {
+				var detail = event && event.detail;
+				self.showError('card', typeof detail === 'string' && detail ? detail : (T.cardMissing || T.generic));
 			});
 
 			mount.appendChild(element);

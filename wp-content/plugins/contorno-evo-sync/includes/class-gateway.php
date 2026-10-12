@@ -25,9 +25,24 @@
  *    lista de exclusao: chave desconhecida fica fora por padrao, e apenas o
  *    NOME dela entra no log, para a homologacao saber o que pedir.
  *
- * Os campos que o pedido desta rodada esperava (publicKey, gerarFormToken,
- * antifraude) nao existem em BranchGatewayViewModel. Se existirem, virao
- * dentro de gatewayData — e so a resposta real dira. Nada aqui os presume.
+ * O QUE A RESPOSTA REAL MOSTROU (09/10/2026, filiais 1 e 8 da rede):
+ *
+ *   gatewayType 9, tokenizeBackend false, gatewayData com as chaves
+ *   keyRecorrencia, publicKey, keyVindi, versaoFrameworkVindi, idVindi,
+ *   origemFranquia, keyRecorrenciaFranquia, publicKeyFranquia,
+ *   gerarFormToken, antifraude, idW12.
+ *
+ * E o componente oficial <evo-cartao> (w12evopay.com/evocartao/evo-pay.js,
+ * o mesmo que o checkout da EVO usa) recebe exatamente este objeto como
+ * propriedade `gateway` = { tipoGateway, dadosGateway } e, com
+ * tokenizacao no navegador, faz:
+ *
+ *   tipo 9 -> POST https://api.pagar.me/core/v5/tokens?appId=<publicKey>
+ *   origemFranquia == 1 -> repete com publicKeyFranquia (token da franquia)
+ *
+ * Ou seja: o gateway da rede e Pagar.me (numeracao do proprio componente:
+ * 1 Vindi, 3 Mundipagg, 9 Pagar.me...). As chaves keyVindi/idVindi sao
+ * campos genericos do objeto, nao usados pelo tipo 9.
  *
  * @package ContornoEvoSync
  */
@@ -46,20 +61,41 @@ final class Contorno_Evo_Gateway {
 	/**
 	 * Chaves de gatewayData que podem chegar ao navegador.
 	 *
-	 * Criterio: so entra o que e publico por definicao no fluxo de
-	 * tokenizacao (identificador de loja, chave publica, ambiente, URL do
-	 * componente). Qualquer outra coisa fica no servidor.
+	 * Criterio: so o que o <evo-cartao> le no fluxo de tokenizacao NO
+	 * NAVEGADOR — chave publica do adquirente e a da franquia, e a flag que
+	 * diz se ha franquia. E o mesmo conjunto que o checkout da propria EVO ja
+	 * expoe ao navegador. Ficam no servidor: keyRecorrencia*, keyVindi,
+	 * idVindi, idW12, antifraude, gerarFormToken e qualquer chave nova.
 	 */
 	public const PUBLIC_KEYS = array(
 		'publicKey',
-		'publicToken',
-		'merchantId',
-		'merchantCode',
-		'establishmentCode',
-		'environment',
-		'scriptUrl',
-		'checkoutUrl',
-		'tokenizeUrl',
+		'publicKeyFranquia',
+		'origemFranquia',
+	);
+
+	/**
+	 * gatewayType com tokenizacao no navegador VALIDADA para este site.
+	 *
+	 * So o 9 (Pagar.me), o da rede. O componente conhece outros, mas cada um
+	 * le campos diferentes de gatewayData (merchantId, senhaTemporaria...)
+	 * que hoje nao repassamos; liberar sem validar seria abrir um checkout
+	 * que falha so na hora do cartao.
+	 */
+	public const FRONTEND_TYPES = array( 9 );
+
+	/**
+	 * Chaves ja vistas na resposta real que ficam no servidor. Conhecidas =
+	 * nao entram no log de "campos novos" a cada consulta.
+	 */
+	public const KNOWN_SERVER_KEYS = array(
+		'keyRecorrencia',
+		'keyRecorrenciaFranquia',
+		'keyVindi',
+		'versaoFrameworkVindi',
+		'idVindi',
+		'gerarFormToken',
+		'antifraude',
+		'idW12',
 	);
 
 	/**
@@ -158,9 +194,14 @@ final class Contorno_Evo_Gateway {
 		$public = array();
 
 		foreach ( self::PUBLIC_KEYS as $allowed ) {
-			if ( isset( $data[ $allowed ] ) && is_scalar( $data[ $allowed ] ) && '' !== (string) $data[ $allowed ] ) {
-				$public[ $allowed ] = sanitize_text_field( (string) $data[ $allowed ] );
+			if ( ! isset( $data[ $allowed ] ) || ! is_scalar( $data[ $allowed ] ) || '' === (string) $data[ $allowed ] ) {
+				continue;
 			}
+
+			// origemFranquia e flag: o componente compara com 1 (==).
+			$public[ $allowed ] = 'origemFranquia' === $allowed
+				? ( filter_var( $data[ $allowed ], FILTER_VALIDATE_BOOLEAN ) ? 1 : 0 )
+				: sanitize_text_field( (string) $data[ $allowed ] );
 		}
 
 		return array(
@@ -169,10 +210,29 @@ final class Contorno_Evo_Gateway {
 			'show_card_type'     => ! empty( $raw['showCardType'] ),
 			'tokenize_backend'   => ! empty( $raw['tokenizeBackend'] ),
 			'validation_enabled' => ! empty( $raw['validationEnabled'] ),
+			// Antifraude ligado no tipo 9: o checkout da EVO passa a EXIGIR
+			// endereco (flCadastroEnderecoObrigatorio). So o booleano sai daqui.
+			'antifraud'          => isset( $data['antifraude'] ) && filter_var( $data['antifraude'], FILTER_VALIDATE_BOOLEAN ),
 			// Subconjunto publico, ja filtrado. Nunca o gatewayData inteiro.
 			'public_data'        => $public,
 			'fetched'            => time(),
 		);
+	}
+
+	/**
+	 * O <evo-cartao> consegue tokenizar no navegador para esta filial?
+	 *
+	 * tokenizeBackend = true leva o componente ao fluxo com reCAPTCHA + JWT
+	 * da sessao EVO, que este site nao tem. Tipo fora de FRONTEND_TYPES ou
+	 * sem chave publica: nao ha como gerar token. Nos tres casos o checkout
+	 * nativo NAO abre (fallback seguro, antes de qualquer venda).
+	 *
+	 * @param array<string,mixed> $config
+	 */
+	public static function supports_browser_tokenization( array $config ): bool {
+		return empty( $config['tokenize_backend'] )
+			&& in_array( (int) ( $config['gateway_type'] ?? -1 ), self::FRONTEND_TYPES, true )
+			&& '' !== (string) ( $config['public_data']['publicKey'] ?? '' );
 	}
 
 	/**
@@ -186,7 +246,7 @@ final class Contorno_Evo_Gateway {
 	 */
 	private static function log_unknown_keys( array $raw, int $id_branch ): void {
 		$data = is_array( $raw['gatewayData'] ?? null ) ? $raw['gatewayData'] : array();
-		$new  = array_diff( array_map( 'strval', array_keys( $data ) ), self::PUBLIC_KEYS );
+		$new  = array_diff( array_map( 'strval', array_keys( $data ) ), self::PUBLIC_KEYS, self::KNOWN_SERVER_KEYS );
 
 		if ( array() === $new ) {
 			return;
@@ -204,22 +264,26 @@ final class Contorno_Evo_Gateway {
 	}
 
 	/**
-	 * O que o navegador recebe. Nada de gatewayType interpretado, nada de
-	 * segredo — so o suficiente para o componente EVO Pay se montar.
+	 * O que o navegador recebe: o objeto que o <evo-cartao> espera na
+	 * propriedade `gateway` ({ tipoGateway, dadosGateway }), com
+	 * dadosGateway ja reduzido a PUBLIC_KEYS, e a URL do componente.
 	 *
 	 * @param array<string,mixed> $config
 	 * @return array<string,mixed>
 	 */
 	public static function public_view( array $config ): array {
+		$type = (int) ( $config['gateway_type'] ?? -1 );
+
 		return array(
-			'gatewayType'       => (int) ( $config['gateway_type'] ?? -1 ),
+			'gatewayType'       => $type,
 			'showCardType'      => (bool) ( $config['show_card_type'] ?? false ),
 			'tokenizeBackend'   => (bool) ( $config['tokenize_backend'] ?? false ),
 			'validationEnabled' => (bool) ( $config['validation_enabled'] ?? false ),
-			'data'              => (array) ( $config['public_data'] ?? array() ),
-			'scriptUrl'         => Contorno_Evo_Settings::sanitize_script_url(
-				(string) ( $config['public_data']['scriptUrl'] ?? Contorno_Evo_Settings::get( 'checkout_evopay_script', '' ) )
+			'component'         => array(
+				'tipoGateway'  => $type,
+				'dadosGateway' => (object) ( $config['public_data'] ?? array() ),
 			),
+			'scriptUrl'         => Contorno_Evo_Settings::evopay_script(),
 		);
 	}
 }

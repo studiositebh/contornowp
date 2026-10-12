@@ -195,6 +195,32 @@ final class Contorno_Evo_Checkout_Rest {
 			return self::fail( 'evo_indisponivel', array( 'fallback' => true ) );
 		}
 
+		// Sem tokenizacao no navegador nao existe caminho seguro de cartao.
+		if ( ! Contorno_Evo_Gateway::supports_browser_tokenization( $gateway['config'] ) ) {
+			Contorno_Evo_Checkout::forget( $result['token'] );
+			Contorno_Evo_Checkout::log(
+				'warning',
+				sprintf(
+					'gateway sem tokenizacao no navegador (tipo %d, tokenizeBackend %s); checkout nativo nao abriu',
+					(int) ( $gateway['config']['gateway_type'] ?? -1 ),
+					empty( $gateway['config']['tokenize_backend'] ) ? 'false' : 'true'
+				),
+				$state
+			);
+
+			return self::fail( 'evo_indisponivel', array( 'fallback' => true ) );
+		}
+
+		// Antifraude ligado: o checkout da EVO torna o endereco obrigatorio.
+		// Sem o passo de endereco aqui, a venda seria recusada (ou pior,
+		// aprovada sem os dados que o antifraude pede). Nao abre.
+		if ( ! empty( $gateway['config']['antifraud'] ) && ! Contorno_Evo_Settings::get( 'checkout_require_address', false ) ) {
+			Contorno_Evo_Checkout::forget( $result['token'] );
+			Contorno_Evo_Checkout::log( 'warning', 'gateway com antifraude exige endereco; ligue "Pedir CEP e endereco" nas configuracoes', $state );
+
+			return self::fail( 'evo_indisponivel', array( 'fallback' => true ) );
+		}
+
 		return new WP_REST_Response(
 			array(
 				'ok'             => true,

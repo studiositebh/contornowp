@@ -28,6 +28,14 @@ define( 'CONTORNO_EVO_URL', plugin_dir_url( __FILE__ ) );
 /** Base oficial da EVO Integração API (docs: api.abcevo.com). */
 define( 'CONTORNO_EVO_DEFAULT_BASE_URL', 'https://evo-integracao-api.w12app.com.br' );
 
+/**
+ * Componente oficial de cartao da EVO (<evo-cartao>), o mesmo que o
+ * checkout da propria EVO carrega em producao (HTML publico de
+ * checkout.contornodocorpo.com.br, 09/10/2026). O cartao vai do navegador
+ * direto para o adquirente; o WordPress recebe so o token.
+ */
+define( 'CONTORNO_EVO_PAY_SCRIPT', 'https://w12evopay.com/evocartao/evo-pay.js' );
+
 /** Nome do evento de cron da reconciliacao periodica. */
 define( 'CONTORNO_EVO_CRON_HOOK', 'contorno_evo_sync_cron' );
 

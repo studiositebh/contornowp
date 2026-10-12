@@ -16,7 +16,7 @@
 | **Consulta de prospect** | **OK** (era 403 às 18:37, passou a 200 às 18:46) |
 | **Criação/edição de prospect** | TESTE CONTROLADO NECESSÁRIO |
 | **Criação de venda** | TESTE CONTROLADO NECESSÁRIO. A leitura `sales/by-session-id` agora dá 200; ⚠️ o plugin lê o campo errado (defeito nosso, crítico) |
-| **EVO Pay** | NÃO HOMOLOGADO. O gateway real é Vindi (tipo 9), `tokenizeBackend: false`, com `gerarFormToken` (§7) |
+| **EVO Pay** | IMPLEMENTADO, NÃO HOMOLOGADO. Gateway tipo 9 = **Pagar.me**, tokenizado no navegador pelo componente oficial `<evo-cartao>` (§7) |
 | **Permissões excessivas identificadas** | NÃO AVALIADO (fora do escopo desta rodada) |
 
 ## 1. Ambiente encontrado
@@ -424,7 +424,73 @@ Auditoria de código: o número do cartão e o CVV **não** chegam ao backend; n
 
 Gateway real (`GET /api/v2/configuration/gateway`, filiais 1 e 8): `gatewayType 9`, `tokenizeBackend: false`, `showCardType: false`, `validationEnabled: false`. Chaves de `gatewayData`: `keyRecorrencia`, `publicKey`, `keyVindi`, `versaoFrameworkVindi`, `idVindi`, `origemFranquia`, `keyRecorrenciaFranquia`, `publicKeyFranquia`, `gerarFormToken`, `antifraude`, `idW12` (valores não registrados).
 
-O cartão é tokenizado no navegador (coerente com o desenho), mas via **Vindi / form token** (`GET /api/v1/configuration/gateway-form-token`), não pelo componente `<evo-cartao>` previsto no código. **NÃO HOMOLOGADO**: redesenhar a captura de cartão. Continua pendente o código `payment` de cartão.
+> **Correção (09/10/2026):** a versão anterior desta seção dizia "gateway Vindi", deduzido dos nomes das chaves (`keyVindi`…). Isso estava **errado**. Ver abaixo.
+
+### Como o checkout oficial da EVO captura o cartão
+
+Fontes públicas lidas em 09/10/2026, sem preencher nada:
+
+- o HTML do checkout da academia (`checkout.contornodocorpo.com.br/.../checkout/113/0`);
+- o bundle Angular desse checkout;
+- o componente `https://w12evopay.com/evocartao/evo-pay.js`.
+
+| Fato | Evidência |
+|---|---|
+| O checkout da EVO carrega `https://w12evopay.com/evocartao/evo-pay.js` (homologação: `w12evopay-homolog.azurewebsites.net`) | `<script>` no HTML do checkout |
+| O componente é o custom element **`<evo-cartao>`** (Angular Elements) | `customElements.define("evo-cartao", …)` em `evo-pay.js` |
+| Entradas: `gateway` (objeto `{tipoGateway, dadosGateway}`), `flTokenizaBackend`, `exibirTipo`, `cultura`, `parcelas`, `jwt`, `dns`, `idW12`, `token`… Saídas: **`eventoTokenGerado`** e **`eventoOcorreuErro`** | mapa de inputs/outputs do componente |
+| Com `flTokenizaBackend` falso, o cartão vai **do navegador direto ao adquirente**. Numeração do componente: 1 Vindi, 3 Mundipagg, 5 OpenPay, 6 Payzen, 7 PagosWeb, 8 Ingenico, **9 Pagar.me**, 10 Braspag, 12 PagoLivre | `switch` em `tokenizarCartao()` |
+| **Tipo 9 → `POST https://api.pagar.me/core/v5/tokens?appId=<publicKey>`** e devolve o id do token. Se `origemFranquia == 1`, repete com `publicKeyFranquia` (token da franquia) | `pagarmeService.tokenizarCartao()` |
+| `event.detail` = `{token, tokenFranquia, nmIgualCartao, mesVencimento, anoVencimento, ultimoDigitosCartao ("****1234"), bandeira, numeroParcelas, tipo, idCartaoCliente}`. **Sem número completo nem CVV** | `dispararEventoTokenGerado()` |
+| O checkout da EVO grava `token` e `tokenTemporario` com o **mesmo** valor, e `tokenFranquia` à parte | handler `tokenGerado()` do checkout |
+| No checkout da EVO, gateway **9 com `antifraude`** torna o **endereço obrigatório** (`flCadastroEnderecoObrigatorio`) | `tipoGateway==9&&…antifraude` |
+
+**Conclusão:** o gateway da rede (tipo 9) é **Pagar.me**, e o `<evo-cartao>` que o plugin já previa é o componente certo. Os detalhes de integração do código antigo é que eram suposições erradas:
+
+| Item | Código antigo | Correto |
+|---|---|---|
+| URL do script | vazia, e `w12evopay.com` era **recusado** pela lista de hosts | `https://w12evopay.com/evocartao/evo-pay.js` como padrão; lista de hosts **própria** para script (`w12evopay.com`, `w12evopay-homolog.azurewebsites.net`), separada da lista da API |
+| Configuração do componente | atributos soltos a partir de `gatewayData` | **propriedade** `gateway = {tipoGateway, dadosGateway}` |
+| Dados públicos do gateway | `publicKey`, `merchantId`, … (lista genérica) | só `publicKey`, `publicKeyFranquia` e `origemFranquia`. `keyRecorrencia*`, `keyVindi`, `idVindi`, `idW12`, `antifraude` e `gerarFormToken` ficam no servidor |
+| Evento do token | 4 nomes chutados, escutados no `document` | `eventoTokenGerado`, escutado **no próprio elemento** |
+| Payload | esperava campos em inglês | `token` → `token` e `temporaryToken`; `tokenFranquia` → `branchToken`; `ultimoDigitosCartao` → `truncatedCardNumber`; `bandeira` → `brand`; `nmIgualCartao` → `cardHolderName`; mês e ano (AA → 20AA) |
+
+### Implementado (09/10/2026, sem commit)
+
+- `contorno-evo-sync.php`: constante `CONTORNO_EVO_PAY_SCRIPT`.
+- `Contorno_Evo_Settings`: `script_hosts()`, `evopay_script()`; a URL inválida no banco cai na oficial.
+- `Contorno_Evo_Gateway`:
+  - `PUBLIC_KEYS` reduzida;
+  - `FRONTEND_TYPES = [9]`;
+  - `KNOWN_SERVER_KEYS`;
+  - flag `antifraud`;
+  - `supports_browser_tokenization()`;
+  - `public_view()` entrega o objeto `component` pronto para o `<evo-cartao>`.
+- `Contorno_Evo_Checkout_Rest::open()` **não abre** o checkout nativo (fallback seguro, antes de qualquer venda) quando:
+  - `tokenizeBackend` é true;
+  - o tipo não está em `FRONTEND_TYPES`;
+  - não há chave pública;
+  - o antifraude está ligado e o passo de endereço está desligado.
+- `enrollment-native.js`: monta o componente por propriedades, escuta `eventoTokenGerado`/`eventoOcorreuErro` no elemento e converte o retorno com `evoCard()`. Saíram os eventos chutados e a função global.
+
+**Testes:**
+
+| Suíte | Resultado |
+|---|---|
+| `test-evo-native-checkout.sh` (PHP), com fixture do gateway no formato real | **176 OK** |
+| `test-evo-card-component.js` (JS real, extraído do arquivo) | **24 OK** |
+| verificações estáticas | **30 OK** |
+| `test-security.sh` | 42 OK |
+| `test-dataset-evo.sh` | 16 OK |
+
+### Ainda não confirmado (só se fecha com dado real ou teste controlado)
+
+1. **Valor de `antifraude`** na rede. Se for `true`, é preciso ligar "Pedir CEP e endereço" (senão o checkout nativo não abre, de propósito). Será lido pelo `diagnose-evo-auth.php`, que agora registra as flags do gateway e o **prefixo** da chave pública (`pk_` = Pagar.me).
+2. **`branchToken` ← `tokenFranquia`**: mapeamento por correspondência de nomes (internamente a EVO usa `tokenFranquia`; a API pública expõe `branchToken`). Só importa se `origemFranquia = 1`. Confirmar na venda controlada.
+3. **Código `payment` de cartão** (`EFormaPagamentoTotem`): continua sem confirmação.
+4. **Tela real do componente** no nosso layout (estilo/`classes`/`traducoes`) e o botão próprio do componente que dispara a tokenização: verificar no piloto.
+
+Situação: **IMPLEMENTADO, NÃO HOMOLOGADO**. Não há risco de cartão no nosso servidor, mas falta a venda controlada.
 
 ## 8. Permissões excessivas
 
@@ -437,7 +503,7 @@ Não avaliado (fora do escopo das rodadas de 09/10). Os GETs de controle estão 
 3. ~~`sales/by-session-id` 403~~: resolvido pelo cliente em 09/10.
 4. ~~**D1**: o plugin não lê o envelope de planos~~: corrigido no código em 09/10 (sem deploy).
 5. ~~**D2**: o plugin lê `idSale` em vez de `idVenda` na reconciliação~~: corrigido no código em 09/10 (sem deploy).
-6. EVO Pay: a captura de cartão não corresponde ao gateway Vindi.
+6. ~~EVO Pay: integração do `<evo-cartao>` baseada em suposições~~: refeita a partir do componente oficial (09/10, sem deploy). Falta a venda controlada.
 
 ## 10. Ajustes necessários
 
@@ -447,12 +513,12 @@ Não avaliado (fora do escopo das rodadas de 09/10). Os GETs de controle estão 
 1. ~~Corrigir **D2**~~: feito (código + testes), falta commit/deploy.
 2. ~~Corrigir **D1**~~: feito (código + testes), falta commit/deploy. Depois do deploy, rodar um sync em modo `--dry-run` para conferir os planos reais.
 3. Teste controlado de `POST /api/v1/prospects`: 1 prospect de teste identificado como tal, na filial combinada com o cliente.
-4. Teste controlado de `POST /api/v2/sales`: só depois de D2 e do cartão Vindi, com venda de valor mínimo/cancelável combinada com o cliente.
-5. Redesenhar o cartão sobre `gateway-form-token` / Vindi.
+4. Teste controlado de `POST /api/v2/sales`: depois do deploy de D1, D2 e do cartão, com venda de valor mínimo/cancelável combinada com o cliente.
+5. ~~Redesenhar o cartão~~: feito sobre o `<evo-cartao>` oficial (Pagar.me, tipo 9). Falta conferir `antifraude` e testar no piloto.
 6. Gravar a chave GUID no plugin em produção.
 
 ## 11. Conclusão
 
 **O token está aprovado para todas as consultas de que o site precisa**, em modo multifilial: configuração, planos, atividades e grade por unidade, cliente, prospect e reconciliação de vendas. Não há mais nada a pedir ao cliente em termos de permissão de leitura.
 
-**Ainda não liberamos o fluxo completo de matrícula** por motivos do nosso lado: D1 e D2 já estão corrigidos no código (falta publicar), e falta a captura de cartão Vindi. Os dois testes controlados de escrita vêm depois disso.
+**Ainda não liberamos o fluxo completo de matrícula** por motivos do nosso lado: D1 e D2 já estão corrigidos no código (falta publicar), e a captura de cartão foi refeita sobre o componente oficial (falta publicar e homologar). Os dois testes controlados de escrita vêm depois disso.

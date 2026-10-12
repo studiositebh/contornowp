@@ -450,8 +450,8 @@ final class Contorno_Evo_Admin {
 					<tr>
 						<th scope="row"><label for="contorno-evo-ck-script"><?php esc_html_e( 'Componente EVO Pay', 'contorno-evo' ); ?></label></th>
 						<td>
-							<input type="url" class="large-text code" id="contorno-evo-ck-script" name="checkout_evopay_script" value="<?php echo esc_attr( (string) $settings['checkout_evopay_script'] ); ?>" placeholder="https://..." />
-							<p class="description"><?php esc_html_e( 'URL do script que renderiza <evo-cartao> e devolve o token. Só hosts da EVO são aceitos. Não consta da especificação pública — peça na homologação.', 'contorno-evo' ); ?></p>
+							<input type="url" class="large-text code" id="contorno-evo-ck-script" name="checkout_evopay_script" value="<?php echo esc_attr( (string) $settings['checkout_evopay_script'] ); ?>" placeholder="<?php echo esc_attr( CONTORNO_EVO_PAY_SCRIPT ); ?>" />
+							<p class="description"><?php esc_html_e( 'Deixe vazio para usar o componente oficial de produção (w12evopay.com). Preencha só para apontar a homologação da EVO. Só hosts w12evopay são aceitos.', 'contorno-evo' ); ?></p>
 						</td>
 					</tr>
 					<tr>

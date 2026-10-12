@@ -38,6 +38,7 @@ if ( '' === $plugin || ! is_dir( $plugin ) ) {
 define( 'ABSPATH', true );
 define( 'CONTORNO_EVO_VERSION', 'test' );
 define( 'CONTORNO_EVO_DEFAULT_BASE_URL', 'https://evo-integracao-api.w12app.com.br' );
+define( 'CONTORNO_EVO_PAY_SCRIPT', 'https://w12evopay.com/evocartao/evo-pay.js' );
 define( 'CONTORNO_EVO_META_BRANCH', '_contorno_evo_sync_branch' );
 define( 'CONTORNO_EVO_META_MEMBERSHIPS', '_contorno_evo_memberships' );
 define( 'CONTORNO_EVO_META_SNAPSHOT', '_contorno_evo_snapshot' );
@@ -192,19 +193,38 @@ function fx_membership( float $value = 219.90, float $promo = 9.90, bool $inacti
 	);
 }
 
-function fx_gateway(): array {
-	return array(
-		'gatewayType'       => 7,
-		'showCardType'      => true,
-		'tokenizeBackend'   => false,
-		'validationEnabled' => false,
-		'gatewayData'       => array(
-			'publicKey'    => 'pk_test_publica',
-			// Campos que NAO podem chegar ao navegador.
-			'secretKey'    => 'sk_SEGREDO_NAO_PODE_VAZAR',
-			'apiPassword'  => 'senha-do-adquirente',
-			'merchantId'   => '9988',
+/**
+ * GET /api/v2/configuration/gateway no formato REAL da rede (09/10/2026):
+ * tipo 9 (Pagar.me), tokenizeBackend false e exatamente estas chaves em
+ * gatewayData. Valores ficticios.
+ */
+function fx_gateway( array $override = array(), array $data_override = array() ): array {
+	return array_merge(
+		array(
+			'gatewayType'       => 9,
+			'showCardType'      => false,
+			'tokenizeBackend'   => false,
+			'validationEnabled' => false,
+			'gatewayData'       => array_merge(
+				array(
+					'publicKey'              => 'pk_test_publica',
+					'publicKeyFranquia'      => 'pk_test_franquia',
+					'origemFranquia'         => 0,
+					// Campos que NAO podem chegar ao navegador.
+					'keyRecorrencia'         => 'sk_SEGREDO_NAO_PODE_VAZAR',
+					'keyRecorrenciaFranquia' => 'sk_SEGREDO_FRANQUIA',
+					'keyVindi'               => 'vindi-PRIVADA',
+					'versaoFrameworkVindi'   => '1',
+					'idVindi'                => '777',
+					'gerarFormToken'         => false,
+					'antifraude'             => false,
+					'idW12'                  => 'id-w12-interno',
+					'secretKey'              => 'senha-do-adquirente',
+				),
+				$data_override
+			),
 		),
+		$override
 	);
 }
 
@@ -247,7 +267,7 @@ function fx_reset( array $routes = array() ): void {
 			'checkout_allowlist'       => array( 'lourdes' ),
 			'checkout_payment_card'    => 2,
 			'checkout_codes_confirmed' => true,
-			'checkout_evopay_script'   => 'https://evo-pay.w12app.com.br/componente.js',
+			'checkout_evopay_script'   => '',
 			'checkout_require_address' => false,
 		),
 	);
@@ -394,17 +414,51 @@ t( 'abertura nao contem o token da EVO', ! str_contains( $serialized, 'token-de-
 t( 'abertura nao contem o DNS da EVO', ! str_contains( $serialized, 'contornodocorpo' ) );
 t( 'abertura nao contem cabecalho Authorization', ! str_contains( strtolower( $serialized ), 'authorization' ) );
 
-$public = $opened->data['gateway'];
+$public      = $opened->data['gateway'];
 $public_json = (string) json_encode( $public );
-t( 'gatewayData publico traz a chave publica', 'pk_test_publica' === ( $public['data']['publicKey'] ?? '' ) );
-t( 'gatewayData publico NAO traz secretKey', ! str_contains( $public_json, 'SEGREDO' ) && ! isset( $public['data']['secretKey'] ) );
-t( 'gatewayData publico NAO traz apiPassword', ! str_contains( $public_json, 'senha-do-adquirente' ) );
-t( 'gatewayType e repassado como numero, sem interpretacao', 7 === (int) $public['gatewayType'] );
+$dados       = (array) ( $public['component']['dadosGateway'] ?? array() );
+t( 'componente recebe { tipoGateway, dadosGateway } no formato do <evo-cartao>', 9 === (int) ( $public['component']['tipoGateway'] ?? 0 ) && array() !== $dados );
+t( 'dadosGateway traz a chave publica', 'pk_test_publica' === ( $dados['publicKey'] ?? '' ) );
+t( 'dadosGateway traz a chave publica da franquia e a flag', 'pk_test_franquia' === ( $dados['publicKeyFranquia'] ?? '' ) && 0 === ( $dados['origemFranquia'] ?? null ) );
+t( 'dadosGateway tem SO publicKey, publicKeyFranquia e origemFranquia', array( 'origemFranquia', 'publicKey', 'publicKeyFranquia' ) === ( static function ( array $k ): array { sort( $k ); return $k; } )( array_keys( $dados ) ) );
+t( 'chaves privadas (keyRecorrencia*, keyVindi) NAO chegam ao navegador', ! str_contains( $public_json, 'SEGREDO' ) && ! str_contains( $public_json, 'vindi-PRIVADA' ) );
+t( 'idW12, idVindi, antifraude e secretKey NAO chegam ao navegador', ! str_contains( $public_json, 'id-w12-interno' ) && ! str_contains( $public_json, '777' ) && ! str_contains( $public_json, 'antifraude' ) && ! str_contains( $public_json, 'senha-do-adquirente' ) );
+t( 'script do componente = URL oficial de producao', CONTORNO_EVO_PAY_SCRIPT === ( $public['scriptUrl'] ?? '' ) );
+t( 'gatewayType e repassado como numero', 9 === (int) $public['gatewayType'] );
 t( 'validationEnabled da EVO e respeitado (false)', false === $public['validationEnabled'] );
 
 $log_json = (string) json_encode( Contorno_Evo_Log::all() );
-t( 'campos nao mapeados do gateway entram no log apenas por NOME', str_contains( $log_json, 'secretkey' ) || str_contains( $log_json, 'secretKey' ) );
+t( 'campo desconhecido do gateway entra no log apenas por NOME', str_contains( strtolower( $log_json ), 'secretkey' ) );
+t( 'chaves ja conhecidas nao poluem o log de campos novos', ! str_contains( strtolower( $log_json ), 'keyrecorrencia' ) );
 t( 'o VALOR do segredo nao entra no log', ! str_contains( $log_json, 'SEGREDO' ) && ! str_contains( $log_json, 'senha-do-adquirente' ) );
+
+// Quando o checkout NAO pode abrir por causa do gateway. Sempre antes de
+// qualquer venda: fallback seguro, sessao descartada.
+$gw_cases = array(
+	'tokenizeBackend true (fluxo com reCAPTCHA/JWT da EVO)' => fx_gateway( array( 'tokenizeBackend' => true ) ),
+	'tipo de gateway nao validado (1 = Vindi)'              => fx_gateway( array( 'gatewayType' => 1 ) ),
+	'sem chave publica'                                     => fx_gateway( array(), array( 'publicKey' => '' ) ),
+	'antifraude ligado sem o passo de endereco'             => fx_gateway( array(), array( 'antifraude' => true ) ),
+);
+foreach ( $gw_cases as $label => $gw ) {
+	fx_reset( fx_routes_happy() );
+	$GLOBALS['routes']['/api/v2/configuration/gateway'] = fx_json( $gw );
+	$res = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+	t( "gateway: $label -> nao abre, fallback seguro", empty( $res->data['ok'] ) && ! empty( $res->data['fallback'] ) );
+}
+
+// Antifraude ligado COM o passo de endereco: abre.
+fx_reset( fx_routes_happy() );
+$GLOBALS['opt'][ Contorno_Evo_Settings::OPTION ]['checkout_require_address'] = true;
+$GLOBALS['routes']['/api/v2/configuration/gateway'] = fx_json( fx_gateway( array(), array( 'antifraude' => true ) ) );
+$res = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+t( 'gateway: antifraude com endereco ligado -> abre', ! empty( $res->data['ok'] ) && ! empty( $res->data['requiresAddress'] ) );
+
+// Franquia: origemFranquia vem como booleano/string na EVO; vira 1 para o componente comparar com ==.
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v2/configuration/gateway'] = fx_json( fx_gateway( array(), array( 'origemFranquia' => true ) ) );
+$res = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+t( 'origemFranquia true vira 1 no dadosGateway', 1 === ( ( (array) $res->data['gateway']['component']['dadosGateway'] )['origemFranquia'] ?? null ) );
 
 /* -------------------------------------------------------------
  * 3. Cartao: nada bruto entra
@@ -939,8 +993,14 @@ section( 'SSRF e destino das chamadas' );
 t( 'base URL fora dos hosts da EVO volta para a oficial', CONTORNO_EVO_DEFAULT_BASE_URL === Contorno_Evo_Settings::sanitize_base_url( 'https://coletor.atacante.example' ) );
 t( 'base URL em IP interno volta para a oficial', CONTORNO_EVO_DEFAULT_BASE_URL === Contorno_Evo_Settings::sanitize_base_url( 'https://169.254.169.254' ) );
 t( 'script do EVO Pay em host de terceiro e rejeitado', '' === Contorno_Evo_Settings::sanitize_script_url( 'https://cdn.atacante.example/x.js' ) );
-t( 'script do EVO Pay em http e rejeitado', '' === Contorno_Evo_Settings::sanitize_script_url( 'http://evo-pay.w12app.com.br/x.js' ) );
-t( 'script do EVO Pay em host da EVO e aceito', '' !== Contorno_Evo_Settings::sanitize_script_url( 'https://evo-pay.w12app.com.br/componente.js' ) );
+t( 'script do EVO Pay em http e rejeitado', '' === Contorno_Evo_Settings::sanitize_script_url( 'http://w12evopay.com/evocartao/evo-pay.js' ) );
+t( 'script do EVO Pay oficial (w12evopay.com) e aceito', '' !== Contorno_Evo_Settings::sanitize_script_url( 'https://w12evopay.com/evocartao/evo-pay.js' ) );
+t( 'script do EVO Pay de homologacao e aceito', '' !== Contorno_Evo_Settings::sanitize_script_url( 'https://w12evopay-homolog.azurewebsites.net/evocartao/evo-pay.js' ) );
+t( 'script em subdominio parecido e rejeitado', '' === Contorno_Evo_Settings::sanitize_script_url( 'https://w12evopay.com.atacante.example/evo-pay.js' ) && '' === Contorno_Evo_Settings::sanitize_script_url( 'https://x.azurewebsites.net/evo-pay.js' ) );
+t( 'host da API NAO serve como host de script', '' === Contorno_Evo_Settings::sanitize_script_url( 'https://evo-integracao-api.w12app.com.br/x.js' ) );
+t( 'host do componente NAO serve como base da API (token nao vai para la)', CONTORNO_EVO_DEFAULT_BASE_URL === Contorno_Evo_Settings::sanitize_base_url( 'https://w12evopay.com' ) );
+$GLOBALS['opt'][ Contorno_Evo_Settings::OPTION ]['checkout_evopay_script'] = 'https://cdn.atacante.example/x.js';
+t( 'URL de script invalida salva no banco cai na URL oficial', CONTORNO_EVO_PAY_SCRIPT === Contorno_Evo_Settings::evopay_script() );
 
 fx_reset( fx_routes_happy() );
 Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );

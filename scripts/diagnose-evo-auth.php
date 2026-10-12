@@ -335,7 +335,23 @@ if ( $all_500 ) {
 		echo "-- filial $b --\n";
 		// Configuracao - Consulta
 		call( "CFG group-branches?idBranch=$b", "/api/v1/configuration/group-branches?idBranch=$b", $auth, $A, $group_safe, $s );
-		call( "CFG gateway?idBranch=$b", "/api/v2/configuration/gateway?idBranch=$b", $auth, $A, $gw_safe, $s );
+		$gw = call( "CFG gateway?idBranch=$b", "/api/v2/configuration/gateway?idBranch=$b", $auth, $A, $gw_safe, $s );
+		// So flags e o PREFIXO da chave publica (pk_ = Pagar.me). Nenhuma
+		// chave privada, nenhum valor completo.
+		if ( is_array( $gw['data'] ) ) {
+			$gd = is_array( $gw['data']['gatewayData'] ?? null ) ? $gw['data']['gatewayData'] : array();
+			$flags = array(
+				'gatewayType'              => $gw['data']['gatewayType'] ?? null,
+				'tokenizeBackend'          => $gw['data']['tokenizeBackend'] ?? null,
+				'antifraude'               => $gd['antifraude'] ?? null,
+				'gerarFormToken'           => $gd['gerarFormToken'] ?? null,
+				'origemFranquia'           => $gd['origemFranquia'] ?? null,
+				'publicKey_prefix'         => isset( $gd['publicKey'] ) ? substr( (string) $gd['publicKey'], 0, 3 ) : null,
+				'publicKeyFranquia_prefix' => isset( $gd['publicKeyFranquia'] ) && '' !== (string) $gd['publicKeyFranquia'] ? substr( (string) $gd['publicKeyFranquia'], 0, 3 ) : null,
+			);
+			$report['gateway_flags'][ $b ] = $flags;
+			echo '   flags: ' . json_encode( $flags ) . "\n";
+		}
 		// Contratos - Consulta
 		$p           = call( "CTR membership?idBranch=$b", "/api/v3/membership?idBranch=$b&take=50", $auth, $A, $plan_safe, $s );
 		$pd = is_array( $p['data'] ) ? $p['data'] : array();

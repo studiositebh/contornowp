@@ -61,8 +61,10 @@ final class Contorno_Evo_Settings {
 			 *                      contra a EVO real. Sem isto, pilot/on nao
 			 *                      liberam o pagamento nativo.
 			 * checkout_evopay_script  URL do componente EVO Pay (<evo-cartao>).
-			 *                      Nao consta do swagger; vem da configuracao
-			 *                      do gateway/EVO na homologacao.
+			 *                      Vazio = CONTORNO_EVO_PAY_SCRIPT, a URL que o
+			 *                      checkout oficial da EVO carrega em producao
+			 *                      (lida do HTML publico em 09/10/2026). So
+			 *                      preencher para apontar a homologacao.
 			 */
 			'checkout_mode'            => 'off',
 			'checkout_allowlist'       => array( 'lourdes' ),
@@ -174,7 +176,28 @@ final class Contorno_Evo_Settings {
 	}
 
 	/**
-	 * URL do componente EVO Pay. Mesma lista fechada de hosts da API: o
+	 * Hosts aceitos para o script do componente EVO Pay.
+	 *
+	 * Lista PROPRIA, separada da lista da API: o componente oficial e servido
+	 * por w12evopay.com (producao) e w12evopay-homolog.azurewebsites.net
+	 * (homologacao), hosts que nunca devem receber o token da API. Juntar as
+	 * duas listas faria a base URL da API aceitar o dominio do componente.
+	 *
+	 * @return array<int,string>
+	 */
+	public static function script_hosts(): array {
+		return array( 'w12evopay.com', 'w12evopay-homolog.azurewebsites.net' );
+	}
+
+	/** URL efetiva do componente: a configurada ou a oficial de producao. */
+	public static function evopay_script(): string {
+		$configured = self::sanitize_script_url( (string) self::get( 'checkout_evopay_script', '' ) );
+
+		return '' !== $configured ? $configured : CONTORNO_EVO_PAY_SCRIPT;
+	}
+
+	/**
+	 * URL do componente EVO Pay. Lista fechada de hosts (script_hosts()): o
 	 * script e carregado na pagina de pagamento e, num host arbitrario,
 	 * seria XSS com permissao para ler o formulario do cartao.
 	 */
@@ -186,9 +209,10 @@ final class Contorno_Evo_Settings {
 		}
 
 		$parts = wp_parse_url( $url );
+		$host  = is_array( $parts ) ? strtolower( (string) ( $parts['host'] ?? '' ) ) : '';
 
 		if ( ! is_array( $parts )
-			|| ! self::host_is_allowed( (string) ( $parts['host'] ?? '' ) )
+			|| ! in_array( $host, self::script_hosts(), true )
 			|| isset( $parts['user'], $parts['pass'] )
 			|| ( isset( $parts['port'] ) && 443 !== (int) $parts['port'] )
 		) {
@@ -262,8 +286,10 @@ final class Contorno_Evo_Settings {
 			$blockers[] = __( 'Os códigos de pagamento ainda não foram conferidos contra a EVO real.', 'contorno-evo' );
 		}
 
-		if ( '' === (string) self::get( 'checkout_evopay_script', '' ) ) {
-			$blockers[] = __( 'URL do componente EVO Pay não informada — sem ela não há tokenização de cartão.', 'contorno-evo' );
+		$configured = (string) self::get( 'checkout_evopay_script', '' );
+
+		if ( '' !== $configured && '' === self::sanitize_script_url( $configured ) ) {
+			$blockers[] = __( 'URL do componente EVO Pay fora dos hosts oficiais (w12evopay.com) — será usada a URL oficial de produção.', 'contorno-evo' );
 		}
 
 		return $blockers;
