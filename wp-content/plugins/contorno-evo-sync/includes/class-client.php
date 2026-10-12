@@ -303,6 +303,25 @@ final class Contorno_Evo_Client {
 	}
 
 	/**
+	 * Bandeiras aceitas, para o <evo-cartao> (guia "Integração EVO Pay").
+	 * [{ value, text, logoUrl }]. Sem parametros: vale para a rede.
+	 *
+	 * @return array{ok:bool,message:string,http:int,data:mixed}
+	 */
+	public function card_flags(): array {
+		return $this->get( '/api/v1/configuration/card-flags', array() );
+	}
+
+	/**
+	 * Rotulos dos campos do <evo-cartao> ({ "Número do cartão": "...", ... }).
+	 *
+	 * @return array{ok:bool,message:string,http:int,data:mixed}
+	 */
+	public function card_translation(): array {
+		return $this->get( '/api/v1/configuration/card-translation', array() );
+	}
+
+	/**
 	 * Membro existente por e-mail, documento ou telefone.
 	 *
 	 * "basic" e a consulta SEM dados sensiveis — o que a permissao

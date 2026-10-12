@@ -265,7 +265,7 @@ function fx_reset( array $routes = array() ): void {
 			'dns'                      => 'contornodocorpo',
 			'checkout_mode'            => 'pilot',
 			'checkout_allowlist'       => array( 'lourdes' ),
-			'checkout_payment_card'    => 2,
+			'checkout_payment_card'    => 1,
 			'checkout_codes_confirmed' => true,
 			'checkout_evopay_script'   => '',
 			'checkout_require_address' => false,
@@ -447,6 +447,35 @@ foreach ( $gw_cases as $label => $gw ) {
 	t( "gateway: $label -> nao abre, fallback seguro", empty( $res->data['ok'] ) && ! empty( $res->data['fallback'] ) );
 }
 
+// Bandeiras e traducoes do componente (guia "Integracao EVO Pay").
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/configuration/card-flags'] = fx_json(
+	array(
+		array( 'value' => 'VISA', 'text' => 'Visa', 'logoUrl' => 'https://cdn.evo.example/visa.png' ),
+		array( 'value' => 'MASTER', 'text' => '<script>alert(1)</script>Master', 'logoUrl' => 'javascript:alert(1)' ),
+		array( 'text' => 'sem value' ),
+	)
+);
+$GLOBALS['routes']['/api/v1/configuration/card-translation'] = fx_json( array( 'Número do cartão' => 'Número do cartão', 'Segurança' => '<b>CVV</b>' ) );
+$res   = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$flags = (array) ( $res->data['gateway']['bandeiras'] ?? array() );
+$texts = (array) ( $res->data['gateway']['traducoes'] ?? array() );
+t( 'bandeiras da EVO chegam ao componente', 2 === count( $flags ) && 'VISA' === ( $flags[0]['value'] ?? '' ) );
+t( 'bandeira: logo so https, HTML removido do texto', ! isset( $flags[1]['logoUrl'] ) && 'https://cdn.evo.example/visa.png' === ( $flags[0]['logoUrl'] ?? '' ) && ! str_contains( (string) ( $flags[1]['text'] ?? '' ), '<' ) );
+t( 'traducoes chegam ao componente, sem HTML', 'Número do cartão' === ( $texts['Número do cartão'] ?? '' ) && ! str_contains( (string) ( $texts['Segurança'] ?? '' ), '<' ) );
+$calls_before = count( $GLOBALS['calls'] );
+Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$asset_calls = array_filter( array_slice( $GLOBALS['calls'], $calls_before ), static fn ( $c ) => str_contains( $c['url'], '/card-' ) );
+t( 'bandeiras/traducoes ficam em cache (sem nova chamada)', array() === $asset_calls );
+
+// Sem bandeiras/traducoes (EVO fora): o checkout abre mesmo assim.
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/configuration/card-flags']       = fx_json( array( 'mensagens' => array( 'x' ) ), 500 );
+$GLOBALS['routes']['/api/v1/configuration/card-translation'] = fx_json( array( 'mensagens' => array( 'x' ) ), 500 );
+$res = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+t( 'falha em bandeiras/traducoes NAO impede o checkout (componente usa padroes)', ! empty( $res->data['ok'] ) && array() === $res->data['gateway']['bandeiras'] );
+t( 'falha em bandeiras/traducoes NAO entra no cache', false === get_transient( 'contorno_evo_card_assets' ) );
+
 // Antifraude ligado COM o passo de endereco: abre.
 fx_reset( fx_routes_happy() );
 $GLOBALS['opt'][ Contorno_Evo_Settings::OPTION ]['checkout_require_address'] = true;
@@ -523,12 +552,14 @@ t( 'header culture: pt-BR presente', 'pt-BR' === ( $sale['headers']['culture'] ?
 t( 'idBranch correto no payload', 21 === (int) ( $sale['body']['idBranch'] ?? 0 ) );
 t( 'idMembership correto no payload', 5809 === (int) ( $sale['body']['idMembership'] ?? 0 ) );
 t( 'membershipValue NAO e enviado (a EVO aplica o valor oficial)', ! array_key_exists( 'membershipValue', (array) $sale['body'] ) );
-t( 'payment usa o codigo configurado, nunca um chute no codigo-fonte', 2 === (int) ( $sale['body']['payment'] ?? 0 ) );
+t( 'payment usa o codigo configurado (1 = Credit Card, tabela oficial de POST /api/v2/sales)', 1 === (int) ( $sale['body']['payment'] ?? 0 ) );
 t( 'totalInstallments respeita o teto da EVO', 3 === (int) ( $sale['body']['totalInstallments'] ?? 0 ) );
 t( 'sessionId proprio acompanha a venda', str_starts_with( (string) ( $sale['body']['sessionId'] ?? '' ), 'ctn-' ) );
 t( 'cardData leva o token', 'tok_evo_1234567890' === ( $sale['body']['cardData']['token'] ?? '' ) );
 t( 'cardData nao leva campo fora da lista fechada', array() === array_diff( array_keys( (array) $sale['body']['cardData'] ), array_merge( Contorno_Evo_Checkout::CARD_FIELDS, array( 'totalInstallments' ) ) ) );
 t( 'prospect novo foi criado antes da venda', null !== $prospect && (int) ( $sale['body']['idProspect'] ?? 0 ) > 0 );
+t( 'venda de prospect leva memberData { idMember: 0 } (obrigatorio na API)', array_key_exists( 'memberData', (array) $sale['body'] ) && 0 === ( $sale['body']['memberData']['idMember'] ?? null ) );
+t( 'cardData.totalInstallments acompanha o parcelamento (vale para payment 1)', 3 === (int) ( $sale['body']['cardData']['totalInstallments'] ?? 0 ) );
 t( 'prospect registra a origem Site', 'Site' === ( $prospect['body']['marketingType'] ?? '' ) );
 t( 'prospect pede validacao de CPF duplicado', ! empty( $prospect['body']['validateCpfDuplication'] ) );
 t( 'endereco nao e enviado quando nao e exigido', ! array_key_exists( 'zipCode', (array) $prospect['body'] ) );
@@ -580,6 +611,7 @@ t( 'prospect existente NAO gera outro prospect', array() === $created_prospect )
 $sale = null;
 foreach ( $GLOBALS['calls'] as $c ) { if ( 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) ) { $sale = $c; } }
 t( 'venda reusa o idProspect encontrado', 3131 === (int) ( $sale['body']['idProspect'] ?? 0 ) );
+t( 'venda de prospect existente tambem leva memberData { idMember: 0 }', 0 === ( $sale['body']['memberData']['idMember'] ?? null ) );
 
 // C) prospect ja convertido em membro
 fx_reset( fx_routes_happy() );

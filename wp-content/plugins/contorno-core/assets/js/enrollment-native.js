@@ -516,19 +516,47 @@
 		});
 	}
 
+	/**
+	 * Token chegou do <evo-cartao>. Só vale se NÓS pedimos (pay() ->
+	 * 'salvar'); evento sem pedido pendente é ignorado. Com token, a venda
+	 * segue na hora — o token do adquirente é de uso único e curto.
+	 */
 	Checkout.prototype.acceptToken = function (payload) {
+		if (!this.awaitingToken) return;
+
 		var card = pickCard(payload);
 
-		if (!card.token && !card.temporaryToken) return;
+		if (!card.token && !card.temporaryToken) {
+			this.tokenFailed(T.cardMissing || T.generic);
+			return;
+		}
 
+		this.awaitingToken = false;
+		clearTimeout(this.tokenTimer);
 		this.card = card;
 		this.showError('card', '');
+		this.submit();
+	};
 
-		var pay = this.$('[data-ck-pay]');
-		if (pay) pay.disabled = false;
+	/** Tokenização falhou ou expirou: nada foi enviado; a pessoa corrige e tenta de novo. */
+	Checkout.prototype.tokenFailed = function (message) {
+		this.awaitingToken = false;
+		clearTimeout(this.tokenTimer);
+		this.card = null;
+		this.idle();
+		this.showError('card', message || T.generic);
+	};
 
-		var empty = this.$('[data-ck-card-empty]');
-		if (empty) empty.hidden = true;
+	/** Botão de volta ao estado inicial (sem venda em andamento). */
+	Checkout.prototype.idle = function () {
+		var button = this.$('[data-ck-pay]');
+		var label = this.$('[data-ck-pay-label]');
+		var spinner = this.$('[data-ck-pay-spinner]');
+
+		this.busy = false;
+		if (button) button.disabled = !this.cardElement;
+		if (spinner) spinner.hidden = true;
+		if (label) label.textContent = T.payLabel || 'Finalizar matrícula';
 	};
 
 	Checkout.prototype.mountCard = function () {
@@ -569,6 +597,14 @@
 			element.flTokenizaBackend = false;
 			element.exibirTipo = !!self.gateway.showCardType;
 			element.cultura = 'pt-BR';
+			element.classes = 'form-no-style';
+
+			// Bandeiras e rótulos vindos da EVO (guia "Integração EVO Pay").
+			// Vazios: o componente usa a lista e os textos padrão dele.
+			var flags = self.gateway.bandeiras;
+			if (Array.isArray(flags) && flags.length) element.bandeiras = flags;
+			var texts = self.gateway.traducoes;
+			if (texts && typeof texts === 'object' && Object.keys(texts).length) element.traducoes = texts;
 
 			// O componente dispara no PRÓPRIO elemento.
 			element.addEventListener(EVENT_TOKEN, function (event) {
@@ -576,11 +612,17 @@
 			});
 			element.addEventListener(EVENT_ERROR, function (event) {
 				var detail = event && event.detail;
-				self.showError('card', typeof detail === 'string' && detail ? detail : (T.cardMissing || T.generic));
+				self.tokenFailed(typeof detail === 'string' && detail ? detail : (T.cardMissing || T.generic));
 			});
 
 			mount.appendChild(element);
+			self.cardElement = element;
 			if (empty) empty.textContent = '';
+
+			// O componente não tem botão próprio: quem dispara a tokenização é
+			// o nosso "Finalizar matrícula" (pay -> 'salvar').
+			var pay = self.$('[data-ck-pay]');
+			if (pay) pay.disabled = false;
 		};
 
 		document.head.appendChild(script);
@@ -588,6 +630,19 @@
 
 	/* ---------------- pagamento ---------------- */
 
+	/** Tempo máximo para o adquirente devolver o token. */
+	var TOKEN_TIMEOUT_MS = 30000;
+
+	/**
+	 * Clique em "Finalizar matrícula".
+	 *
+	 * 1. pede ao <evo-cartao> que tokenize ('salvar', como no guia oficial
+	 *    "Integração EVO Pay"): o cartão vai do navegador ao adquirente;
+	 * 2. acceptToken() recebe o token e chama submit(), que cria a venda.
+	 *
+	 * Token novo a CADA tentativa: o da Pagar.me é de uso único e expira em
+	 * poucos minutos; reaproveitar o de uma tentativa recusada falharia.
+	 */
 	Checkout.prototype.pay = function () {
 		var self = this;
 		var button = this.$('[data-ck-pay]');
@@ -597,7 +652,7 @@
 		// Duplo clique não passa daqui; o servidor tem a própria trava.
 		if (this.busy) return;
 
-		if (!this.card) {
+		if (!this.cardElement) {
 			this.showError('card', T.cardMissing || T.generic);
 			return;
 		}
@@ -608,8 +663,33 @@
 		}
 
 		this.busy = true;
+		this.card = null;
+		this.awaitingToken = true;
 		if (button) button.disabled = true;
 		if (spinner) spinner.hidden = false;
+		if (label) label.textContent = T.validatingCard || T.processing || '';
+		this.showError('card', '');
+
+		clearTimeout(this.tokenTimer);
+		this.tokenTimer = setTimeout(function () {
+			if (self.awaitingToken) self.tokenFailed(T.cardTimeout || T.generic);
+		}, TOKEN_TIMEOUT_MS);
+
+		this.cardElement.dispatchEvent(new CustomEvent('salvar'));
+	};
+
+	/** Envia a venda com o token recém-gerado. Só chamado por acceptToken(). */
+	Checkout.prototype.submit = function () {
+		var self = this;
+		var button = this.$('[data-ck-pay]');
+		var label = this.$('[data-ck-pay-label]');
+		var spinner = this.$('[data-ck-pay-spinner]');
+
+		if (!this.card) {
+			this.tokenFailed(T.cardMissing || T.generic);
+			return;
+		}
+
 		if (label && T.processing) label.textContent = T.processing;
 		this.say(T.dontClose || '', 'info');
 
@@ -651,7 +731,7 @@
 			}
 
 			self.busy = false;
-			if (label) label.textContent = 'Finalizar matrícula';
+			if (label) label.textContent = T.payLabel || 'Finalizar matrícula';
 
 			// Preço mudou: o resumo é repintado e a pessoa precisa confirmar de
 			// novo. Não reenviamos sozinhos com o valor novo.
@@ -681,12 +761,12 @@
 				return;
 			}
 
-			// Recusa comum de cartão: a pessoa corrige e tenta de novo.
-			if (button) button.disabled = false;
+			// Recusa comum de cartão: a pessoa corrige no componente e clica
+			// de novo — o próximo clique gera token novo. O usado é descartado.
+			self.card = null;
+			self.idle();
 			self.say(data.message || T.generic, 'error');
 			self.showError('card', '');
-			self.card = null;
-			if (button) button.disabled = true;
 		});
 	};
 

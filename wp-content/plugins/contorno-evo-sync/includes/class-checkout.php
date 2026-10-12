@@ -517,15 +517,18 @@ final class Contorno_Evo_Checkout {
 			'sessionId'         => (string) $state['session_id'],
 		);
 
-		if ( (int) $state['id_member'] > 0 ) {
-			$member = array( 'idMember' => (int) $state['id_member'] );
+		// memberData e OBRIGATORIO em POST /api/v2/sales, inclusive para
+		// prospect: { "idMember": 0 } + idProspect (api.abcevo.com, "Create a
+		// new sale" e guia "Realizar venda online via API", caso 3).
+		$member = array( 'idMember' => max( 0, (int) $state['id_member'] ) );
 
-			if ( Contorno_Evo_Settings::get( 'checkout_require_address', false ) ) {
-				$member += self::address_payload( $person );
-			}
+		if ( Contorno_Evo_Settings::get( 'checkout_require_address', false ) ) {
+			$member += self::address_payload( $person );
+		}
 
-			$payload['memberData'] = $member;
-		} elseif ( (int) $state['id_prospect'] > 0 ) {
+		$payload['memberData'] = $member;
+
+		if ( $member['idMember'] <= 0 && (int) $state['id_prospect'] > 0 ) {
 			$payload['idProspect'] = (int) $state['id_prospect'];
 		}
 

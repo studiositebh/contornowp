@@ -226,7 +226,7 @@ final class Contorno_Evo_Checkout_Rest {
 				'ok'             => true,
 				'token'          => $result['token'],
 				'summary'        => self::summary( $state ),
-				'gateway'        => Contorno_Evo_Gateway::public_view( $gateway['config'] ),
+				'gateway'        => Contorno_Evo_Gateway::public_view( $gateway['config'], Contorno_Evo_Gateway::card_assets() ),
 				'requiresAddress' => (bool) Contorno_Evo_Settings::get( 'checkout_require_address', false ),
 			),
 			200

@@ -98,6 +98,24 @@ t('gateway entra como PROPRIEDADE (objeto), nao atributo', /element\.gateway = c
 t('tokenizacao forcada no navegador', /element\.flTokenizaBackend = false;/.test(src));
 t('detail do evento passa por evoCard()', /acceptToken\(evoCard\(event && event\.detail\)\)/.test(src));
 t('nenhum input de cartao no proprio JS', !/name=["']?(cardNumber|numeroCartao|cvv|codigoSeguranca)/i.test(src));
+t('bandeiras e traducoes da EVO repassadas ao componente', /element\.bandeiras = flags;/.test(src) && /element\.traducoes = texts;/.test(src));
+
+console.log('\n== Disparo da tokenizacao (guia oficial: o componente nao tem botao)');
+
+const payFn = grab(/Checkout\.prototype\.pay = function \(\) \{[\s\S]*?\n\t\};/, 'pay()');
+const acceptFn = grab(/Checkout\.prototype\.acceptToken = function \(payload\) \{[\s\S]*?\n\t\};/, 'acceptToken()');
+const submitFn = grab(/Checkout\.prototype\.submit = function \(\) \{[\s\S]*?\n\t\};/, 'submit()');
+const mountFn = grab(/Checkout\.prototype\.mountCard = function \(\) \{[\s\S]*?\n\t\};/, 'mountCard()');
+
+t('pay() dispara CustomEvent "salvar" no componente', /this\.cardElement\.dispatchEvent\(new CustomEvent\('salvar'\)\)/.test(payFn));
+t('pay() descarta o token anterior (token novo a cada tentativa)', /this\.card = null;/.test(payFn));
+t('pay() NAO chama a venda direto: espera o token', !/this\.call\('pay'/.test(payFn));
+t('pay() tem tempo limite para o token', /setTimeout\(/.test(payFn) && /tokenFailed/.test(payFn));
+t('acceptToken() ignora token que nao foi pedido', /if \(!this\.awaitingToken\) return;/.test(acceptFn));
+t('acceptToken() segue para a venda com o token', /this\.submit\(\);/.test(acceptFn));
+t('a venda (call pay) so sai de submit()', /this\.call\('pay'/.test(submitFn) && (src.match(/this\.call\('pay'/g) || []).length === 1);
+t('erro do componente libera o botao (tokenFailed)', /EVENT_ERROR, function \(event\) \{[\s\S]*?self\.tokenFailed\(/.test(mountFn));
+t('botao "Finalizar" habilita quando o componente monta', /self\.cardElement = element;[\s\S]*?pay\.disabled = false;/.test(mountFn));
 
 console.log('\n== Resultado: ' + ok + ' OK, ' + fail + ' falhas');
 process.exit(fail > 0 ? 1 : 0);

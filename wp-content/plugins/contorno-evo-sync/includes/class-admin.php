@@ -442,7 +442,7 @@ final class Contorno_Evo_Admin {
 								<?php endforeach; ?>
 							</select>
 							<p class="description">
-								<?php esc_html_e( 'Campo `payment` de POST /api/v2/sales (enum EFormaPagamentoTotem). A especificação pública da EVO lista os valores válidos [1,2,3,4,5,6,7,13,14,15,16,17] mas NÃO diz o que cada número significa — a única tabela nomeada do swagger pertence a outro enum (filtro de /api/v1/receivables). Confirme com a EVO antes de vender.', 'contorno-evo' ); ?>
+								<?php esc_html_e( 'Campo `payment` de POST /api/v2/sales. Pela tabela oficial (api.abcevo.com, "Create a new sale"), cartão de crédito tokenizado pelo EVO Pay é 1 (Credit Card). Os demais: 2 boleto, 5 valor zerado, 6 link de checkout, 7 Pix, 16/17 cartão externo. Marque a confirmação depois da primeira venda controlada.', 'contorno-evo' ); ?>
 							</p>
 							<label><input type="checkbox" name="checkout_codes_confirmed" value="1" <?php checked( (bool) $settings['checkout_codes_confirmed'] ); ?> /> <?php esc_html_e( 'Conferi este código contra a EVO real (sem isto, PILOT e ON não liberam o pagamento nativo)', 'contorno-evo' ); ?></label>
 						</td>

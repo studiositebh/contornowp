@@ -51,12 +51,12 @@ final class Contorno_Evo_Settings {
 			 * checkout_payment_card CODIGO de "cartao de credito" em
 			 *                      EFormaPagamentoTotem (campo `payment` de
 			 *                      POST /api/v2/sales). 0 = NAO CONFIRMADO.
-			 *                      A especificacao publica da EVO lista o enum
-			 *                      como [1,2,3,4,5,6,7,13,14,15,16,17] SEM
-			 *                      dizer o que cada numero significa, e a
-			 *                      unica tabela nomeada do swagger
-			 *                      (filtro de /api/v1/receivables) e de OUTRO
-			 *                      enum. Chutar aqui e cobrar na forma errada.
+			 *                      O swagger so lista [1..7,13..17]; a tabela
+			 *                      com nomes esta na pagina "Create a new
+			 *                      sale" de api.abcevo.com: 1 = Credit Card
+			 *                      (token do EVO Pay). Continua como opcao do
+			 *                      painel, nao fixo no codigo, e so libera
+			 *                      com checkout_codes_confirmed.
 			 * checkout_codes_confirmed  alguem conferiu checkout_payment_card
 			 *                      contra a EVO real. Sem isto, pilot/on nao
 			 *                      liberam o pagamento nativo.

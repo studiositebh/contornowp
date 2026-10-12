@@ -501,10 +501,35 @@ Rodada completa: 26 chamadas, 23 × HTTP 200, 2 × 404 esperados (`members/basic
 
 1. ~~Valor de `antifraude`~~: **false** (12/10).
 2. ~~`branchToken` ← `tokenFranquia`~~: **não se aplica**, as filiais não são franquia (12/10). Fica como pendência só se surgir filial com `origemFranquia = 1`.
-3. **Código `payment` de cartão** (`EFormaPagamentoTotem`): continua sem confirmação. **Único bloqueio técnico restante para ligar o piloto.**
-4. **Tela real do componente** no nosso layout (estilo/`classes`/`traducoes`) e o botão próprio do componente que dispara a tokenização: verificar no piloto.
+3. ~~Código `payment` de cartão~~: **`1` (Credit Card)**, pela documentação oficial (12/10). Ver abaixo.
+4. **Tela real do componente** no nosso layout (`classes: 'form-no-style'`, bandeiras e traduções): verificar no piloto.
 
-Situação: **IMPLEMENTADO, NÃO HOMOLOGADO**. Não há risco de cartão no nosso servidor, mas falta a venda controlada.
+### Documentação oficial em api.abcevo.com (lida em 12/10/2026)
+
+Até 09/10, a validação usou o **swagger técnico** (`/swagger/v1/swagger.json`) e, de api.abcevo.com, só a página inicial e o guia de autenticação. Os **guias** e as páginas de cada endpoint, que explicam o que o swagger não diz, foram lidos em 12/10 (índice em `api.abcevo.com/llms.txt`).
+
+| Documento | O que confirma ou corrige |
+|---|---|
+| "Create a new sale" (`POST /api/v2/sales`) | Tabela de `payment`: **1 Credit Card** ("é preciso gerar o token do cartão usando Evo Pay"), 2 Boleto, 3 Sale Credits, 4 Transfer, 5 ValorZerado, 6 LinkCheckout, 7 Pix, 13 Transferência, 14 Cash, 15 GiftCard, 16 ExternalCreditCard, 17 ExternalDebitCard. Permissão: **Vendas - Edição**; vale para chave de ADM Geral. **`memberData` é obrigatório**. `cardData.totalInstallments` só vale para `payment = 1`. Header `culture: pt-BR` |
+| Guia "Integração EVO Pay" | Script `https://w12evopay.com/evocartao/evo-pay.js`; `evoCartao.gateway` ← `/configuration/gateway`; **`evoCartao.bandeiras` ← `/configuration/card-flags`**; **`evoCartao.traducoes` ← `/configuration/card-translation`**; `evoCartao.classes = 'form-no-style'`; eventos `eventoTokenGerado`/`eventoOcorreuErro`; e a tokenização é disparada **pelo site** com `evoCartao.dispatchEvent(new CustomEvent('salvar'))`. **O componente não tem botão próprio.** Venda com `"payment": 1` |
+| Guia "Realizar venda online via API" | Caso 3 (contrato para prospect): `memberData: { idMember: 0 }` + `idProspect` + `idMembership` + `payment`. Em chave multifilial, `idBranch` informado define a filial da venda |
+| "Get sales bySessionId" | Resposta `{ idVenda, idCliente, clienteContratos }`, o que confirma a correção D2 |
+| "Permissões do token" | GET = Consulta; POST/PATCH/PUT/DELETE = Edição. Cada página de endpoint indica a permissão exigida |
+| Dev Bot da documentação (consultado pelo usuário em 12/10) | "para cartão de crédito tokenizado, utilize sempre `payment = 1`" |
+
+**Três falhas no checkout reveladas pelos guias. Corrigidas em 12/10, sem commit:**
+
+| # | Falha | Correção |
+|---|---|---|
+| A | O site nunca disparava `salvar`, então **o token nunca seria gerado** e o botão ficaria travado | "Finalizar matrícula" agora dispara `salvar` no `<evo-cartao>`, espera `eventoTokenGerado` (limite de 30 s) e só então envia a venda. Gera um token **novo a cada tentativa**, porque o token da Pagar.me é de uso único. Token não pedido é ignorado. Erro do componente libera o botão |
+| B | Venda para prospect saía **sem `memberData`** (obrigatório), com provável HTTP 400 | `memberData: { idMember: 0 }` sempre presente + `idProspect`. Para membro: `{ idMember: N }`, sem `idProspect` |
+| C | Componente sem bandeiras e sem traduções da EVO | `Contorno_Evo_Gateway::card_assets()` busca `card-flags` e `card-translation` (cache de 12 h, só quando as duas respondem), saneia (logo só https, sem HTML) e entrega ao componente. Se falhar, o checkout abre com os padrões do componente |
+
+Também: o texto do painel sobre o código `payment` passou a citar a tabela oficial. O código **continua** sendo uma opção do painel (não fixo no código), liberada só com "Conferi este código".
+
+**Testes:** PHP **185 OK** (inclui `memberData`, bandeiras/traduções saneadas, cache, falha não bloqueante e `payment` 1). JS **34 OK** (`salvar`, token novo por tentativa, venda só após o token, tempo limite). 30 estáticos OK. Contra o código anterior, os testes de `memberData` falham (2), como esperado.
+
+Situação: **IMPLEMENTADO CONFORME A DOCUMENTAÇÃO OFICIAL, NÃO HOMOLOGADO**. Falta a venda controlada.
 
 ## 8. Permissões excessivas
 

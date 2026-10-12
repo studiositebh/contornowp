@@ -219,6 +219,87 @@ final class Contorno_Evo_Gateway {
 		);
 	}
 
+	/** Cache das bandeiras e rotulos do componente: mudam raramente. */
+	public const ASSETS_TTL = 43200; // 12 h
+
+	/**
+	 * Bandeiras e traducoes para o <evo-cartao>, ja saneadas e com cache.
+	 *
+	 * Opcionais: se a EVO nao responder, o componente usa a propria lista
+	 * padrao de bandeiras e os rotulos embutidos — o checkout NAO deixa de
+	 * abrir por isso. Falha nao entra no cache (tenta de novo na proxima).
+	 *
+	 * @return array{bandeiras:array<int,array<string,string>>,traducoes:array<string,string>}
+	 */
+	public static function card_assets( bool $force = false ): array {
+		$key    = 'contorno_evo_card_assets';
+		$cached = $force ? false : get_transient( $key );
+
+		if ( is_array( $cached ) && isset( $cached['bandeiras'], $cached['traducoes'] ) ) {
+			return $cached;
+		}
+
+		$client = new Contorno_Evo_Client();
+		$flags  = $client->card_flags();
+		$texts  = $client->card_translation();
+		$assets = array(
+			'bandeiras' => $flags['ok'] ? self::clean_flags( $flags['data'] ) : array(),
+			'traducoes' => $texts['ok'] ? self::clean_translations( $texts['data'] ) : array(),
+		);
+
+		if ( $flags['ok'] && $texts['ok'] ) {
+			set_transient( $key, $assets, self::ASSETS_TTL );
+		}
+
+		return $assets;
+	}
+
+	/**
+	 * [{ value, text, logoUrl }] -> so strings, logo so https.
+	 *
+	 * @return array<int,array<string,string>>
+	 */
+	public static function clean_flags( mixed $data ): array {
+		$out = array();
+
+		foreach ( is_array( $data ) ? array_slice( $data, 0, 40 ) : array() as $row ) {
+			if ( ! is_array( $row ) || ! is_scalar( $row['value'] ?? null ) || '' === (string) $row['value'] ) {
+				continue;
+			}
+
+			$flag = array(
+				'value' => sanitize_text_field( (string) $row['value'] ),
+				'text'  => sanitize_text_field( (string) ( $row['text'] ?? $row['value'] ) ),
+			);
+
+			$logo = is_string( $row['logoUrl'] ?? null ) ? trim( $row['logoUrl'] ) : '';
+			if ( preg_match( '#^https://#i', $logo ) ) {
+				$flag['logoUrl'] = esc_url_raw( $logo );
+			}
+
+			$out[] = $flag;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * { "Número do cartão": "Número do cartão", ... } -> string => string.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function clean_translations( mixed $data ): array {
+		$out = array();
+
+		foreach ( is_array( $data ) && ! array_is_list( $data ) ? array_slice( $data, 0, 60, true ) : array() as $label => $text ) {
+			if ( is_scalar( $text ) && '' !== trim( (string) $label ) ) {
+				$out[ sanitize_text_field( (string) $label ) ] = sanitize_text_field( (string) $text );
+			}
+		}
+
+		return $out;
+	}
+
 	/**
 	 * O <evo-cartao> consegue tokenizar no navegador para esta filial?
 	 *
@@ -268,10 +349,14 @@ final class Contorno_Evo_Gateway {
 	 * propriedade `gateway` ({ tipoGateway, dadosGateway }), com
 	 * dadosGateway ja reduzido a PUBLIC_KEYS, e a URL do componente.
 	 *
+	 * Bandeiras e traducoes (card_assets) vao junto, ja saneadas; vazias =
+	 * o componente usa os padroes dele.
+	 *
 	 * @param array<string,mixed> $config
+	 * @param array<string,mixed> $assets  saida de card_assets()
 	 * @return array<string,mixed>
 	 */
-	public static function public_view( array $config ): array {
+	public static function public_view( array $config, array $assets = array() ): array {
 		$type = (int) ( $config['gateway_type'] ?? -1 );
 
 		return array(
@@ -284,6 +369,9 @@ final class Contorno_Evo_Gateway {
 				'dadosGateway' => (object) ( $config['public_data'] ?? array() ),
 			),
 			'scriptUrl'         => Contorno_Evo_Settings::evopay_script(),
+			'bandeiras'         => array_values( (array) ( $assets['bandeiras'] ?? array() ) ),
+			// Objeto mesmo quando vazio: o componente espera dicionario.
+			'traducoes'         => (object) ( $assets['traducoes'] ?? array() ),
 		);
 	}
 }
