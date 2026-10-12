@@ -483,11 +483,25 @@ Fontes públicas lidas em 09/10/2026, sem preencher nada:
 | `test-security.sh` | 42 OK |
 | `test-dataset-evo.sh` | 16 OK |
 
+### Flags reais do gateway (12/10/2026 19:55 UTC, `%TEMP%\evo-diag-20261012-1955.json`, chave `4146...A39A`)
+
+Rodada completa: 26 chamadas, 23 × HTTP 200, 2 × 404 esperados (`members/basic` sem filtro) e 1 × 401 (controle). Permissões iguais às de 09/10.
+
+| Filial | gatewayType | tokenizeBackend | antifraude | gerarFormToken | origemFranquia | prefixo publicKey | publicKeyFranquia |
+|---|---:|---|---|---|---|---|---|
+| 1 São Lucas | 9 | false | **false** | false | **false** | **`pk_`** | ausente |
+| 8 Betim | 9 | false | **false** | false | **false** | **`pk_`** | ausente |
+
+- **Pagar.me confirmado:** o prefixo `pk_` é o formato de chave pública da Pagar.me, coerente com o tipo 9 do componente.
+- **Antifraude desligado:** o endereço **não** é obrigatório, e "Pedir CEP e endereço" pode continuar desligado.
+- **Sem franquia:** `origemFranquia` false e sem `publicKeyFranquia`, então o componente gera **um** token e `branchToken` não é enviado. A dúvida sobre `branchToken` ← `tokenFranquia` não se aplica a estas filiais.
+- Com essas flags, `supports_browser_tokenization()` é **true** nas duas filiais: o checkout nativo abriria.
+
 ### Ainda não confirmado (só se fecha com dado real ou teste controlado)
 
-1. **Valor de `antifraude`** na rede. Se for `true`, é preciso ligar "Pedir CEP e endereço" (senão o checkout nativo não abre, de propósito). Será lido pelo `diagnose-evo-auth.php`, que agora registra as flags do gateway e o **prefixo** da chave pública (`pk_` = Pagar.me).
-2. **`branchToken` ← `tokenFranquia`**: mapeamento por correspondência de nomes (internamente a EVO usa `tokenFranquia`; a API pública expõe `branchToken`). Só importa se `origemFranquia = 1`. Confirmar na venda controlada.
-3. **Código `payment` de cartão** (`EFormaPagamentoTotem`): continua sem confirmação.
+1. ~~Valor de `antifraude`~~: **false** (12/10).
+2. ~~`branchToken` ← `tokenFranquia`~~: **não se aplica**, as filiais não são franquia (12/10). Fica como pendência só se surgir filial com `origemFranquia = 1`.
+3. **Código `payment` de cartão** (`EFormaPagamentoTotem`): continua sem confirmação. **Único bloqueio técnico restante para ligar o piloto.**
 4. **Tela real do componente** no nosso layout (estilo/`classes`/`traducoes`) e o botão próprio do componente que dispara a tokenização: verificar no piloto.
 
 Situação: **IMPLEMENTADO, NÃO HOMOLOGADO**. Não há risco de cartão no nosso servidor, mas falta a venda controlada.
