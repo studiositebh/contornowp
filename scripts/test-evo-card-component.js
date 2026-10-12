@@ -133,5 +133,52 @@ t('pagamento valida CPF e termos antes de gerar token', /this\.report\('payment'
 t('pagamento nao reenvia nome/e-mail/telefone (ja estao no lead)', !/firstName|lastName|email:|phone:/.test(submitFn));
 t('rota antiga "identify" nao e mais usada pelo front', !/this\.call\('identify'/.test(src));
 
+console.log('\n== WhatsApp: normalizacao + mascara (codigo real do arquivo)');
+
+const phoneCtx = {};
+vm.runInNewContext([
+	grab(/function digits\(value\) \{[\s\S]*?\n\t\}/, 'digits()'),
+	grab(/function normalizePhone\(value\) \{[\s\S]*?\n\t\}/, 'normalizePhone()'),
+	grab(/function validPhone\(value\) \{[\s\S]*?\n\t\}/, 'validPhone()'),
+	grab(/function maskPhone\(value\) \{[\s\S]*?\n\t\}/, 'maskPhone()'),
+	grab(/function syncPhone\(field, preserveCursor\) \{[\s\S]*?\n\t\}/, 'syncPhone()'),
+	'this.maskPhone = maskPhone; this.validPhone = validPhone; this.normalizePhone = normalizePhone; this.syncPhone = syncPhone;'
+].join('\n'), phoneCtx);
+
+const phoneCases = [
+	['+55 31 97524-8061', '(31) 97524-8061'],
+	['5531975248061', '(31) 97524-8061'],
+	['31975248061', '(31) 97524-8061'],
+	['(55) 99999-1234', '(55) 99999-1234'],
+	['3133334444', '(31) 3333-4444'],
+	['+55 (31) 3333-4444', '(31) 3333-4444']
+];
+phoneCases.forEach(([input, expected]) => {
+	const got = phoneCtx.maskPhone(input);
+	t('"' + input + '" -> "' + expected + '"', got === expected, got);
+});
+t('mascara e idempotente (reaplicar nao muda)', phoneCtx.maskPhone('(31) 97524-8061') === '(31) 97524-8061');
+t('digitacao parcial: "3197" -> "(31) 97"', phoneCtx.maskPhone('3197') === '(31) 97');
+t('mais de 13 digitos NAO e cortado em silencio (fica visivel e invalido)', phoneCtx.maskPhone('55319752480619') === '55319752480619' && !phoneCtx.validPhone('55319752480619'));
+t('validPhone: celular, fixo e DDD 55 validos', phoneCtx.validPhone('(31) 97524-8061') && phoneCtx.validPhone('(31) 3333-4444') && phoneCtx.validPhone('(55) 99999-1234'));
+t('validPhone: DDD com zero / celular sem 9 / curto invalidos', !phoneCtx.validPhone('(01) 97524-8061') && !phoneCtx.validPhone('(31) 87524-8061') && !phoneCtx.validPhone('(31) 9752'));
+
+// Autofill: o Chrome escreve o valor no campo de uma vez (sem digitar).
+const field = { value: '+55 31 97524-8061', selectionStart: 17, setSelectionRange() {} };
+phoneCtx.syncPhone(field, false);
+t('autofill "+55 31 97524-8061" no campo -> "(31) 97524-8061"', field.value === '(31) 97524-8061', field.value);
+t('envio usa o numero nacional normalizado', phoneCtx.normalizePhone(field.value) === '31975248061');
+
+const bindFn = grab(/Checkout\.prototype\.bind = function \(\) \{[\s\S]*?\n\t\};/, 'bind()');
+t('WhatsApp sincroniza em input, change, blur e focus (autofill)', ['input', 'change', 'blur', 'focus'].every((ev) => new RegExp("addEventListener\\('" + ev + "', function \\(\\) \\{[^}]*syncPhone|addEventListener\\('" + ev + "', function \\(\\) \\{\\s*setTimeout\\(function \\(\\) \\{ syncPhone").test(bindFn)));
+t('submissao revalida o campo antes de validar', /syncPhone\(this\.root\.querySelector\('\[name="phone"\]'\), false\);/.test(validateDataFn));
+t('lead envia normalizePhone (DDI nunca duplicado)', /phone: normalizePhone\(this\.value\('phone'\)\)/.test(submitDataFn));
+
+const tpl = fs.readFileSync(path.join(__dirname, '..', 'wp-content', 'plugins', 'contorno-core', 'includes', 'shortcodes', 'enrollment-native.php'), 'utf8');
+const phoneField = (tpl.match(/'name' => 'phone'[^\n]*/) || [''])[0];
+t('campo: type tel, autocomplete tel-national, inputmode numeric', /'type' => 'tel'/.test(phoneField) && /'autocomplete' => 'tel-national'/.test(phoneField) && /'inputmode' => 'numeric'/.test(phoneField));
+t('campo: prefixo +55 visual (fora do input)', /'prefix' => '\+55'/.test(phoneField) && /contorno-input__prefix" aria-hidden="true"/.test(tpl));
+t('campo: maxlength nao trunca autofill com DDI (>= 19)', parseInt((phoneField.match(/'maxlength' => '(\d+)'/) || [0, 0])[1], 10) >= 19);
+
 console.log('\n== Resultado: ' + ok + ' OK, ' + fail + ' falhas');
 process.exit(fail > 0 ? 1 : 0);

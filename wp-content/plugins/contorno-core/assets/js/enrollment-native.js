@@ -83,13 +83,56 @@
 		}
 	}
 
+	/**
+	 * Número nacional (DDD + telefone), sem DDI.
+	 *
+	 * O autocomplete do Chrome entrega "+55 31 97524-8061" ou
+	 * "5531975248061". Com 12 ou 13 dígitos começando por 55, os dois
+	 * primeiros são DDI. Com 10 ou 11, "55" é o DDD do RS e fica.
+	 * Normaliza ANTES de mascarar ou limitar — cortar primeiro transformava
+	 * o DDI em DDD e descartava os últimos dígitos.
+	 */
+	function normalizePhone(value) {
+		var d = digits(value);
+		if (d.indexOf('55') === 0 && (d.length === 12 || d.length === 13)) d = d.slice(2);
+		return d;
+	}
+
+	/** DDD válido (sem zero) e celular de 11 dígitos começando por 9. */
+	function validPhone(value) {
+		var d = normalizePhone(value);
+		if (d.length !== 10 && d.length !== 11) return false;
+		if (!/^[1-9][1-9]/.test(d)) return false;
+		return d.length === 10 || d.charAt(2) === '9';
+	}
+
 	function maskPhone(value) {
-		var d = digits(value).slice(0, 11);
+		var d = normalizePhone(value);
 		if (!d) return '';
+		// Mais de 11 dígitos não é telefone brasileiro: mostra como veio para
+		// a pessoa ver e corrigir, em vez de cortar em silêncio.
+		if (d.length > 11) return d;
 		if (d.length <= 2) return '(' + d;
 		if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
 		if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
 		return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+	}
+
+	/** Reaplica normalização + máscara no campo, mantendo o cursor ao digitar. */
+	function syncPhone(field, preserveCursor) {
+		if (!field) return;
+
+		var cursor = typeof field.selectionStart === 'number' ? field.selectionStart : null;
+		var before = field.value.length;
+		var masked = maskPhone(field.value);
+
+		if (masked === field.value) return;
+		field.value = masked;
+
+		if (preserveCursor && cursor !== null && field.setSelectionRange) {
+			var next = Math.max(0, cursor + (masked.length - before));
+			field.setSelectionRange(next, next);
+		}
 	}
 
 	function maskCpf(value) {
@@ -396,8 +439,9 @@
 		var name = this.value('fullName').replace(/\s+/g, ' ').split(' ');
 		if (name.length < 2 || name[0].length < 2 || !name[1]) errors.fullName = T.fullName || T.required;
 
-		var phone = digits(this.value('phone'));
-		if (phone.length < 10 || phone.length > 11) errors.phone = T.phone;
+		// Última proteção para autofill que não disparou nenhum evento.
+		syncPhone(this.root.querySelector('[name="phone"]'), false);
+		if (!validPhone(this.value('phone'))) errors.phone = T.phone;
 
 		if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(this.value('email'))) errors.email = T.email;
 
@@ -473,7 +517,8 @@
 		this.call('lead', {
 			token: this.token,
 			fullName: this.value('fullName'),
-			phone: digits(this.value('phone')),
+			// Só o número nacional; o servidor envia à EVO com ddi 55 uma vez.
+			phone: normalizePhone(this.value('phone')),
 			email: this.value('email'),
 			consent: true
 		}).then(function (data) {
@@ -795,12 +840,27 @@
 		var self = this;
 
 		this.$$('[data-contorno-mask]').forEach(function (input) {
+			var kind = input.getAttribute('data-contorno-mask');
+
+			if (kind === 'phone') {
+				// Digitação e colagem.
+				input.addEventListener('input', function () { syncPhone(input, true); });
+				// Autofill que só se conclui em change/blur, sem input confiável.
+				input.addEventListener('change', function () { syncPhone(input, false); });
+				input.addEventListener('blur', function () { syncPhone(input, false); });
+				// Autofill do Chrome preenche nome/telefone/e-mail de uma vez e
+				// às vezes depois do foco: revalida logo em seguida.
+				input.addEventListener('focus', function () {
+					setTimeout(function () { syncPhone(input, false); }, 0);
+					setTimeout(function () { syncPhone(input, false); }, 120);
+				});
+				return;
+			}
+
 			input.addEventListener('input', function () {
-				var kind = input.getAttribute('data-contorno-mask');
 				var atEnd = input.selectionStart === input.value.length;
 
-				if (kind === 'phone') input.value = maskPhone(input.value);
-				else if (kind === 'cpf') input.value = maskCpf(input.value);
+				if (kind === 'cpf') input.value = maskCpf(input.value);
 				else if (kind === 'cep') input.value = maskCep(input.value);
 
 				if (atEnd) input.setSelectionRange(input.value.length, input.value.length);

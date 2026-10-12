@@ -755,6 +755,33 @@ $token  = (string) $opened->data['token'];
 Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
 t( 'lead de prospect existente: reaproveita, nao cria outro', array() === fx_calls( 'POST', '/api/v1/prospects' ) && 3131 === (int) Contorno_Evo_Checkout::load( $token )['id_prospect'] );
 
+// WhatsApp: DDI do autocomplete nao pode virar DDD (12/10/2026)
+$phones = array(
+	'+55 31 97524-8061'   => '31975248061',
+	'5531975248061'       => '31975248061',
+	'31975248061'         => '31975248061',
+	'(55) 99999-1234'     => '55999991234', // DDD 55 (RS) preservado
+	'(31) 3333-4444'      => '3133334444',  // fixo, 10 digitos
+	'+55 (31) 3333-4444'  => '3133334444',  // fixo com DDI (12 digitos)
+);
+foreach ( $phones as $in => $out ) {
+	t( "normalize_phone: \"$in\" -> $out", $out === Contorno_Evo_Checkout::normalize_phone( (string) $in ) );
+}
+t( 'valid_phone: celular 11 e fixo 10 aceitos', Contorno_Evo_Checkout::valid_phone( '31975248061' ) && Contorno_Evo_Checkout::valid_phone( '3133334444' ) );
+t( 'valid_phone: DDD com zero, celular sem 9 e tamanho errado recusados', ! Contorno_Evo_Checkout::valid_phone( '01975248061' ) && ! Contorno_Evo_Checkout::valid_phone( '31875248061' ) && ! Contorno_Evo_Checkout::valid_phone( '319752480' ) );
+
+fx_reset( fx_routes_happy() );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'], 'phone' => '+55 31 97524-8061' ) ) ) );
+$body = (array) ( fx_calls( 'POST', '/api/v1/prospects' )[0]['body'] ?? array() );
+t( 'lead com "+55 31 97524-8061": EVO recebe ddi 55 + 31975248061 (DDI uma vez)', '55' === ( $body['ddi'] ?? '' ) && '31975248061' === ( $body['cellphone'] ?? '' ) );
+
+fx_reset( fx_routes_happy() );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'], 'phone' => '(55) 99999-1234' ) ) ) );
+$body = (array) ( fx_calls( 'POST', '/api/v1/prospects' )[0]['body'] ?? array() );
+t( 'lead com DDD 55: numero preservado (55999991234)', '55999991234' === ( $body['cellphone'] ?? '' ) );
+
 // H) validacao e falhas do lead
 $cases = array(
 	'so um nome'          => array( 'fullName' => 'Maria' ),

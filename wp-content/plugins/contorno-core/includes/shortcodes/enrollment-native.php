@@ -97,8 +97,10 @@ function contorno_native_field( array $args ): string {
 	?>
 	<div class="contorno-field-row<?php echo ! empty( $args['wide'] ) ? ' is-wide' : ''; ?>">
 		<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( (string) $args['label'] ); ?></label>
-		<span class="contorno-input">
-			<?php if ( ! empty( $args['icon'] ) ) : ?>
+		<span class="contorno-input<?php echo ! empty( $args['prefix'] ) ? ' has-prefix' : ''; ?>">
+			<?php if ( ! empty( $args['prefix'] ) ) : ?>
+				<span class="contorno-input__prefix" aria-hidden="true"><?php echo esc_html( (string) $args['prefix'] ); ?></span>
+			<?php elseif ( ! empty( $args['icon'] ) ) : ?>
 				<?php echo contorno_icon( (string) $args['icon'], 'contorno-input__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php endif; ?>
 			<input
@@ -160,7 +162,7 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 			'i18n'   => array(
 				'required'    => __( 'Preencha este campo.', 'contorno' ),
 				'email'       => __( 'Informe um e-mail válido.', 'contorno' ),
-				'phone'       => __( 'Informe o telefone com DDD.', 'contorno' ),
+				'phone'       => __( 'Informe um WhatsApp válido com DDD, ex.: (31) 99999-9999.', 'contorno' ),
 				'cpf'         => __( 'Informe um CPF válido.', 'contorno' ),
 				'terms'       => __( 'É necessário aceitar os termos.', 'contorno' ),
 				'fullName'    => __( 'Informe nome e sobrenome.', 'contorno' ),
@@ -228,13 +230,18 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 							<?php
 							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- markup escapado na funcao.
 							echo contorno_native_field( array( 'name' => 'fullName', 'label' => __( 'Nome completo', 'contorno' ), 'icon' => 'user', 'autocomplete' => 'name', 'maxlength' => '140', 'wide' => true ) );
-							echo contorno_native_field( array( 'name' => 'phone', 'label' => __( 'WhatsApp', 'contorno' ), 'type' => 'tel', 'icon' => 'phone', 'autocomplete' => 'tel', 'inputmode' => 'tel', 'maxlength' => '20', 'mask' => 'phone', 'placeholder' => '(31) 99999-9999' ) );
+							// +55 e prefixo VISUAL fixo; o input guarda so o numero
+							// nacional. tel-national + normalizacao no JS evitam
+							// que o DDI do autocomplete vire DDD. maxlength folgado:
+							// o Chrome trunca o autofill no maxlength, e
+							// "+55 (31) 97524-8061" tem 19 caracteres.
+							echo contorno_native_field( array( 'name' => 'phone', 'label' => __( 'WhatsApp', 'contorno' ), 'type' => 'tel', 'prefix' => '+55', 'autocomplete' => 'tel-national', 'inputmode' => 'numeric', 'maxlength' => '25', 'mask' => 'phone', 'placeholder' => '(31) 99999-9999' ) );
 							echo contorno_native_field( array( 'name' => 'email', 'label' => __( 'E-mail', 'contorno' ), 'type' => 'email', 'icon' => 'mail', 'autocomplete' => 'email', 'maxlength' => '254', 'placeholder' => 'seu@email.com' ) );
 							// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 							?>
 						</div>
 
-						<label class="contorno-ck__terms">
+						<label class="contorno-ck__terms contorno-ck__terms--consent">
 							<input type="checkbox" name="consent" value="1" required />
 							<span>
 								<?php

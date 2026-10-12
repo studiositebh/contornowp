@@ -297,7 +297,7 @@ final class Contorno_Evo_Checkout {
 		$client   = new Contorno_Evo_Client();
 		$document = preg_replace( '/\D/', '', (string) ( $person['document'] ?? '' ) ) ?? '';
 		$email    = sanitize_email( (string) ( $person['email'] ?? '' ) );
-		$phone    = preg_replace( '/\D/', '', (string) ( $person['phone'] ?? '' ) ) ?? '';
+		$phone    = self::normalize_phone( (string) ( $person['phone'] ?? '' ) );
 
 		$filters = array();
 		if ( '' !== $document ) {
@@ -373,7 +373,7 @@ final class Contorno_Evo_Checkout {
 	 */
 	public static function prospect_payload( array $person, int $id_branch ): array {
 		$document = preg_replace( '/\D/', '', (string) ( $person['document'] ?? '' ) ) ?? '';
-		$phone    = preg_replace( '/\D/', '', (string) ( $person['phone'] ?? '' ) ) ?? '';
+		$phone    = self::normalize_phone( (string) ( $person['phone'] ?? '' ) );
 
 		$payload = array(
 			'name'      => sanitize_text_field( (string) ( $person['first_name'] ?? '' ) ),
@@ -422,6 +422,33 @@ final class Contorno_Evo_Checkout {
 	/** Etapas do funil gravadas em currentStep do prospect na EVO. */
 	public const STEP_LEAD    = 'Lead site';
 	public const STEP_PAYMENT = 'Pagamento site';
+
+	/**
+	 * Telefone nacional (DDD + numero), sem DDI — defesa no servidor.
+	 *
+	 * O front ja normaliza, mas um cliente que mande "5531975248061" (12/13
+	 * digitos comecando por 55) nao pode virar DDD 55 na EVO. Com 10/11
+	 * digitos, "55" e DDD (RS) e fica. O DDI vai a EVO uma unica vez, no
+	 * campo ddi = "55" (lead_payload/prospect_payload).
+	 */
+	public static function normalize_phone( string $value ): string {
+		$digits = preg_replace( '/\D/', '', $value ) ?? '';
+
+		if ( str_starts_with( $digits, '55' ) && ( 12 === strlen( $digits ) || 13 === strlen( $digits ) ) ) {
+			$digits = substr( $digits, 2 );
+		}
+
+		return $digits;
+	}
+
+	/** Mesma regra do front: 10/11 digitos, DDD sem zero, celular comeca por 9. */
+	public static function valid_phone( string $national ): bool {
+		$len = strlen( $national );
+
+		return ( 10 === $len || 11 === $len )
+			&& 1 === preg_match( '/^[1-9][1-9]\d+$/', $national )
+			&& ( 10 === $len || '9' === $national[2] );
+	}
 
 	/**
 	 * "Maria de Souza Lima" -> ["Maria", "de Souza Lima"].

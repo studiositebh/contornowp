@@ -2277,6 +2277,27 @@
 	padding-left: 2.7rem;
 }
 
+/* Prefixo fixo de DDI (+55) no WhatsApp: visual, fora do valor do input.
+   O autocomplete do Chrome não consegue "duplicar" o 55 no número. */
+.contorno-input__prefix {
+	position: absolute;
+	left: 0.9rem;
+	top: 50%;
+	transform: translateY(-50%);
+	padding-right: 0.55rem;
+	border-right: 1px solid var(--border, #e6e8ea);
+	color: var(--foreground, #1a1a1a);
+	font-weight: 600;
+	line-height: 1.2;
+	pointer-events: none;
+	user-select: none;
+	white-space: nowrap;
+}
+
+.contorno-input.has-prefix input {
+	padding-left: 4.1rem;
+}
+
 /* ====================================================================
  * Etapas da matrícula
  * ================================================================== */
@@ -3702,6 +3723,10 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-8, 2rem);
+	/* Formulário (~700px) + resumo (280px) + 24px, centralizado. */
+	width: 100%;
+	max-width: 1020px;
+	margin-inline: auto;
 }
 
 /* ---- trilha de etapas ---- */
@@ -3783,9 +3808,10 @@
 
 @media (min-width: 960px) {
 	.contorno-ck__grid {
-		grid-template-columns: minmax(0, 1fr) 20rem;
+		/* 1020 - 280 - 24 = 716px para o formulário. */
+		grid-template-columns: minmax(0, 1fr) 280px;
 		align-items: start;
-		gap: var(--space-8, 2rem);
+		gap: 24px;
 	}
 
 	.contorno-ck__summary {
@@ -3849,6 +3875,19 @@
 .contorno-ck__terms input {
 	flex: none;
 	margin-top: 0.2rem;
+}
+
+/* Autorização de contato (1ª etapa): texto menor, caixa alinhada à
+   primeira linha. Só este bloco; os termos do pagamento não mudam. */
+.contorno-ck__terms--consent {
+	align-items: flex-start;
+	gap: 0.45rem;
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+.contorno-ck__terms--consent input {
+	margin-top: 0.1rem;
 }
 
 .contorno-ck__actions {

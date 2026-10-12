@@ -344,11 +344,11 @@ final class Contorno_Evo_Checkout_Rest {
 
 		$name  = Contorno_Evo_Checkout::split_name( (string) $request->get_param( 'fullName' ) );
 		$email = sanitize_email( (string) $request->get_param( 'email' ) );
-		$phone = preg_replace( '/\D/', '', (string) $request->get_param( 'phone' ) ) ?? '';
+		$phone = Contorno_Evo_Checkout::normalize_phone( (string) $request->get_param( 'phone' ) );
 
 		if ( null === $name
 			|| '' === $email || ! is_email( $email ) || mb_strlen( $email ) > 254
-			|| strlen( $phone ) < 10 || strlen( $phone ) > 11
+			|| ! Contorno_Evo_Checkout::valid_phone( $phone )
 			// LGPD: o contato da unidade depende deste aceite.
 			|| empty( $request->get_param( 'consent' ) )
 		) {
@@ -697,7 +697,7 @@ final class Contorno_Evo_Checkout_Rest {
 		$first = trim( sanitize_text_field( (string) ( $raw['firstName'] ?? '' ) ) );
 		$last  = trim( sanitize_text_field( (string) ( $raw['lastName'] ?? '' ) ) );
 		$email = sanitize_email( (string) ( $raw['email'] ?? '' ) );
-		$phone = preg_replace( '/\D/', '', (string) ( $raw['phone'] ?? '' ) ) ?? '';
+		$phone = Contorno_Evo_Checkout::normalize_phone( (string) ( $raw['phone'] ?? '' ) );
 		$doc   = preg_replace( '/\D/', '', (string) ( $raw['document'] ?? '' ) ) ?? '';
 
 		$fail = static fn (): array => array( 'ok' => false, 'code' => 'dados_invalidos', 'data' => array() );
@@ -715,7 +715,7 @@ final class Contorno_Evo_Checkout_Rest {
 				return $fail();
 			}
 
-			if ( strlen( $phone ) < 10 || strlen( $phone ) > 11 ) {
+			if ( ! Contorno_Evo_Checkout::valid_phone( $phone ) ) {
 				return $fail();
 			}
 		}
