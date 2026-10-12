@@ -3895,6 +3895,16 @@
 	background: rgb(16 184 177 / 0.08);
 }
 
+/*
+ * O JS do checkout esconde e mostra por [hidden]. Qualquer regra com display
+ * (flex no loading, inline-block no spinner...) venceria o atributo e o
+ * elemento nunca sumiria — foi o "Carregando seu plano..." eterno de
+ * 12/10/2026. Esta regra vale para todo o checkout.
+ */
+.contorno-ck [hidden] {
+	display: none !important;
+}
+
 .contorno-ck__loading {
 	display: flex;
 	align-items: center;
