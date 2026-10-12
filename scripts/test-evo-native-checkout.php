@@ -60,8 +60,13 @@ function wp_json_encode( $v ) { return json_encode( $v ); }
 function wp_unslash( $v ) { return $v; }
 function home_url( string $p = '' ): string { return 'https://contornowp.voceconecta.com.br' . $p; }
 function rest_url( string $p = '' ): string { return home_url( '/wp-json/' . $p ); }
-function wp_create_nonce( string $a ): string { return 'nonce-' . $a; }
-function wp_verify_nonce( string $n, string $a ) { return $n === 'nonce-' . $a ? 1 : false; }
+// Nonce do WordPress DEPENDE do usuario logado ($GLOBALS['uid']), como no
+// core. E isso que reproduz o bug de 12/10/2026: pagina renderizada logado,
+// rota REST tratada como anonima.
+function wp_create_nonce( string $a ): string { return 'wpnonce-' . (int) ( $GLOBALS['uid'] ?? 0 ) . '-' . $a; }
+function wp_verify_nonce( string $n, string $a ) { return $n === wp_create_nonce( $a ) ? 1 : false; }
+function wp_nonce_tick( $a = -1 ): float { return ceil( ( time() + (int) ( $GLOBALS['tick_shift'] ?? 0 ) ) / 43200 ); }
+function wp_hash( string $d, string $scheme = 'auth' ): string { return hash_hmac( 'md5', $d, wp_salt( $scheme ) ); }
 function apply_filters( string $h, $v, ...$a ) {
 	// Sem pausa entre chamadas: o ritmo real (1,6 s por requisicao mais
 	// backoff de ate 60 s) faria esta suite levar minutos e deixar de ser
@@ -323,7 +328,7 @@ function section( string $title ): void {
 }
 
 function request( array $params ): WP_REST_Request {
-	return new WP_REST_Request( $params + array( 'nonce' => 'nonce-' . Contorno_Evo_Checkout_Rest::NONCE, 'website' => '' ) );
+	return new WP_REST_Request( $params + array( 'nonce' => Contorno_Evo_Checkout_Rest::create_nonce(), 'website' => '' ) );
 }
 
 /** Payload de cartao como o EVO Pay devolve: token, sem PAN e sem CVV. */
@@ -923,6 +928,28 @@ section( 'Nonce, honeypot, mesma origem e rate limit' );
 fx_reset( fx_routes_happy() );
 $bad = Contorno_Evo_Checkout_Rest::open( new WP_REST_Request( array( 'slug' => 'lourdes', 'plan' => 'black', 'nonce' => 'forjado' ) ) );
 t( 'nonce invalido e recusado', empty( $bad->data['ok'] ) && 'sessao_expirada' === $bad->data['error'] );
+
+// Bug de 12/10/2026: admin logado abre /matricula/ (pagina gerada com
+// usuario 1) e o JS chama a REST sem X-WP-Nonce (WordPress trata como
+// usuario 0). O nonce do checkout NAO pode depender do login.
+fx_reset( fx_routes_happy() );
+$GLOBALS['uid'] = 1;
+$boot_nonce     = Contorno_Evo_Checkout_Rest::create_nonce(); // o que contorno_evo_checkout_boot_data() entrega
+$wp_nonce       = wp_create_nonce( Contorno_Evo_Checkout_Rest::NONCE );
+$GLOBALS['uid'] = 0;
+$res = Contorno_Evo_Checkout_Rest::open( new WP_REST_Request( array( 'slug' => 'lourdes', 'plan' => 'black', 'nonce' => $boot_nonce, 'website' => '' ) ) );
+t( 'nonce gerado com usuario LOGADO vale na REST anonima (admin testando)', ! empty( $res->data['ok'] ), (string) ( $res->data['error'] ?? '' ) );
+t( 'controle: o nonce do WordPress (antigo) falharia nesse cenario', ! wp_verify_nonce( $wp_nonce, Contorno_Evo_Checkout_Rest::NONCE ) );
+
+// Validade: tick atual e o anterior (como wp_verify_nonce); dois ticks atras nao.
+fx_reset( fx_routes_happy() );
+$GLOBALS['tick_shift'] = -43200;
+$old_nonce             = Contorno_Evo_Checkout_Rest::create_nonce();
+$GLOBALS['tick_shift'] = -86400;
+$older_nonce           = Contorno_Evo_Checkout_Rest::create_nonce();
+$GLOBALS['tick_shift'] = 0;
+t( 'nonce do periodo anterior (ate 24 h) ainda vale', Contorno_Evo_Checkout_Rest::verify_nonce( $old_nonce ) );
+t( 'nonce de dois periodos atras expira', ! Contorno_Evo_Checkout_Rest::verify_nonce( $older_nonce ) );
 
 fx_reset( fx_routes_happy() );
 $bad = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black', 'website' => 'http://spam.example' ) ) );

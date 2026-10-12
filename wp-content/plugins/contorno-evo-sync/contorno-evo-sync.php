@@ -153,7 +153,7 @@ function contorno_evo_checkout_receipt( string $token ): array {
  */
 function contorno_evo_checkout_boot_data(): array {
 	return array(
-		'nonce'           => wp_create_nonce( Contorno_Evo_Checkout_Rest::NONCE ),
+		'nonce'           => Contorno_Evo_Checkout_Rest::create_nonce(),
 		// Quem manda no conjunto de etapas e a configuracao da integracao, nao
 		// o plugin de apresentacao: e a EVO que diria que precisa de endereco.
 		'requiresAddress' => (bool) Contorno_Evo_Settings::get( 'checkout_require_address', false ),

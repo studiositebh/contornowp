@@ -102,6 +102,8 @@ check_absent 'a apresentacao nao conhece o host da API da EVO' 'evo-integracao-a
 check_absent 'a apresentacao nao le credencial da EVO' 'Contorno_Evo_Settings::(token|dns)|CONTORNO_EVO_TOKEN' "$CORE/includes" "$CORE/assets/js"
 check_present 'a apresentacao fala com a EVO so pela API interna' 'contorno_evo_checkout_boot_data' "$CORE/includes/shortcodes/enrollment-native.php"
 check_present 'toda chamada EVO usa wp_safe_remote_request' 'wp_safe_remote_request' "$EVO/includes/class-client.php"
+check_present 'nonce do checkout independe de login (boot usa create_nonce)' 'Contorno_Evo_Checkout_Rest::create_nonce\(\)' "$EVO/contorno-evo-sync.php"
+check_absent 'checkout nao usa wp_create_nonce/wp_verify_nonce (dependem do login)' 'wp_(create|verify)_nonce\( *[^)]*(Contorno_Evo_Checkout_Rest::|self::)NONCE' "$EVO/contorno-evo-sync.php" "$EVO/includes/class-checkout-rest.php"
 check_present 'header culture: pt-BR na venda' "'culture'" "$EVO/includes/class-client.php"
 
 echo

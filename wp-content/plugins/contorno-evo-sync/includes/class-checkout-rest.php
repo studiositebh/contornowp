@@ -98,6 +98,39 @@ final class Contorno_Evo_Checkout_Rest {
 	/**
 	 * @return array{ok:bool,code:string}
 	 */
+	/**
+	 * Nonce do checkout, INDEPENDENTE de login.
+	 *
+	 * wp_create_nonce() amarra o valor ao usuario logado. A pagina e
+	 * renderizada com o cookie de login (admin testando: usuario 1), mas a
+	 * rota REST e chamada sem o cabecalho X-WP-Nonce, e o WordPress a trata
+	 * como anonima (usuario 0): o nonce nunca conferia para quem estava
+	 * logado, e o checkout respondia "sessao expirou" (12/10/2026).
+	 *
+	 * Mesmo algoritmo e mesma validade do nonce do WordPress para visitante
+	 * anonimo (uid 0, sem token de sessao), so que fixo nesse contexto.
+	 */
+	public static function create_nonce(): string {
+		return self::nonce_for( (int) wp_nonce_tick( self::NONCE ) );
+	}
+
+	public static function verify_nonce( string $nonce ): bool {
+		$tick = (int) wp_nonce_tick( self::NONCE );
+
+		// Tick atual ou o anterior: mesma janela (12-24 h) do wp_verify_nonce.
+		foreach ( array( $tick, $tick - 1 ) as $candidate ) {
+			if ( hash_equals( self::nonce_for( $candidate ), $nonce ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static function nonce_for( int $tick ): string {
+		return substr( wp_hash( $tick . '|' . self::NONCE . '|0|', 'nonce' ), -12, 10 );
+	}
+
 	private static function guard( WP_REST_Request $request, string $scope ): array {
 		if ( ! self::same_origin() ) {
 			return array( 'ok' => false, 'code' => 'dados_invalidos' );
@@ -105,7 +138,7 @@ final class Contorno_Evo_Checkout_Rest {
 
 		$nonce = sanitize_text_field( (string) $request->get_param( 'nonce' ) );
 
-		if ( '' === $nonce || ! wp_verify_nonce( $nonce, self::NONCE ) ) {
+		if ( '' === $nonce || ! self::verify_nonce( $nonce ) ) {
 			return array( 'ok' => false, 'code' => 'sessao_expirada' );
 		}
 
