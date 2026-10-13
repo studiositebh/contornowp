@@ -347,6 +347,9 @@ if ( $all_500 ) {
 				'gerarFormToken'           => $gd['gerarFormToken'] ?? null,
 				'origemFranquia'           => $gd['origemFranquia'] ?? null,
 				'publicKey_prefix'         => isset( $gd['publicKey'] ) ? substr( (string) $gd['publicKey'], 0, 3 ) : null,
+				// Pagar.me v5: pk_test_* = simulador (sandbox), pk_* = producao.
+				// Mesmo endpoint; o tipo da chave decide. So o modo sai daqui.
+				'publicKey_mode'           => isset( $gd['publicKey'] ) ? ( str_starts_with( (string) $gd['publicKey'], 'pk_test_' ) ? 'TESTE (sandbox)' : 'PRODUCAO' ) : null,
 				'publicKeyFranquia_prefix' => isset( $gd['publicKeyFranquia'] ) && '' !== (string) $gd['publicKeyFranquia'] ? substr( (string) $gd['publicKeyFranquia'], 0, 3 ) : null,
 			);
 			$report['gateway_flags'][ $b ] = $flags;

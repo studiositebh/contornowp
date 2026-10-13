@@ -313,10 +313,8 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 									'maxlength' => '14',
 									'mask'      => 'cpf',
 									'placeholder' => '000.000.000-00',
-									// Justificativa do campo, para o visitante e
-									// para quem revisar o formulario depois: o CPF
-									// e o que evita cadastro duplicado na EVO.
-									'help'      => __( 'Usamos o CPF para localizar seu cadastro e não duplicá-lo.', 'contorno' ),
+									// Sem texto auxiliar (pedido de 12/10/2026): abaixo
+									// do campo so aparece a mensagem de erro, quando houver.
 								)
 							);
 							echo contorno_native_field( array( 'name' => 'birthday', 'label' => __( 'Data de nascimento', 'contorno' ), 'type' => 'date', 'autocomplete' => 'bday', 'optional' => true ) );

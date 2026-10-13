@@ -206,6 +206,7 @@ t('aceite: obrigatorio e inicialmente desmarcado', /name="acceptedTerms" value="
 t('aceite separado do aviso de seguranca e do consentimento da etapa 1', at('contorno-ck__terms--accept') > at('contorno-ck__secure"') && !/name="consent"/.test(panel));
 t('sem aceite: botao com aria-disabled e motivo explicado', /setAttribute\('aria-disabled', terms\.checked \? 'false' : 'true'\)/.test(src) && /errors\.acceptedTerms = T\.terms/.test(src));
 t('CPF: erro discreto ao sair do campo', /cpf\.addEventListener\('blur'/.test(src));
+t('CPF: sem texto auxiliar abaixo do campo (so erro)', !/Usamos o CPF/.test(tpl) && !/'name'      => 'document'[\s\S]{0,400}'help'/.test(panel));
 t('rolagem entre etapas desconta o header fixo', /data-contorno-header/.test(src) && /- covered - 16/.test(src));
 t('cartao: componente sem estilo proprio recebe o visual do site (CSS escopado)', /\.contorno-ck__card evo-cartao input,/.test(fs.readFileSync(path.join(__dirname, '..', 'wp-content', 'plugins', 'contorno-core', 'assets', 'css', 'components.css'), 'utf8')));
 
