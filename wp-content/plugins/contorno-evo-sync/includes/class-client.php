@@ -710,6 +710,18 @@ final class Contorno_Evo_Client {
 			$detail = implode( '; ', array_map( 'strval', array_slice( $decoded['mensagens'], 0, 4 ) ) );
 		}
 
+		// Formato real de POST /api/v2/sales (15/10/2026):
+		// {"errors":[{"key":"Aviso","value":"Este contrato nao pode ser..."}]}
+		if ( '' === $detail && is_array( $decoded ) && ! empty( $decoded['errors'] ) && is_array( $decoded['errors'] ) ) {
+			$values = array();
+			foreach ( array_slice( $decoded['errors'], 0, 4 ) as $error ) {
+				if ( is_array( $error ) && is_scalar( $error['value'] ?? null ) && '' !== (string) $error['value'] ) {
+					$values[] = (string) $error['value'];
+				}
+			}
+			$detail = implode( '; ', $values );
+		}
+
 		if ( '' === $detail ) {
 			$detail = wp_strip_all_tags( $body );
 		}

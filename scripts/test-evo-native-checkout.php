@@ -1094,7 +1094,58 @@ t( 'plano de filial diferente e recusado, nao vendido a 5,00', empty( $opened->d
 
 section( 'Erros da EVO: 400, 401, 403, 429, 500, JSON invalido' );
 
-foreach ( array( 400 => 'cartao_recusado', 401 => 'evo_indisponivel', 403 => 'evo_indisponivel', 429 => 'evo_indisponivel' ) as $code => $expected ) {
+// Recusa da venda (HTTP 400) classificada pela mensagem REAL da EVO.
+// Formato observado em 15/10/2026: {"errors":[{"key":"Aviso","value":"..."}]}.
+$refusals = array(
+	'Este contrato não pode ser vendido para clientes de outra filial' => 'outra_filial',
+	'Transação não autorizada pelo emissor'                            => 'cartao_recusado',
+	'Campo obrigatório não informado'                                  => 'venda_recusada',
+);
+foreach ( $refusals as $evo_text => $expected ) {
+	fx_reset( fx_routes_happy() );
+	$GLOBALS['routes']['/api/v2/sales'] = fx_json( array( 'errors' => array( array( 'key' => 'Aviso', 'value' => $evo_text ) ), 'logoff' => false ), 400 );
+	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+	$token  = (string) $opened->data['token'];
+	Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+	$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+	t( "400 \"$evo_text\" -> $expected", $expected === ( $paid->data['error'] ?? '' ), (string) ( $paid->data['error'] ?? '' ) );
+	t( "400 \"$evo_text\" -> " . ( 'cartao_recusado' === $expected ? 'sem' : 'com' ) . ' contato da unidade', ( 'cartao_recusado' === $expected ) === empty( $paid->data['fallback'] ) );
+}
+$log_json = (string) json_encode( Contorno_Evo_Log::all(), JSON_UNESCAPED_UNICODE );
+t( 'log mostra a mensagem da EVO legivel (nao o JSON cru)', str_contains( $log_json, 'Campo obrigatório não informado' ) && ! str_contains( $log_json, '\"errors\"' ) );
+t( 'log da recusa diz o motivo e para qual cadastro foi a venda', str_contains( $log_json, 'venda recusada [venda_recusada] (venda para prospect idProspect 5551' ) );
+
+// O caso de 15/10/2026: cadastro reaproveitado era de OUTRA filial.
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'idBranch' => 8 ) ) );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$log_json = (string) json_encode( Contorno_Evo_Log::all(), JSON_UNESCAPED_UNICODE );
+t( 'log do lead: cadastro existente reaproveitado, com tipo, id e filial', str_contains( $log_json, 'cadastro existente reaproveitado, nenhum prospect novo criado (prospect idProspect 3131, filial 8)' ) );
+t( 'log do lead: alerta de OUTRA FILIAL', str_contains( $log_json, 'OUTRA FILIAL' ) );
+t( 'cadastro de outra filial: para na etapa 1, antes do cartao, com contato da unidade', 'cadastro_outra_filial' === ( $res->data['error'] ?? '' ) && ! empty( $res->data['fallback'] ) );
+t( 'cadastro de outra filial: nada criado nem alterado na EVO', array() === fx_calls( 'POST', '/api/v1/prospects' ) && array() === fx_calls( 'PATCH', '/api/v1/prospects' ) && array() === fx_calls( 'POST', '/api/v1/prospects/transfer' ) );
+t( 'cadastro de outra filial: sessao nao segue para o pagamento', empty( Contorno_Evo_Checkout::load( $token )['lead'] ) );
+
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( array( 'idMember' => 4242, 'idBranch' => 3 ) ) );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
+t( 'ALUNO de outra filial: tambem para na etapa 1', 'cadastro_outra_filial' === ( $res->data['error'] ?? '' ) && str_contains( (string) json_encode( Contorno_Evo_Log::all() ), 'aluno idMember 4242, filial 3' ) );
+
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'idBranch' => 21 ) ) );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
+t( 'prospect existente da MESMA filial: segue normalmente', ! empty( $res->data['ok'] ) );
+
+fx_reset( fx_routes_happy() );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
+t( 'log do lead novo traz o idProspect criado', str_contains( (string) json_encode( Contorno_Evo_Log::all() ), 'lead registrado na EVO (prospect novo 5551)' ) );
+
+foreach ( array( 400 => 'venda_recusada', 401 => 'evo_indisponivel', 403 => 'evo_indisponivel', 429 => 'evo_indisponivel' ) as $code => $expected ) {
 	fx_reset( fx_routes_happy() );
 	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 	$GLOBALS['routes']['/api/v2/sales'] = fx_json( array( 'mensagens' => array( 'detalhe tecnico interno com token-de-teste' ) ), $code );

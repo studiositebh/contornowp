@@ -329,7 +329,7 @@ final class Contorno_Evo_Checkout {
 
 			foreach ( $found['items'] as $item ) {
 				if ( (int) ( $item['idMember'] ?? 0 ) > 0 ) {
-					return array( 'ok' => true, 'error' => '', 'kind' => 'member', 'id_member' => (int) $item['idMember'], 'id_prospect' => 0 );
+					return array( 'ok' => true, 'error' => '', 'kind' => 'member', 'id_member' => (int) $item['idMember'], 'id_prospect' => 0, 'branch' => (int) ( $item['idBranch'] ?? 0 ) );
 				}
 			}
 		}
@@ -349,14 +349,14 @@ final class Contorno_Evo_Checkout {
 
 				// Prospect ja convertido em membro: vale o membro.
 				if ( (int) ( $item['idMember'] ?? 0 ) > 0 ) {
-					return array( 'ok' => true, 'error' => '', 'kind' => 'member', 'id_member' => (int) $item['idMember'], 'id_prospect' => (int) $item['idProspect'] );
+					return array( 'ok' => true, 'error' => '', 'kind' => 'member', 'id_member' => (int) $item['idMember'], 'id_prospect' => (int) $item['idProspect'], 'branch' => (int) ( $item['idBranch'] ?? 0 ) );
 				}
 
-				return array( 'ok' => true, 'error' => '', 'kind' => 'prospect', 'id_member' => 0, 'id_prospect' => (int) $item['idProspect'] );
+				return array( 'ok' => true, 'error' => '', 'kind' => 'prospect', 'id_member' => 0, 'id_prospect' => (int) $item['idProspect'], 'branch' => (int) ( $item['idBranch'] ?? 0 ) );
 			}
 		}
 
-		return array( 'ok' => true, 'error' => '', 'kind' => 'new', 'id_member' => 0, 'id_prospect' => 0 );
+		return array( 'ok' => true, 'error' => '', 'kind' => 'new', 'id_member' => 0, 'id_prospect' => 0, 'branch' => 0 );
 	}
 
 	/**
@@ -418,6 +418,29 @@ final class Contorno_Evo_Checkout {
 	/* ---------------------------------------------------------------
 	 * Lead (primeira etapa)
 	 * ------------------------------------------------------------- */
+
+	/**
+	 * Por que a EVO recusou a venda (HTTP 400), pela mensagem dela.
+	 *
+	 * Antes todo 400 virava "cartao recusado" — em 15/10/2026 o motivo real
+	 * era "Este contrato nao pode ser vendido para clientes de outra filial",
+	 * e o visitante tentou 8 vezes trocando de cartao.
+	 */
+	public static function sale_refusal_reason( string $message ): string {
+		$text = mb_strtolower( $message );
+
+		if ( str_contains( $text, 'outra filial' ) || str_contains( $text, 'outras filiais' ) ) {
+			return 'outra_filial';
+		}
+
+		foreach ( array( 'cartão', 'cartao', 'transação', 'transacao', 'autoriz', 'recusad', 'negad', 'saldo', 'limite', 'cvv', 'venciment', 'emissor', 'bandeira' ) as $needle ) {
+			if ( str_contains( $text, $needle ) ) {
+				return 'cartao_recusado';
+			}
+		}
+
+		return 'venda_recusada';
+	}
 
 	/** Etapas do funil gravadas em currentStep do prospect na EVO. */
 	public const STEP_LEAD    = 'Lead site';
@@ -845,6 +868,10 @@ final class Contorno_Evo_Checkout {
 			'em_andamento'           => __( 'Já estamos processando seu pagamento. Aguarde alguns instantes sem fechar esta página.', 'contorno-evo' ),
 			'ja_concluida'           => __( 'Sua matrícula já foi concluída.', 'contorno-evo' ),
 			'cartao_recusado'        => __( 'O pagamento não foi aprovado. Confira os dados do cartão ou tente outro.', 'contorno-evo' ),
+			// Nada foi cobrado; trocar de cartao nao resolve.
+			'outra_filial'           => __( 'Você já tem cadastro em outra unidade da Contorno do Corpo, e este plano só pode ser contratado por alunos desta unidade. Nenhuma cobrança foi feita. Fale com a unidade para concluir sua matrícula.', 'contorno-evo' ),
+			'cadastro_outra_filial'  => __( 'Encontramos seu cadastro em outra unidade da Contorno do Corpo. Para contratar um plano nesta unidade, fale com a equipe — ela conclui sua matrícula por lá.', 'contorno-evo' ),
+			'venda_recusada'         => __( 'Não foi possível concluir sua matrícula online. Nenhuma cobrança foi feita. Fale com a unidade para concluir.', 'contorno-evo' ),
 			'cartao_invalido'        => __( 'Não conseguimos validar os dados do cartão. Tente novamente.', 'contorno-evo' ),
 			'dados_insuficientes'    => __( 'Precisamos de mais alguns dados para continuar.', 'contorno-evo' ),
 			'dados_invalidos'        => __( 'Confira os dados informados e tente novamente.', 'contorno-evo' ),

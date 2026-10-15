@@ -379,10 +379,37 @@ final class Contorno_Evo_Checkout_Rest {
 			}
 
 			$found['id_prospect'] = $created['id_prospect'];
+			$found['branch']      = (int) $state['id_branch'];
 			$kind                 = 'prospect';
-			Contorno_Evo_Checkout::log( 'info', 'lead registrado na EVO (prospect novo)', $state );
+			Contorno_Evo_Checkout::log( 'info', sprintf( 'lead registrado na EVO (prospect novo %d)', (int) $created['id_prospect'] ), $state );
+		} else {
+			// Cadastro ja existia (busca por e-mail/WhatsApp na rede toda):
+			// nenhum prospect novo e criado. O log precisa dizer qual e de
+			// que filial — venda para cadastro de outra filial a EVO recusa.
+			$branch = (int) ( $found['branch'] ?? 0 );
+			Contorno_Evo_Checkout::log(
+				$branch > 0 && $branch !== (int) $state['id_branch'] ? 'warning' : 'info',
+				sprintf(
+					'lead: cadastro existente reaproveitado, nenhum prospect novo criado (%s %d, filial %s)%s',
+					'member' === $kind ? 'aluno idMember' : 'prospect idProspect',
+					'member' === $kind ? (int) $found['id_member'] : (int) $found['id_prospect'],
+					$branch > 0 ? (string) $branch : '?',
+					$branch > 0 && $branch !== (int) $state['id_branch'] ? ' — OUTRA FILIAL: a EVO recusa vender este contrato para cadastro de outra filial' : ''
+				),
+				$state
+			);
+
+			// Decisao de 15/10/2026: cadastro de OUTRA filial para aqui, ja na
+			// 1a etapa — a EVO recusa a venda deste contrato e a pessoa so
+			// descobriria depois de digitar o cartao. Nada e alterado na EVO
+			// (sem transferencia automatica); o contato da unidade resolve.
+			if ( $branch > 0 && $branch !== (int) $state['id_branch'] ) {
+				return self::fail( 'cadastro_outra_filial', array( 'fallback' => true ) );
+			}
 		}
 
+		$state['person_kind']   = 'member' === $kind ? 'member' : 'prospect';
+		$state['person_branch'] = (int) ( $found['branch'] ?? 0 );
 		$state['lead']        = true;
 		$state['id_member']   = (int) $found['id_member'];
 		$state['id_prospect'] = (int) $found['id_prospect'];
@@ -622,9 +649,26 @@ final class Contorno_Evo_Checkout_Rest {
 			// 8. Recusa limpa (4xx): nada foi criado, a pessoa pode corrigir.
 			$state['status'] = 'identified';
 			Contorno_Evo_Checkout::save( $state );
-			Contorno_Evo_Checkout::log( 'warning', 'venda recusada: ' . $sale['message'], $state + array( 'http' => $sale['http'] ) );
 
-			return self::fail( 400 === $sale['http'] ? 'cartao_recusado' : 'evo_indisponivel' );
+			$reason = 400 === $sale['http'] ? Contorno_Evo_Checkout::sale_refusal_reason( (string) $sale['message'] ) : 'evo_indisponivel';
+
+			Contorno_Evo_Checkout::log(
+				'warning',
+				sprintf(
+					'venda recusada [%s] (venda para %s %d, filial do cadastro %s): %s',
+					$reason,
+					(int) $state['id_member'] > 0 ? 'aluno idMember' : 'prospect idProspect',
+					(int) $state['id_member'] > 0 ? (int) $state['id_member'] : (int) $state['id_prospect'],
+					(int) ( $state['person_branch'] ?? 0 ) > 0 ? (string) $state['person_branch'] : '?',
+					$sale['message']
+				),
+				$state + array( 'http' => $sale['http'] )
+			);
+
+			// Recusa por cadastro/configuracao nao e "cartao recusado": a
+			// pessoa nao resolve trocando de cartao. Nada foi criado, entao
+			// o contato com a unidade e um destino seguro.
+			return self::fail( $reason, array( 'fallback' => 'cartao_recusado' !== $reason ) );
 		} finally {
 			Contorno_Evo_Checkout::release_lock( $token );
 		}
