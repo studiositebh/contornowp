@@ -103,14 +103,17 @@ t('bandeiras e traducoes da EVO repassadas ao componente', /element\.bandeiras =
 console.log('\n== Disparo da tokenizacao (guia oficial: o componente nao tem botao)');
 
 const payFn = grab(/Checkout\.prototype\.pay = function \(\) \{[\s\S]*?\n\t\};/, 'pay()');
+const tokenizeFn = grab(/Checkout\.prototype\.tokenize = function \(\) \{[\s\S]*?\n\t\};/, 'tokenize()');
 const acceptFn = grab(/Checkout\.prototype\.acceptToken = function \(payload\) \{[\s\S]*?\n\t\};/, 'acceptToken()');
 const submitFn = grab(/Checkout\.prototype\.submit = function \(\) \{[\s\S]*?\n\t\};/, 'submit()');
 const mountFn = grab(/Checkout\.prototype\.mountCard = function \(\) \{[\s\S]*?\n\t\};/, 'mountCard()');
 
-t('pay() dispara CustomEvent "salvar" no componente', /this\.cardElement\.dispatchEvent\(new CustomEvent\('salvar'\)\)/.test(payFn));
+t('pay() confere a identidade (verify) ANTES de tokenizar o cartao', /this\.call\('verify'/.test(payFn) && /self\.tokenize\(\)/.test(payFn) && payFn.indexOf("call('verify'") < payFn.indexOf('self.tokenize()'));
+t('pay() NAO dispara "salvar" antes do verify', !/dispatchEvent/.test(payFn));
+t('tokenize() dispara CustomEvent "salvar" no componente', /this\.cardElement\.dispatchEvent\(new CustomEvent\('salvar'\)\)/.test(tokenizeFn));
 t('pay() descarta o token anterior (token novo a cada tentativa)', /this\.card = null;/.test(payFn));
 t('pay() NAO chama a venda direto: espera o token', !/this\.call\('pay'/.test(payFn));
-t('pay() tem tempo limite para o token', /setTimeout\(/.test(payFn) && /tokenFailed/.test(payFn));
+t('tokenize() tem tempo limite para o token', /setTimeout\(/.test(tokenizeFn) && /tokenFailed/.test(tokenizeFn));
 t('acceptToken() ignora token que nao foi pedido', /if \(!this\.awaitingToken\) return;/.test(acceptFn));
 t('acceptToken() segue para a venda com o token', /this\.submit\(\);/.test(acceptFn));
 t('a venda (call pay) so sai de submit()', /this\.call\('pay'/.test(submitFn) && (src.match(/this\.call\('pay'/g) || []).length === 1);

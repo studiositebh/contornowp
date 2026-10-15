@@ -735,11 +735,45 @@
 
 		this.busy = true;
 		this.card = null;
-		this.awaitingToken = true;
 		if (button) button.disabled = true;
 		if (spinner) spinner.hidden = false;
-		if (label) label.textContent = T.validatingCard || T.processing || '';
+		if (label) label.textContent = T.verifyingIdentity || T.validating || '';
 		this.showError('card', '');
+
+		// 1º a identidade (CPF) no servidor; só depois o cartão. Cadastro de
+		// outra unidade, ambíguo ou não verificável para AQUI — o cartão nem
+		// é tokenizado para uma venda que não pode acontecer.
+		var person = {
+			document: digits(this.value('document')),
+			birthday: this.value('birthday'),
+			acceptedTerms: true,
+			fullName: this.value('fullName'),
+			email: this.value('email'),
+			phone: normalizePhone(this.value('phone'))
+		};
+
+		this.call('verify', { token: this.token, person: person }).then(function (data) {
+			if (!data.ok) {
+				self.idle();
+				if (data.fallback) {
+					self.fallbackTo(data.message);
+					return;
+				}
+				self.say(data.message || T.generic, 'error');
+				return;
+			}
+
+			self.tokenize();
+		});
+	};
+
+	/** Pede o token ao <evo-cartao> (só depois da identidade verificada). */
+	Checkout.prototype.tokenize = function () {
+		var self = this;
+		var label = this.$('[data-ck-pay-label]');
+
+		this.awaitingToken = true;
+		if (label) label.textContent = T.validatingCard || T.processing || '';
 
 		clearTimeout(this.tokenTimer);
 		this.tokenTimer = setTimeout(function () {

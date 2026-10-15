@@ -350,6 +350,19 @@ final class Contorno_Evo_Client {
 	}
 
 	/**
+	 * Perfil completo do aluno — GET /api/v2/members/{idMember}.
+	 *
+	 * Unica fonte do CPF de um aluno (members/basic nao devolve CPF). Usado
+	 * SO para verificar identidade (Contorno_Evo_Identity); nada do perfil
+	 * e gravado nem sai para o navegador.
+	 *
+	 * @return array{ok:bool,message:string,http:int,data:mixed}
+	 */
+	public function member_profile( int $id_member ): array {
+		return $this->get( '/api/v2/members/' . $id_member, array() );
+	}
+
+	/**
 	 * Prospect existente por documento, e-mail ou telefone.
 	 *
 	 * @param array<string,mixed> $filters
