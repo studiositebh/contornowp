@@ -381,7 +381,13 @@ final class Contorno_Evo_Checkout_Rest {
 			$found['id_prospect'] = $created['id_prospect'];
 			$found['branch']      = (int) $state['id_branch'];
 			$kind                 = 'prospect';
-			Contorno_Evo_Checkout::log( 'info', sprintf( 'lead registrado na EVO (prospect novo %d)', (int) $created['id_prospect'] ), $state );
+			$ignored = (int) ( $found['ignored'] ?? 0 );
+			Contorno_Evo_Checkout::log(
+				$ignored > 0 ? 'warning' : 'info',
+				sprintf( 'lead registrado na EVO (prospect novo %d)', (int) $created['id_prospect'] )
+					. ( $ignored > 0 ? sprintf( ' — a busca da EVO devolveu %d cadastro(s) que NAO tem este e-mail/WhatsApp; ignorados', $ignored ) : '' ),
+				$state
+			);
 		} else {
 			// Cadastro ja existia (busca por e-mail/WhatsApp na rede toda):
 			// nenhum prospect novo e criado. O log precisa dizer qual e de

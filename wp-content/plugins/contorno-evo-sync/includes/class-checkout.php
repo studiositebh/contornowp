@@ -293,6 +293,83 @@ final class Contorno_Evo_Checkout {
 	 * @param array<string,string> $person  document, email, phone
 	 * @return array{ok:bool,error:string,kind:string,id_member:int,id_prospect:int}
 	 */
+	/**
+	 * O registro devolvido pela EVO TEM o dado que foi buscado?
+	 *
+	 * Em 15/10/2026 a busca devolveu o mesmo aluno (idMember 325082, filial
+	 * 59) para pessoas sem cadastro: o filtro da EVO nao e confiavel o
+	 * bastante para usar o primeiro resultado as cegas. Aceitar um cadastro
+	 * errado vende o plano na conta de outra pessoa.
+	 *
+	 * - e-mail: igual (sem caixa) a item.email ou a um contato com "@";
+	 * - telefone: mesmo numero nacional em item.cellphone ou nos contatos;
+	 * - CPF: igual a item.document; members/basic NAO devolve CPF, entao
+	 *   so vale se a EVO devolveu exatamente um registro.
+	 *
+	 * @param array<string,mixed> $item
+	 * @param array<string,mixed> $filter  um so: email | phone | document
+	 */
+	public static function matches( array $item, array $filter, int $total ): bool {
+		$emails = array();
+		$phones = array();
+
+		foreach ( (array) ( $item['contacts'] ?? array() ) as $contact ) {
+			$desc = is_array( $contact ) ? trim( (string) ( $contact['description'] ?? '' ) ) : '';
+			if ( str_contains( $desc, '@' ) ) {
+				$emails[] = strtolower( $desc );
+			} elseif ( '' !== $desc ) {
+				$phones[] = self::normalize_phone( (string) ( $contact['ddi'] ?? '' ) . $desc );
+				$phones[] = self::normalize_phone( $desc );
+			}
+		}
+
+		if ( ! empty( $item['email'] ) ) {
+			$emails[] = strtolower( trim( (string) $item['email'] ) );
+		}
+		if ( ! empty( $item['cellphone'] ) ) {
+			$phones[] = self::normalize_phone( (string) $item['cellphone'] );
+		}
+
+		if ( isset( $filter['email'] ) ) {
+			return in_array( strtolower( trim( (string) $filter['email'] ) ), $emails, true );
+		}
+
+		if ( isset( $filter['phone'] ) ) {
+			$wanted = self::normalize_phone( (string) $filter['phone'] );
+
+			foreach ( $phones as $phone ) {
+				if ( '' === $phone || strlen( $phone ) < 8 || strlen( $wanted ) < 8 ) {
+					continue;
+				}
+
+				if ( $phone === $wanted ) {
+					return true;
+				}
+
+				// Cadastro antigo sem o 9 ou sem DDD: mesmos 8 ultimos digitos
+				// e, quando os dois tem DDD, o mesmo DDD.
+				$same_tail = substr( $phone, -8 ) === substr( $wanted, -8 );
+				$same_ddd  = strlen( $phone ) < 10 || strlen( $wanted ) < 10 || substr( $phone, 0, 2 ) === substr( $wanted, 0, 2 );
+
+				if ( $same_tail && $same_ddd ) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		if ( isset( $filter['document'] ) ) {
+			if ( array_key_exists( 'document', $item ) && '' !== (string) $item['document'] ) {
+				return preg_replace( '/\D/', '', (string) $item['document'] ) === preg_replace( '/\D/', '', (string) $filter['document'] );
+			}
+
+			return 1 === $total;
+		}
+
+		return false;
+	}
+
 	public static function identify( array $person, int $id_branch ): array {
 		$client   = new Contorno_Evo_Client();
 		$document = preg_replace( '/\D/', '', (string) ( $person['document'] ?? '' ) ) ?? '';
@@ -314,6 +391,9 @@ final class Contorno_Evo_Checkout {
 			return array( 'ok' => false, 'error' => 'dados_insuficientes', 'kind' => '', 'id_member' => 0, 'id_prospect' => 0 );
 		}
 
+		// Registros devolvidos que NAO conferem com o dado buscado (ver matches()).
+		$ignored = 0;
+
 		// 1. Membro. Sem idBranch: a pessoa pode estar cadastrada em outra
 		// unidade da rede, e nesse caso ela CONTINUA sendo a mesma pessoa —
 		// criar prospect novo duplicaria o cadastro dela na base.
@@ -328,8 +408,13 @@ final class Contorno_Evo_Checkout {
 			}
 
 			foreach ( $found['items'] as $item ) {
+				if ( ! self::matches( $item, $filter, count( $found['items'] ) ) ) {
+					++$ignored;
+					continue;
+				}
+
 				if ( (int) ( $item['idMember'] ?? 0 ) > 0 ) {
-					return array( 'ok' => true, 'error' => '', 'kind' => 'member', 'id_member' => (int) $item['idMember'], 'id_prospect' => 0, 'branch' => (int) ( $item['idBranch'] ?? 0 ) );
+					return array( 'ok' => true, 'error' => '', 'kind' => 'member', 'id_member' => (int) $item['idMember'], 'id_prospect' => 0, 'branch' => (int) ( $item['idBranch'] ?? 0 ), 'ignored' => $ignored );
 				}
 			}
 		}
@@ -347,16 +432,21 @@ final class Contorno_Evo_Checkout {
 					continue;
 				}
 
-				// Prospect ja convertido em membro: vale o membro.
-				if ( (int) ( $item['idMember'] ?? 0 ) > 0 ) {
-					return array( 'ok' => true, 'error' => '', 'kind' => 'member', 'id_member' => (int) $item['idMember'], 'id_prospect' => (int) $item['idProspect'], 'branch' => (int) ( $item['idBranch'] ?? 0 ) );
+				if ( ! self::matches( $item, $filter, count( $found['items'] ) ) ) {
+					++$ignored;
+					continue;
 				}
 
-				return array( 'ok' => true, 'error' => '', 'kind' => 'prospect', 'id_member' => 0, 'id_prospect' => (int) $item['idProspect'], 'branch' => (int) ( $item['idBranch'] ?? 0 ) );
+				// Prospect ja convertido em membro: vale o membro.
+				if ( (int) ( $item['idMember'] ?? 0 ) > 0 ) {
+					return array( 'ok' => true, 'error' => '', 'kind' => 'member', 'id_member' => (int) $item['idMember'], 'id_prospect' => (int) $item['idProspect'], 'branch' => (int) ( $item['idBranch'] ?? 0 ), 'ignored' => $ignored );
+				}
+
+				return array( 'ok' => true, 'error' => '', 'kind' => 'prospect', 'id_member' => 0, 'id_prospect' => (int) $item['idProspect'], 'branch' => (int) ( $item['idBranch'] ?? 0 ), 'ignored' => $ignored );
 			}
 		}
 
-		return array( 'ok' => true, 'error' => '', 'kind' => 'new', 'id_member' => 0, 'id_prospect' => 0, 'branch' => 0 );
+		return array( 'ok' => true, 'error' => '', 'kind' => 'new', 'id_member' => 0, 'id_prospect' => 0, 'branch' => 0, 'ignored' => $ignored );
 	}
 
 	/**
@@ -545,6 +635,9 @@ final class Contorno_Evo_Checkout {
 		}
 
 		foreach ( $members['items'] as $item ) {
+			if ( ! self::matches( $item, array( 'document' => $document ), count( $members['items'] ) ) ) {
+				continue;
+			}
 			if ( (int) ( $item['idMember'] ?? 0 ) > 0 ) {
 				return array( 'ok' => true, 'error' => '', 'id_member' => (int) $item['idMember'], 'id_prospect' => 0 );
 			}
@@ -585,6 +678,9 @@ final class Contorno_Evo_Checkout {
 		}
 
 		foreach ( $owner['items'] as $item ) {
+			if ( ! self::matches( $item, array( 'document' => $document ), count( $owner['items'] ) ) ) {
+				continue;
+			}
 			if ( (int) ( $item['idMember'] ?? 0 ) > 0 ) {
 				return array( 'ok' => true, 'error' => '', 'id_member' => (int) $item['idMember'], 'id_prospect' => 0 );
 			}

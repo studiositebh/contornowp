@@ -719,7 +719,7 @@ t( 'pagamento sem aceite dos termos: recusado no servidor, sem venda', 'dados_in
 
 // D) CPF do pagamento e de um ALUNO: venda vai para o membro
 fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/members/basic'] = static fn ( string $url ) => str_contains( $url, 'document=' ) ? fx_json( array( array( 'idMember' => 4242 ) ) ) : fx_json( array() );
+$GLOBALS['routes']['/api/v1/members/basic'] = static fn ( string $url ) => str_contains( $url, 'document=' ) ? fx_json( array( array( 'idMember' => 4242, 'contacts' => array( array( 'description' => 'maria@example.com' ) ) ) ) ) : fx_json( array() );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
 Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
@@ -761,13 +761,13 @@ t( 'falha ao completar o lead: sem venda, fallback seguro', 'evo_indisponivel' =
 
 // G) aluno/prospect ja existentes no lead: reaproveita
 fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( array( 'idMember' => 4242 ) ) );
+$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( array( 'idMember' => 4242, 'contacts' => array( array( 'description' => 'maria@example.com' ) ) ) ) );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
 t( 'lead de aluno existente: kind member, nenhum prospect criado', 'member' === ( $res->data['kind'] ?? '' ) && array() === fx_calls( 'POST', '/api/v1/prospects' ) );
 
 fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131 ) ) );
+$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'email' => 'maria@example.com' ) ) );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
 Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
@@ -799,6 +799,28 @@ $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes',
 Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'], 'phone' => '(55) 99999-1234' ) ) ) );
 $body = (array) ( fx_calls( 'POST', '/api/v1/prospects' )[0]['body'] ?? array() );
 t( 'lead com DDD 55: numero preservado (55999991234)', '55999991234' === ( $body['cellphone'] ?? '' ) );
+
+// G2) Caso real de 15/10/2026: a busca da EVO devolveu um aluno (outra
+// filial) que NAO tem o e-mail nem o telefone digitados. Nao pode ser usado.
+t( 'matches: e-mail igual ao contato confere', Contorno_Evo_Checkout::matches( array( 'contacts' => array( array( 'description' => 'Maria@Example.com' ) ) ), array( 'email' => 'maria@example.com' ), 5 ) );
+t( 'matches: telefone nacional igual confere (com ou sem DDI no cadastro)', Contorno_Evo_Checkout::matches( array( 'contacts' => array( array( 'ddi' => '55', 'description' => '(31) 99999-1234' ) ) ), array( 'phone' => '31999991234' ), 5 ) );
+t( 'matches: cadastro antigo sem o 9 confere pelo final (8 digitos)', Contorno_Evo_Checkout::matches( array( 'cellphone' => '3199991234' ), array( 'phone' => '31999991234' ), 5 ) );
+t( 'matches: outro telefone NAO confere', ! Contorno_Evo_Checkout::matches( array( 'contacts' => array( array( 'description' => '(31) 98888-0000' ) ) ), array( 'phone' => '31999991234' ), 5 ) );
+t( 'matches: registro sem contatos NAO confere com e-mail/telefone', ! Contorno_Evo_Checkout::matches( array( 'idMember' => 325082 ), array( 'email' => 'maria@example.com' ), 1 ) && ! Contorno_Evo_Checkout::matches( array( 'idMember' => 325082 ), array( 'phone' => '31999991234' ), 1 ) );
+t( 'matches: CPF sem campo document so vale com resultado unico', Contorno_Evo_Checkout::matches( array( 'idMember' => 1 ), array( 'document' => '52998224725' ), 1 ) && ! Contorno_Evo_Checkout::matches( array( 'idMember' => 1 ), array( 'document' => '52998224725' ), 10 ) );
+
+fx_reset( fx_routes_happy() );
+$GLOBALS['routes']['/api/v1/members/basic'] = fx_json(
+	array(
+		array( 'idMember' => 325082, 'idBranch' => 59, 'contacts' => array( array( 'description' => 'outra.pessoa@example.com' ), array( 'ddi' => '55', 'description' => '(31) 98888-0000' ) ) ),
+	)
+);
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$log_json = (string) json_encode( Contorno_Evo_Log::all(), JSON_UNESCAPED_UNICODE );
+t( 'EVO devolve aluno que nao confere: IGNORADO, segue como pessoa nova', ! empty( $res->data['ok'] ) && 1 === count( fx_calls( 'POST', '/api/v1/prospects' ) ) && 0 === (int) Contorno_Evo_Checkout::load( $token )['id_member'] );
+t( 'EVO devolve aluno que nao confere: log avisa que foi ignorado', str_contains( $log_json, 'NAO tem este e-mail\/WhatsApp; ignorados' ) && ! str_contains( $log_json, 'OUTRA FILIAL' ) );
 
 // H) validacao e falhas do lead
 $cases = array(
@@ -1117,7 +1139,7 @@ t( 'log da recusa diz o motivo e para qual cadastro foi a venda', str_contains( 
 
 // O caso de 15/10/2026: cadastro reaproveitado era de OUTRA filial.
 fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'idBranch' => 8 ) ) );
+$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'idBranch' => 8, 'email' => 'maria@example.com' ) ) );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
 $res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
@@ -1129,13 +1151,13 @@ t( 'cadastro de outra filial: nada criado nem alterado na EVO', array() === fx_c
 t( 'cadastro de outra filial: sessao nao segue para o pagamento', empty( Contorno_Evo_Checkout::load( $token )['lead'] ) );
 
 fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( array( 'idMember' => 4242, 'idBranch' => 3 ) ) );
+$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( array( 'idMember' => 4242, 'idBranch' => 3, 'contacts' => array( array( 'description' => 'maria@example.com' ) ) ) ) );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
 t( 'ALUNO de outra filial: tambem para na etapa 1', 'cadastro_outra_filial' === ( $res->data['error'] ?? '' ) && str_contains( (string) json_encode( Contorno_Evo_Log::all() ), 'aluno idMember 4242, filial 3' ) );
 
 fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'idBranch' => 21 ) ) );
+$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'idBranch' => 21, 'email' => 'maria@example.com' ) ) );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
 t( 'prospect existente da MESMA filial: segue normalmente', ! empty( $res->data['ok'] ) );
