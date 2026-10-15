@@ -170,6 +170,7 @@ require_once $plugin . '/includes/class-client.php';
 require_once $plugin . '/includes/class-mapping.php';
 require_once $plugin . '/includes/class-gateway.php';
 require_once $plugin . '/includes/class-checkout.php';
+require_once $plugin . '/includes/class-identity.php';
 require_once $plugin . '/includes/class-checkout-rest.php';
 
 /* =============================================================
@@ -353,6 +354,34 @@ function fx_person(): array {
 		'document'      => '529.982.247-25',
 		'acceptedTerms' => true,
 	);
+}
+
+/** Etapa 1 (lead) no formato do front. */
+function fx_lead( array $override = array() ): array {
+	return array_merge(
+		array( 'fullName' => 'Maria de Souza Lima', 'phone' => '31999991234', 'email' => 'maria@example.com', 'consent' => true ),
+		$override
+	);
+}
+
+/** Chamadas por metodo + rota desde o ultimo fx_reset. */
+function fx_calls( string $method, string $path ): array {
+	return array_values( array_filter( $GLOBALS['calls'], static fn ( $c ) => $method === $c['method'] && str_contains( $c['url'], $path ) ) );
+}
+
+/**
+ * O que o front faz ao clicar em "Finalizar matricula": verify (CPF) e,
+ * so se a identidade foi VERIFICADA, pay. Bloqueio no verify = devolve o
+ * bloqueio (o front nem tokeniza o cartao).
+ */
+function fx_pay( WP_REST_Request $request ): WP_REST_Response {
+	$verified = Contorno_Evo_Checkout_Rest::verify( $request );
+
+	if ( empty( $verified->data['ok'] ) || 'success' === ( $verified->data['status'] ?? '' ) ) {
+		return $verified;
+	}
+
+	return Contorno_Evo_Checkout_Rest::pay( $request );
 }
 
 $_SERVER['HTTP_ORIGIN'] = 'https://contornowp.voceconecta.com.br';
@@ -541,7 +570,7 @@ fx_reset( fx_routes_happy() );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
 
-$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 3 ) ) );
+$paid = fx_pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 3 ) ) );
 
 t( 'venda concluida', ! empty( $paid->data['ok'] ) && 'success' === ( $paid->data['status'] ?? '' ), (string) ( $paid->data['error'] ?? '' ) );
 
@@ -574,283 +603,326 @@ $redirect = (string) $paid->data['redirect'];
 t( 'redirect nao expoe e-mail, CPF, idProspect nem idSale', ! str_contains( $redirect, 'maria@' ) && ! str_contains( $redirect, '52998224725' ) && ! str_contains( $redirect, '778899' ) );
 
 /* -------------------------------------------------------------
- * 5. Prospect x membro existente
+ * 5. Identidade — FAIL CLOSED (incidente de 15/10/2026)
+ *
+ * Busca na EVO = discovery. So o CPF devolvido pela PROPRIA EVO (perfil do
+ * aluno / registro do prospect) prova identidade. Nenhum idMember ou
+ * idProspect nao verificado pode chegar a POST /api/v2/sales.
  * ----------------------------------------------------------- */
 
-section( 'Prospect x membro existente: nao duplicar cadastro' );
+section( 'Identidade: busca e discovery, CPF do registro e a prova' );
 
-// A) ja e membro
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( array( 'idMember' => 4242, 'firstName' => 'Maria' ) ) );
+const CPF_PESSOA = '52998224725'; // quem esta comprando (fx_person)
+const CPF_OUTRO  = '11144477735'; // CPF valido de OUTRA pessoa
+
+/**
+ * Rotas EVO para os cenarios de identidade.
+ *
+ * members_doc / members_contact: resultados de members/basic por CPF e por
+ *   e-mail/telefone (a EVO pode devolver registros que nao conferem);
+ * profiles: idMember => perfil (array) ou codigo HTTP (ex.: 403);
+ * prospects_doc / prospects_contact: idem para GET /api/v1/prospects;
+ * patch / post: resposta de PATCH e POST /api/v1/prospects.
+ */
+function fx_identity( array $o = array() ): array {
+	$o += array( 'members_doc' => array(), 'members_contact' => array(), 'profiles' => array(), 'prospects_doc' => array(), 'prospects_contact' => array(), 'patch' => fx_json( array() ), 'post' => fx_json( 5551 ) );
+
+	$routes = fx_routes_happy();
+
+	$routes['/api/v2/members/'] = static function ( string $url ) use ( $o ) {
+		$id = (int) preg_replace( '#.*/api/v2/members/(\d+).*#', '$1', $url );
+		$p  = $o['profiles'][ $id ] ?? 404;
+		return is_array( $p ) ? fx_json( $p ) : fx_json( array( 'mensagens' => array( 'x' ) ), (int) $p );
+	};
+	$routes['/api/v1/members/basic'] = static fn ( string $url ) => fx_json( str_contains( $url, 'document=' ) ? $o['members_doc'] : $o['members_contact'] );
+	$routes['/api/v1/prospects'] = static function ( string $url, array $args ) use ( $o ) {
+		$method = $args['method'] ?? 'GET';
+		if ( 'POST' === $method ) {
+			return $o['post'];
+		}
+		if ( 'PATCH' === $method ) {
+			return $o['patch'];
+		}
+		return fx_json( str_contains( $url, 'document=' ) ? $o['prospects_doc'] : $o['prospects_contact'] );
+	};
+
+	return $routes;
+}
+
+/** Perfil completo (GET /api/v2/members/{id}) no formato da EVO. */
+function fx_profile( int $id, int $branch, string $cpf, string $email = 'outra@example.com', string $phone = '31988880000' ): array {
+	return array( 'idMember' => $id, 'idBranch' => $branch, 'document' => $cpf, 'email' => $email, 'contacts' => array( array( 'ddi' => '55', 'description' => $phone ) ) );
+}
+
+/** Abre, registra o lead e roda verify -> pay (o fluxo do front). */
+function fx_flow( array $routes, string $cpf = CPF_PESSOA, bool $with_lead = true ): array {
+	fx_reset( $routes );
+	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+	$token  = (string) $opened->data['token'];
+	if ( $with_lead ) {
+		Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+	}
+	$person = array( 'document' => $cpf, 'acceptedTerms' => true, 'fullName' => 'Maria de Souza Lima', 'email' => 'maria@example.com', 'phone' => '31999991234' );
+	$res    = fx_pay( request( array( 'token' => $token, 'person' => $person, 'card' => fx_card(), 'installments' => 1 ) ) );
+
+	return array( 'token' => $token, 'res' => $res, 'state' => Contorno_Evo_Checkout::load( $token ), 'sales' => fx_calls( 'POST', '/api/v2/sales' ), 'log' => (string) json_encode( Contorno_Evo_Log::all(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+}
+
+/**
+ * ASSERTIVA GLOBAL: toda POST /sales do cenario foi para a identidade
+ * VERIFICADA da sessao — nunca para um id nao verificado.
+ */
+$GLOBALS['unverified_sales'] = 0;
+function fx_sales_verified( array $flow ): bool {
+	$identity = (array) ( $flow['state']['identity'] ?? array() );
+	foreach ( $flow['sales'] as $sale ) {
+		$member   = (int) ( $sale['body']['memberData']['idMember'] ?? 0 );
+		$prospect = (int) ( $sale['body']['idProspect'] ?? 0 );
+		$ok       = in_array( (string) ( $identity['status'] ?? '' ), Contorno_Evo_Identity::VERIFIED, true )
+			&& ( Contorno_Evo_Identity::VERIFIED_MEMBER === $identity['status']
+				? $member > 0 && $member === (int) $identity['id_member'] && 0 === $prospect
+				: 0 === $member && $prospect > 0 && $prospect === (int) $identity['id_prospect'] );
+		if ( ! $ok ) {
+			++$GLOBALS['unverified_sales'];
+			return false;
+		}
+	}
+	return true;
+}
+
+/** Nenhuma POST /sales usou este idMember. */
+function fx_no_sale_for_member( array $flow, int $id ): bool {
+	foreach ( $flow['sales'] as $sale ) {
+		if ( $id === (int) ( $sale['body']['memberData']['idMember'] ?? 0 ) ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// --- Normalizacao -------------------------------------------------------
+t( 'email(): trim + minusculas', 'maria@example.com' === Contorno_Evo_Identity::email( '  Maria@Example.COM ' ) );
+t( 'document(): so digitos', CPF_PESSOA === Contorno_Evo_Identity::document( '529.982.247-25' ) );
+t( 'phone_match: mesmo DDD + mesmo numero = exact', 'exact' === Contorno_Evo_Identity::phone_match( '+55 (31) 99999-1234', '31999991234' ) );
+t( '(5) telefone antigo sem 9 = weak, NUNCA exact', 'weak' === Contorno_Evo_Identity::phone_match( '3199991234', '31999991234' ) );
+t( '(5) telefone sem 9 sozinho nao confere contato', ! Contorno_Evo_Identity::contact_match( array( 'cellphone' => '3199991234' ), '', '31999991234' ) );
+t( 'phone_match: so os 8 ultimos digitos com DDD diferente = nada', '' === Contorno_Evo_Identity::phone_match( '21999991234', '31999991234' ) );
+t( 'phone_match: sem DDD = nada', '' === Contorno_Evo_Identity::phone_match( '99991234', '31999991234' ) );
+
+// --- (14 real) O INCIDENTE: EVO devolve idMember 325082, filial 59, de outra pessoa
+$incident = fx_identity(
+	array(
+		'members_contact' => array( array( 'idMember' => 325082, 'idBranch' => 59, 'contacts' => array( array( 'description' => 'outra@example.com' ), array( 'ddi' => '55', 'description' => '(31) 98888-0000' ) ) ) ),
+		'members_doc'     => array( array( 'idMember' => 325082, 'idBranch' => 59 ) ),
+		'profiles'        => array( 325082 => fx_profile( 325082, 59, CPF_OUTRO ) ),
+	)
+);
+$f = fx_flow( $incident );
+t( 'INCIDENTE: candidato 325082 rejeitado (CPF do perfil e de outra pessoa)', str_contains( $f['log'], 'identity_candidate_rejected (aluno idMember 325082, filial 59): CPF do perfil diferente' ) );
+t( 'INCIDENTE: ZERO POST /sales para idMember 325082', fx_no_sale_for_member( $f, 325082 ) );
+t( 'INCIDENTE: lead NAO reaproveitou 325082 (contato nao confere) e criou o lead proprio', str_contains( $f['log'], 'identity_candidate_rejected (lead, aluno idMember 325082, filial 59)' ) && 5551 === (int) $f['state']['lead_prospect_id'] );
+t( 'INCIDENTE: venda (se houver) so para a identidade verificada', fx_sales_verified( $f ) && Contorno_Evo_Identity::NEW_PROSPECT === ( $f['state']['identity']['status'] ?? '' ) );
+
+// (1) busca retorna aluno errado com outro contato — na etapa 1
+t( '(1) aluno errado com outro contato nao vira identidade', 0 === (int) $f['state']['id_member'] );
+
+// (2) busca por CPF retorna UM aluno, mas o perfil e de outra pessoa
+$f = fx_flow( fx_identity( array( 'members_doc' => array( array( 'idMember' => 700, 'idBranch' => 21 ) ), 'profiles' => array( 700 => fx_profile( 700, 21, CPF_OUTRO ) ) ) ) );
+t( '(2) unico resultado errado NAO e identidade: zero venda para 700', fx_no_sale_for_member( $f, 700 ) && fx_sales_verified( $f ) );
+
+// (3) e-mail igual mas CPF diferente
+$f = fx_flow( fx_identity( array( 'members_doc' => array( array( 'idMember' => 701, 'idBranch' => 21 ) ), 'profiles' => array( 701 => fx_profile( 701, 21, CPF_OUTRO, 'maria@example.com' ) ) ) ) );
+t( '(3) e-mail igual + CPF diferente: rejeitado, zero venda para 701', fx_no_sale_for_member( $f, 701 ) && fx_sales_verified( $f ) );
+
+// (4) telefone igual mas CPF diferente
+$f = fx_flow( fx_identity( array( 'members_doc' => array( array( 'idMember' => 702, 'idBranch' => 21 ) ), 'profiles' => array( 702 => fx_profile( 702, 21, CPF_OUTRO, 'x@example.com', '31999991234' ) ) ) ) );
+t( '(4) telefone igual + CPF diferente: rejeitado, zero venda para 702', fx_no_sale_for_member( $f, 702 ) && fx_sales_verified( $f ) );
+
+// (6) CPF exato + contato antigo: CPF manda; divergencia so no log
+$f = fx_flow( fx_identity( array( 'members_doc' => array( array( 'idMember' => 703, 'idBranch' => 21 ) ), 'profiles' => array( 703 => fx_profile( 703, 21, '529.982.247-25', 'antigo@example.com', '3133330000' ) ) ) ) );
+t( '(6) CPF exato + contato antigo: aluno 703 verificado e vendido', Contorno_Evo_Identity::VERIFIED_MEMBER === ( $f['state']['identity']['status'] ?? '' ) && 703 === (int) ( $f['sales'][0]['body']['memberData']['idMember'] ?? 0 ) && fx_sales_verified( $f ) );
+t( '(6) divergencia de contato registrada, sem trocar a pessoa', str_contains( $f['log'], 'identity_verified com divergencia de contato (aluno idMember 703)' ) );
+t( '(6) nada e alterado no aluno (sem PATCH)', array() === fx_calls( 'PATCH', '/api/v1/prospects' ) );
+
+// (7) varios candidatos, so um com o CPF correto
+$f = fx_flow(
+	fx_identity(
+		array(
+			'members_doc' => array( array( 'idMember' => 801, 'idBranch' => 21 ), array( 'idMember' => 802, 'idBranch' => 21 ), array( 'idMember' => 803, 'idBranch' => 21 ) ),
+			'profiles'    => array( 801 => fx_profile( 801, 21, CPF_OUTRO ), 802 => fx_profile( 802, 21, CPF_PESSOA ), 803 => fx_profile( 803, 21, CPF_OUTRO ) ),
+		)
+	)
+);
+t( '(7) varios candidatos: vende so para 802 (unico CPF correto)', 1 === count( $f['sales'] ) && 802 === (int) $f['sales'][0]['body']['memberData']['idMember'] && fx_sales_verified( $f ) );
+
+// (8) dois candidatos com o mesmo CPF -> ambiguo
+$f = fx_flow(
+	fx_identity(
+		array(
+			'members_doc' => array( array( 'idMember' => 901, 'idBranch' => 21 ), array( 'idMember' => 902, 'idBranch' => 21 ) ),
+			'profiles'    => array( 901 => fx_profile( 901, 21, CPF_PESSOA ), 902 => fx_profile( 902, 21, CPF_PESSOA ) ),
+		)
+	)
+);
+t( '(8) dois alunos com o mesmo CPF: identity_ambiguous, zero venda', 'identity_ambiguous' === ( $f['res']->data['error'] ?? '' ) && array() === $f['sales'] && ! empty( $f['res']->data['fallback'] ) );
+t( '(8) log identity_ambiguous com os dois ids', str_contains( $f['log'], 'identity_ambiguous' ) && str_contains( $f['log'], 'idMember 901' ) && str_contains( $f['log'], 'idMember 902' ) );
+
+// (9) membro correto, mesma filial
+$f = fx_flow( fx_identity( array( 'members_doc' => array( array( 'idMember' => 4242, 'idBranch' => 21 ) ), 'profiles' => array( 4242 => fx_profile( 4242, 21, CPF_PESSOA, 'maria@example.com', '31999991234' ) ) ) ) );
+t( '(9) aluno correto, mesma filial: venda para memberData.idMember 4242', 4242 === (int) ( $f['sales'][0]['body']['memberData']['idMember'] ?? 0 ) && ! array_key_exists( 'idProspect', (array) ( $f['sales'][0]['body'] ?? array() ) ) && fx_sales_verified( $f ) );
+t( '(9) aluno verificado: lead NAO recebe CPF (nada de PATCH)', array() === fx_calls( 'PATCH', '/api/v1/prospects' ) );
+
+// (10) membro correto, OUTRA filial
+$f = fx_flow( fx_identity( array( 'members_doc' => array( array( 'idMember' => 325082, 'idBranch' => 59 ) ), 'profiles' => array( 325082 => fx_profile( 325082, 59, CPF_PESSOA ) ) ) ) );
+t( '(10) aluno de outra filial: existing_member_other_branch, zero venda', 'existing_member_other_branch' === ( $f['res']->data['error'] ?? '' ) && array() === $f['sales'] && ! empty( $f['res']->data['fallback'] ) );
+t( '(10) mensagem publica pedida', str_contains( (string) $f['res']->data['message'], 'precisamos validar a transferência do seu cadastro' ) );
+t( '(10) nada criado/alterado/transferido; lead da sessao intacto', array() === fx_calls( 'PATCH', '/api/v1/prospects' ) && array() === fx_calls( 'POST', '/api/v1/prospects/transfer' ) && array() === fx_calls( 'POST', '/api/v1/members/transfer' ) && 1 === count( fx_calls( 'POST', '/api/v1/prospects' ) ) );
+t( '(10) log: idMember + filial atual + filial destino', str_contains( $f['log'], 'existing_member_other_branch: aluno idMember 325082, filial atual 59, filial destino 21' ) );
+
+// (11) prospect correto, mesma filial
+$f = fx_flow( fx_identity( array( 'prospects_doc' => array( array( 'idProspect' => 3131, 'idBranch' => 21, 'document' => '529.982.247-25' ) ) ) ) );
+t( '(11) prospect correto, mesma filial: venda para idProspect 3131', 3131 === (int) ( $f['sales'][0]['body']['idProspect'] ?? 0 ) && 0 === ( $f['sales'][0]['body']['memberData']['idMember'] ?? null ) && fx_sales_verified( $f ) );
+
+// (12) prospect correto, OUTRA filial
+$f = fx_flow( fx_identity( array( 'prospects_doc' => array( array( 'idProspect' => 3131, 'idBranch' => 8, 'document' => CPF_PESSOA ) ) ) ) );
+t( '(12) prospect de outra filial: prospect_other_branch, zero venda, sem transferencia', 'prospect_other_branch' === ( $f['res']->data['error'] ?? '' ) && array() === $f['sales'] && array() === fx_calls( 'POST', '/api/v1/prospects/transfer' ) );
+
+// prospect devolvido pela busca por CPF, mas com OUTRO CPF no registro
+$f = fx_flow( fx_identity( array( 'prospects_doc' => array( array( 'idProspect' => 4444, 'idBranch' => 21, 'document' => CPF_OUTRO ) ) ) ) );
+t( 'prospect com outro CPF: rejeitado, nunca usado na venda', 4444 !== (int) ( $f['sales'][0]['body']['idProspect'] ?? 0 ) && fx_sales_verified( $f ) && str_contains( $f['log'], 'identity_candidate_rejected (prospect idProspect 4444' ) );
+
+// (13) nenhuma pessoa -> lead da sessao recebe o CPF (NEW_PROSPECT_VERIFIED)
+$f = fx_flow( fx_identity() );
+$patch = (array) ( fx_calls( 'PATCH', '/api/v1/prospects' )[0]['body'] ?? array() );
+t( '(13) pessoa nova: identity_not_found -> lead da sessao recebe o CPF', str_contains( $f['log'], 'identity_not_found' ) && 5551 === (int) ( $patch['idProspect'] ?? 0 ) && CPF_PESSOA === ( $patch['cpf'] ?? '' ) );
+t( '(13) venda para o prospect novo verificado', Contorno_Evo_Identity::NEW_PROSPECT === ( $f['state']['identity']['status'] ?? '' ) && 5551 === (int) ( $f['sales'][0]['body']['idProspect'] ?? 0 ) && fx_sales_verified( $f ) );
+
+// (13b) sem lead desta sessao: prospect criado com CPF e validacao de duplicidade
+$f = fx_flow( fx_identity(), CPF_PESSOA, false );
+$post = (array) ( fx_calls( 'POST', '/api/v1/prospects' )[0]['body'] ?? array() );
+t( '(13b) sem lead: POST prospect com CPF + validateCpfDuplication', CPF_PESSOA === ( $post['cpf'] ?? '' ) && ! empty( $post['validateCpfDuplication'] ) && 21 === (int) ( $post['idBranch'] ?? 0 ) && fx_sales_verified( $f ) );
+
+// (14) EVO acusa CPF duplicado ao gravar -> conflito, nada de outro cadastro
+$f = fx_flow( fx_identity( array( 'patch' => fx_json( array( 'errors' => array( array( 'key' => 'Aviso', 'value' => 'CPF já cadastrado' ) ) ), 400 ) ) ) );
+t( '(14) CPF duplicado: identity_conflict, zero venda', 'identity_conflict' === ( $f['res']->data['error'] ?? '' ) && array() === $f['sales'] );
+t( '(14) nao contorna criando outro cadastro', 1 === count( fx_calls( 'POST', '/api/v1/prospects' ) ) );
+
+// perfil sem permissao (403): candidato NAO verificavel -> nao vende
+$f = fx_flow( fx_identity( array( 'members_doc' => array( array( 'idMember' => 4242, 'idBranch' => 21 ) ), 'profiles' => array( 4242 => 403 ) ) ) );
+t( 'perfil 403: identity_unverifiable, zero venda, sem prospect para contornar', 'identity_unverifiable' === ( $f['res']->data['error'] ?? '' ) && array() === $f['sales'] && array() === fx_calls( 'PATCH', '/api/v1/prospects' ) );
+t( 'perfil 403: log diz o endpoint e o HTTP', str_contains( $f['log'], 'perfil GET /api/v2/members/{id} sem permissao (HTTP 403)' ) );
+
+// um verificado + outro nao verificavel com o mesmo CPF possivel -> fecha
+$f = fx_flow( fx_identity( array( 'members_doc' => array( array( 'idMember' => 4242, 'idBranch' => 21 ), array( 'idMember' => 4243, 'idBranch' => 21 ) ), 'profiles' => array( 4242 => fx_profile( 4242, 21, CPF_PESSOA ), 4243 => 403 ) ) ) );
+t( 'um verificado + um nao verificavel: bloqueia (pode ser CPF duplicado)', 'identity_unverifiable' === ( $f['res']->data['error'] ?? '' ) && array() === $f['sales'] );
+
+// prospect ja convertido em aluno: vale o aluno, verificado pelo perfil
+$f = fx_flow( fx_identity( array( 'prospects_doc' => array( array( 'idProspect' => 3131, 'idMember' => 4242, 'idBranch' => 21, 'document' => CPF_PESSOA ) ), 'profiles' => array( 4242 => fx_profile( 4242, 21, CPF_PESSOA ) ) ) ) );
+t( 'prospect convertido: venda para o aluno 4242 verificado pelo perfil', 4242 === (int) ( $f['sales'][0]['body']['memberData']['idMember'] ?? 0 ) && fx_sales_verified( $f ) );
+
+// --- Guarda final de POST /sales -----------------------------------------
+fx_reset( fx_identity() );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
-$found  = Contorno_Evo_Checkout_Rest::identify( request( array( 'token' => $token, 'email' => 'maria@example.com', 'document' => '52998224725', 'phone' => '31999991234' ) ) );
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => CPF_PESSOA, 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'GUARDA: pay sem verify -> sale_blocked_identity, zero POST /sales', 'sale_blocked_identity' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
 
-t( 'membro existente e reconhecido', 'member' === ( $found->data['kind'] ?? '' ) );
-t( 'resposta nao devolve dados do cadastro de quem digitou o CPF', ! str_contains( (string) json_encode( $found->data ), 'Maria' ) );
+Contorno_Evo_Checkout_Rest::verify( request( array( 'token' => $token, 'person' => array( 'document' => CPF_PESSOA, 'acceptedTerms' => true ) ) ) );
+$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => CPF_OUTRO, 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'GUARDA: verificado com um CPF, pagando com outro -> bloqueado', 'sale_blocked_identity' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
 
-$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
-$created_prospect = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v1/prospects' ) );
-t( 'membro existente NAO gera prospect novo', array() === $created_prospect );
-$sale = null;
-foreach ( $GLOBALS['calls'] as $c ) { if ( 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) ) { $sale = $c; } }
-t( 'venda de membro usa memberData.idMember', 4242 === (int) ( $sale['body']['memberData']['idMember'] ?? 0 ) );
-t( 'venda de membro nao manda idProspect', ! array_key_exists( 'idProspect', (array) $sale['body'] ) );
+$state = Contorno_Evo_Checkout::load( $token );
+$state['id_prospect'] = 999; // id adulterado na sessao, fora da identidade
+Contorno_Evo_Checkout::save( $state );
+$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => CPF_PESSOA, 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'GUARDA: id da sessao diferente da identidade verificada -> bloqueado', 'sale_blocked_identity' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
+t( 'GUARDA: log sale_blocked_identity', str_contains( (string) json_encode( Contorno_Evo_Log::all() ), 'sale_blocked_identity' ) );
 
-// B) ja e prospect
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/prospects'] = static function ( string $url, array $args ) {
-	// POST cria; GET consulta. A fixture precisa distinguir os dois.
-	return 'POST' === ( $args['method'] ?? 'GET' )
-		? fx_json( 555 )
-		: fx_json( array( array( 'idProspect' => 3131 ) ) );
-};
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$token  = (string) $opened->data['token'];
-$found  = Contorno_Evo_Checkout_Rest::identify( request( array( 'token' => $token, 'email' => 'maria@example.com', 'document' => '52998224725' ) ) );
-t( 'prospect existente e reconhecido', 'prospect' === ( $found->data['kind'] ?? '' ) );
-
-Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
-$created_prospect = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v1/prospects' ) );
-t( 'prospect existente NAO gera outro prospect', array() === $created_prospect );
-$sale = null;
-foreach ( $GLOBALS['calls'] as $c ) { if ( 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) ) { $sale = $c; } }
-t( 'venda reusa o idProspect encontrado', 3131 === (int) ( $sale['body']['idProspect'] ?? 0 ) );
-t( 'venda de prospect existente tambem leva memberData { idMember: 0 }', 0 === ( $sale['body']['memberData']['idMember'] ?? null ) );
-
-// C) prospect ja convertido em membro
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/prospects'] = fx_json( array( array( 'idProspect' => 3131, 'idMember' => 9090 ) ) );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$found  = Contorno_Evo_Checkout_Rest::identify( request( array( 'token' => (string) $opened->data['token'], 'document' => '52998224725' ) ) );
-t( 'prospect ja convertido vale como membro', 'member' === ( $found->data['kind'] ?? '' ) );
-
-// D) consulta indisponivel NAO pode virar "nao existe"
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( 'mensagens' => array( 'erro' ) ), 500 );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$found  = Contorno_Evo_Checkout_Rest::identify( request( array( 'token' => (string) $opened->data['token'], 'document' => '52998224725' ) ) );
-t( 'falha na consulta de membro para o fluxo em vez de criar duplicado', empty( $found->data['ok'] ) && 'evo_indisponivel' === $found->data['error'] );
+t( 'ASSERTIVA GLOBAL: nenhuma POST /sales para identidade nao verificada nesta secao', 0 === $GLOBALS['unverified_sales'] );
 
 /* -------------------------------------------------------------
- * 5b. Lead na primeira etapa (12/10/2026)
- *
- * Nome completo + WhatsApp + e-mail + consentimento viram prospect na EVO
- * ANTES do pagamento; o CPF completa o MESMO cadastro depois.
+ * 5b. Lead na 1a etapa: salvo na EVO, SEM vincular identidade
  * ----------------------------------------------------------- */
 
-section( 'Lead na 1a etapa: salvo na EVO antes do pagamento' );
-
-/** @return array<string,mixed> */
-function fx_lead( array $override = array() ): array {
-	return array_merge(
-		array( 'fullName' => 'Maria de Souza Lima', 'phone' => '31999991234', 'email' => 'maria@example.com', 'consent' => true ),
-		$override
-	);
-}
-
-/** Chamadas por metodo + rota desde o ultimo fx_reset. */
-function fx_calls( string $method, string $path ): array {
-	return array_values( array_filter( $GLOBALS['calls'], static fn ( $c ) => $method === $c['method'] && str_contains( $c['url'], $path ) ) );
-}
+section( 'Lead na 1a etapa: salvo na EVO, sem vincular identidade' );
 
 t( 'split_name: "Maria de Souza Lima" -> Maria / de Souza Lima', array( 'Maria', 'de Souza Lima' ) === Contorno_Evo_Checkout::split_name( '  Maria   de Souza Lima ' ) );
 t( 'split_name: so um nome e recusado (EVO exige sobrenome)', null === Contorno_Evo_Checkout::split_name( 'Maria' ) );
-t( 'split_name: primeiro nome de 1 letra e recusado', null === Contorno_Evo_Checkout::split_name( 'M Souza' ) );
 
-// A) pessoa nova
 fx_reset( fx_routes_happy() );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
 $lead   = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
 $posts  = fx_calls( 'POST', '/api/v1/prospects' );
 $body   = (array) ( $posts[0]['body'] ?? array() );
+$state  = Contorno_Evo_Checkout::load( $token );
+t( 'lead novo: ok e UM prospect criado', ! empty( $lead->data['ok'] ) && 1 === count( $posts ) );
+t( 'lead: name/lastName, e-mail, WhatsApp (ddi 55), filial, origem e etapa', 'Maria' === ( $body['name'] ?? '' ) && 'de Souza Lima' === ( $body['lastName'] ?? '' ) && '31999991234' === ( $body['cellphone'] ?? '' ) && '55' === ( $body['ddi'] ?? '' ) && 21 === (int) ( $body['idBranch'] ?? 0 ) && 'Site' === ( $body['marketingType'] ?? '' ) && Contorno_Evo_Checkout::STEP_LEAD === ( $body['currentStep'] ?? '' ) );
+t( 'lead: SEM CPF', ! array_key_exists( 'cpf', $body ) );
+t( 'lead: sessao NAO vincula idMember/idProspect (so lead_prospect_id)', 0 === (int) $state['id_member'] && 0 === (int) $state['id_prospect'] && 5551 === (int) $state['lead_prospect_id'] );
+t( 'lead: log com o idProspect criado', str_contains( (string) json_encode( Contorno_Evo_Log::all() ), 'lead registrado na EVO (prospect novo 5551)' ) );
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+t( 'lead reenviado na mesma sessao NAO cria outro', 1 === count( fx_calls( 'POST', '/api/v1/prospects' ) ) );
 
-t( 'lead novo: ok, kind prospect', ! empty( $lead->data['ok'] ) && 'prospect' === ( $lead->data['kind'] ?? '' ), (string) ( $lead->data['error'] ?? '' ) );
-t( 'lead novo: UM prospect criado na EVO', 1 === count( $posts ) );
-t( 'lead: name/lastName vem do nome completo', 'Maria' === ( $body['name'] ?? '' ) && 'de Souza Lima' === ( $body['lastName'] ?? '' ) );
-t( 'lead: e-mail, WhatsApp (ddi 55) e filial', 'maria@example.com' === ( $body['email'] ?? '' ) && '31999991234' === ( $body['cellphone'] ?? '' ) && '55' === ( $body['ddi'] ?? '' ) && 21 === (int) ( $body['idBranch'] ?? 0 ) );
-t( 'lead: origem Site e etapa "Lead site" no funil', 'Site' === ( $body['marketingType'] ?? '' ) && Contorno_Evo_Checkout::STEP_LEAD === ( $body['currentStep'] ?? '' ) );
-t( 'lead: notes cita o plano (para a unidade retomar o contato)', str_contains( (string) ( $body['notes'] ?? '' ), 'Black' ) );
-t( 'lead: SEM CPF (ainda nao foi pedido)', ! array_key_exists( 'cpf', $body ) );
-t( 'lead: resposta nao devolve dado do cadastro', ! str_contains( (string) json_encode( $lead->data ), 'maria' ) && ! array_key_exists( 'idProspect', (array) $lead->data ) );
-$state = Contorno_Evo_Checkout::load( $token );
-t( 'lead: sessao guarda so o idProspect, sem nome/e-mail', 5551 === (int) $state['id_prospect'] && ! empty( $state['lead'] ) && ! str_contains( (string) json_encode( $state ), 'maria@' ) );
-
-$again = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-t( 'lead reenviado na mesma sessao NAO cria outro prospect', ! empty( $again->data['ok'] ) && 1 === count( fx_calls( 'POST', '/api/v1/prospects' ) ) );
-
-// B) pagamento depois do lead: completa o MESMO prospect
-$paid    = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '529.982.247-25', 'birthday' => '1990-05-20', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
-$patches = fx_calls( 'PATCH', '/api/v1/prospects' );
-$sales   = fx_calls( 'POST', '/api/v2/sales' );
-$pbody   = (array) ( $patches[0]['body'] ?? array() );
-t( 'pagamento apos lead: venda concluida so com CPF + termos', ! empty( $paid->data['ok'] ) && 'success' === ( $paid->data['status'] ?? '' ), (string) ( $paid->data['error'] ?? '' ) );
-t( 'pagamento apos lead: PATCH no MESMO prospect com CPF', 5551 === (int) ( $pbody['idProspect'] ?? 0 ) && '52998224725' === ( $pbody['cpf'] ?? '' ) );
-t( 'pagamento apos lead: nascimento e etapa "Pagamento site"', '1990-05-20' === ( $pbody['birthday'] ?? '' ) && Contorno_Evo_Checkout::STEP_PAYMENT === ( $pbody['currentStep'] ?? '' ) );
-t( 'pagamento apos lead: nenhum prospect novo', 1 === count( fx_calls( 'POST', '/api/v1/prospects' ) ) );
-t( 'venda usa o prospect do lead', 1 === count( $sales ) && 5551 === (int) ( $sales[0]['body']['idProspect'] ?? 0 ) && 0 === ( $sales[0]['body']['memberData']['idMember'] ?? null ) );
-
-// C) pagamento apos lead sem CPF valido
-fx_reset( fx_routes_happy() );
+// Contato EXATO de cadastro existente: nao duplica o lead, mas nao vincula.
+fx_reset( fx_identity( array( 'members_contact' => array( array( 'idMember' => 4242, 'idBranch' => 59, 'contacts' => array( array( 'description' => 'maria@example.com' ) ) ) ) ) ) );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
-Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '111.111.111-11', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
-t( 'pagamento apos lead com CPF invalido e recusado, sem venda', 'dados_invalidos' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
+$lead   = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$state  = Contorno_Evo_Checkout::load( $token );
+t( 'contato exato de cadastro existente: nenhum lead novo, segue para o pagamento', ! empty( $lead->data['ok'] ) && array() === fx_calls( 'POST', '/api/v1/prospects' ) );
+t( 'contato exato: NAO vincula o aluno 4242 (nem bloqueia por filial na etapa 1)', 0 === (int) $state['id_member'] && 0 === (int) $state['id_prospect'] && str_contains( (string) json_encode( Contorno_Evo_Log::all() ), 'NAO e identidade para venda' ) );
 
-// C2) CPF no servidor: algoritmo oficial (nao e consulta a Receita).
-t( 'valid_cpf: valido aceito', Contorno_Evo_Checkout_Rest::valid_cpf( '52998224725' ) );
-t( 'valid_cpf: digito errado, incompleto e repetido recusados', ! Contorno_Evo_Checkout_Rest::valid_cpf( '52998224724' ) && ! Contorno_Evo_Checkout_Rest::valid_cpf( '529982247' ) && ! Contorno_Evo_Checkout_Rest::valid_cpf( '00000000000' ) );
-foreach ( array( 'incompleto' => '529.982.247', 'digito errado' => '529.982.247-24', 'repetido' => '000.000.000-00' ) as $label => $cpf ) {
-	fx_reset( fx_routes_happy() );
-	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-	$token  = (string) $opened->data['token'];
-	Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-	$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => $cpf, 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
-	t( "pagamento com CPF $label: recusado, sem PATCH e sem venda", 'dados_invalidos' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'PATCH', '/api/v1/prospects' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
-}
-fx_reset( fx_routes_happy() );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$token  = (string) $opened->data['token'];
-Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725' ), 'card' => fx_card(), 'installments' => 1 ) ) );
-t( 'pagamento sem aceite dos termos: recusado no servidor, sem venda', 'dados_invalidos' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
-
-// D) CPF do pagamento e de um ALUNO: venda vai para o membro
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/members/basic'] = static fn ( string $url ) => str_contains( $url, 'document=' ) ? fx_json( array( array( 'idMember' => 4242, 'contacts' => array( array( 'description' => 'maria@example.com' ) ) ) ) ) : fx_json( array() );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$token  = (string) $opened->data['token'];
-Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
-$sales = fx_calls( 'POST', '/api/v2/sales' );
-t( 'CPF de aluno: venda para memberData.idMember, sem idProspect', 4242 === (int) ( $sales[0]['body']['memberData']['idMember'] ?? 0 ) && ! array_key_exists( 'idProspect', (array) ( $sales[0]['body'] ?? array() ) ) );
-t( 'CPF de aluno: lead NAO e alterado', array() === fx_calls( 'PATCH', '/api/v1/prospects' ) );
-
-// E) PATCH recusado: CPF ja e de outro prospect -> usa esse
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/prospects'] = static function ( string $url, array $args ) {
-	$method = $args['method'] ?? 'GET';
-	if ( 'POST' === $method ) {
-		return fx_json( 5551 );
-	}
-	if ( 'PATCH' === $method ) {
-		return fx_json( array( 'mensagens' => array( 'CPF ja cadastrado' ) ), 400 );
-	}
-	return str_contains( $url, 'document=' ) ? fx_json( array( array( 'idProspect' => 7777 ) ) ) : fx_json( array() );
-};
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$token  = (string) $opened->data['token'];
-Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
-$sales = fx_calls( 'POST', '/api/v2/sales' );
-t( 'CPF de outro prospect: venda usa o cadastro dono do CPF', 7777 === (int) ( $sales[0]['body']['idProspect'] ?? 0 ) );
-
-// F) PATCH com EVO fora: nenhuma venda, fallback seguro
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/prospects'] = static function ( string $url, array $args ) {
-	$method = $args['method'] ?? 'GET';
-	return 'POST' === $method ? fx_json( 5551 ) : ( 'PATCH' === $method ? fx_json( array( 'mensagens' => array( 'x' ) ), 503 ) : fx_json( array() ) );
-};
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$token  = (string) $opened->data['token'];
-Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
-t( 'falha ao completar o lead: sem venda, fallback seguro', 'evo_indisponivel' === ( $paid->data['error'] ?? '' ) && ! empty( $paid->data['fallback'] ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
-
-// G) aluno/prospect ja existentes no lead: reaproveita
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( array( 'idMember' => 4242, 'contacts' => array( array( 'description' => 'maria@example.com' ) ) ) ) );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
-t( 'lead de aluno existente: kind member, nenhum prospect criado', 'member' === ( $res->data['kind'] ?? '' ) && array() === fx_calls( 'POST', '/api/v1/prospects' ) );
-
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'email' => 'maria@example.com' ) ) );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$token  = (string) $opened->data['token'];
-Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-t( 'lead de prospect existente: reaproveita, nao cria outro', array() === fx_calls( 'POST', '/api/v1/prospects' ) && 3131 === (int) Contorno_Evo_Checkout::load( $token )['id_prospect'] );
-
-// WhatsApp: DDI do autocomplete nao pode virar DDD (12/10/2026)
+// WhatsApp: DDI do autocomplete nao pode virar DDD
 $phones = array(
-	'+55 31 97524-8061'   => '31975248061',
-	'5531975248061'       => '31975248061',
-	'31975248061'         => '31975248061',
-	'(55) 99999-1234'     => '55999991234', // DDD 55 (RS) preservado
-	'(31) 3333-4444'      => '3133334444',  // fixo, 10 digitos
-	'+55 (31) 3333-4444'  => '3133334444',  // fixo com DDI (12 digitos)
+	'+55 31 97524-8061'  => '31975248061',
+	'5531975248061'      => '31975248061',
+	'31975248061'        => '31975248061',
+	'(55) 99999-1234'    => '55999991234',
+	'(31) 3333-4444'     => '3133334444',
+	'+55 (31) 3333-4444' => '3133334444',
 );
 foreach ( $phones as $in => $out ) {
 	t( "normalize_phone: \"$in\" -> $out", $out === Contorno_Evo_Checkout::normalize_phone( (string) $in ) );
 }
 t( 'valid_phone: celular 11 e fixo 10 aceitos', Contorno_Evo_Checkout::valid_phone( '31975248061' ) && Contorno_Evo_Checkout::valid_phone( '3133334444' ) );
 t( 'valid_phone: DDD com zero, celular sem 9 e tamanho errado recusados', ! Contorno_Evo_Checkout::valid_phone( '01975248061' ) && ! Contorno_Evo_Checkout::valid_phone( '31875248061' ) && ! Contorno_Evo_Checkout::valid_phone( '319752480' ) );
-
 fx_reset( fx_routes_happy() );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'], 'phone' => '+55 31 97524-8061' ) ) ) );
 $body = (array) ( fx_calls( 'POST', '/api/v1/prospects' )[0]['body'] ?? array() );
-t( 'lead com "+55 31 97524-8061": EVO recebe ddi 55 + 31975248061 (DDI uma vez)', '55' === ( $body['ddi'] ?? '' ) && '31975248061' === ( $body['cellphone'] ?? '' ) );
+t( 'lead com "+55 31 97524-8061": EVO recebe ddi 55 + 31975248061', '55' === ( $body['ddi'] ?? '' ) && '31975248061' === ( $body['cellphone'] ?? '' ) );
 
-fx_reset( fx_routes_happy() );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'], 'phone' => '(55) 99999-1234' ) ) ) );
-$body = (array) ( fx_calls( 'POST', '/api/v1/prospects' )[0]['body'] ?? array() );
-t( 'lead com DDD 55: numero preservado (55999991234)', '55999991234' === ( $body['cellphone'] ?? '' ) );
-
-// G2) Caso real de 15/10/2026: a busca da EVO devolveu um aluno (outra
-// filial) que NAO tem o e-mail nem o telefone digitados. Nao pode ser usado.
-t( 'matches: e-mail igual ao contato confere', Contorno_Evo_Checkout::matches( array( 'contacts' => array( array( 'description' => 'Maria@Example.com' ) ) ), array( 'email' => 'maria@example.com' ), 5 ) );
-t( 'matches: telefone nacional igual confere (com ou sem DDI no cadastro)', Contorno_Evo_Checkout::matches( array( 'contacts' => array( array( 'ddi' => '55', 'description' => '(31) 99999-1234' ) ) ), array( 'phone' => '31999991234' ), 5 ) );
-t( 'matches: cadastro antigo sem o 9 confere pelo final (8 digitos)', Contorno_Evo_Checkout::matches( array( 'cellphone' => '3199991234' ), array( 'phone' => '31999991234' ), 5 ) );
-t( 'matches: outro telefone NAO confere', ! Contorno_Evo_Checkout::matches( array( 'contacts' => array( array( 'description' => '(31) 98888-0000' ) ) ), array( 'phone' => '31999991234' ), 5 ) );
-t( 'matches: registro sem contatos NAO confere com e-mail/telefone', ! Contorno_Evo_Checkout::matches( array( 'idMember' => 325082 ), array( 'email' => 'maria@example.com' ), 1 ) && ! Contorno_Evo_Checkout::matches( array( 'idMember' => 325082 ), array( 'phone' => '31999991234' ), 1 ) );
-t( 'matches: CPF sem campo document so vale com resultado unico', Contorno_Evo_Checkout::matches( array( 'idMember' => 1 ), array( 'document' => '52998224725' ), 1 ) && ! Contorno_Evo_Checkout::matches( array( 'idMember' => 1 ), array( 'document' => '52998224725' ), 10 ) );
-
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/members/basic'] = fx_json(
-	array(
-		array( 'idMember' => 325082, 'idBranch' => 59, 'contacts' => array( array( 'description' => 'outra.pessoa@example.com' ), array( 'ddi' => '55', 'description' => '(31) 98888-0000' ) ) ),
-	)
-);
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$token  = (string) $opened->data['token'];
-$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-$log_json = (string) json_encode( Contorno_Evo_Log::all(), JSON_UNESCAPED_UNICODE );
-t( 'EVO devolve aluno que nao confere: IGNORADO, segue como pessoa nova', ! empty( $res->data['ok'] ) && 1 === count( fx_calls( 'POST', '/api/v1/prospects' ) ) && 0 === (int) Contorno_Evo_Checkout::load( $token )['id_member'] );
-t( 'EVO devolve aluno que nao confere: log avisa que foi ignorado', str_contains( $log_json, 'NAO tem este e-mail\/WhatsApp; ignorados' ) && ! str_contains( $log_json, 'OUTRA FILIAL' ) );
-
-// H) validacao e falhas do lead
-$cases = array(
-	'so um nome'          => array( 'fullName' => 'Maria' ),
-	'sem consentimento'   => array( 'consent' => false ),
-	'WhatsApp curto'      => array( 'phone' => '3199' ),
-	'e-mail invalido'     => array( 'email' => 'maria@' ),
-);
-foreach ( $cases as $label => $override ) {
+// Validacao e falhas do lead
+foreach ( array( 'so um nome' => array( 'fullName' => 'Maria' ), 'sem consentimento' => array( 'consent' => false ), 'WhatsApp curto' => array( 'phone' => '3199' ), 'e-mail invalido' => array( 'email' => 'maria@' ) ) as $label => $override ) {
 	fx_reset( fx_routes_happy() );
 	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 	$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array_merge( array( 'token' => (string) $opened->data['token'] ), $override ) ) ) );
 	t( "lead recusado: $label (nada enviado a EVO)", 'dados_invalidos' === ( $res->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v1/prospects' ) );
 }
-
 fx_reset( fx_routes_happy() );
 $GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( 'mensagens' => array( 'x' ) ), 500 );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
-t( 'consulta indisponivel no lead: NAO cria prospect as cegas (duplicaria)', 'evo_indisponivel' === ( $res->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v1/prospects' ) );
-
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( array( 'mensagens' => array( 'E-mail invalido' ) ), 400 ) : fx_json( array() );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
-t( 'EVO recusa o lead (400): pessoa corrige, sem fallback', 'dados_invalidos' === ( $res->data['error'] ?? '' ) && empty( $res->data['fallback'] ) );
-
+t( 'consulta indisponivel no lead: nao cria prospect as cegas', 'evo_indisponivel' === ( $res->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v1/prospects' ) );
 fx_reset( fx_routes_happy() );
 $res = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => str_repeat( 'a', 32 ) ) ) ) );
 t( 'lead com sessao inexistente: sessao_expirada', 'sessao_expirada' === ( $res->data['error'] ?? '' ) );
+
+// CPF no servidor: algoritmo oficial (nao e consulta a Receita)
+t( 'valid_cpf: valido aceito', Contorno_Evo_Checkout_Rest::valid_cpf( CPF_PESSOA ) );
+t( 'valid_cpf: digito errado, incompleto e repetido recusados', ! Contorno_Evo_Checkout_Rest::valid_cpf( '52998224724' ) && ! Contorno_Evo_Checkout_Rest::valid_cpf( '529982247' ) && ! Contorno_Evo_Checkout_Rest::valid_cpf( '00000000000' ) );
+foreach ( array( 'incompleto' => '529.982.247', 'digito errado' => '529.982.247-24', 'repetido' => '000.000.000-00' ) as $label => $cpf ) {
+	$f = fx_flow( fx_identity(), $cpf );
+	t( "CPF $label: recusado antes de consultar/gravar, sem venda", 'dados_invalidos' === ( $f['res']->data['error'] ?? '' ) && array() === fx_calls( 'PATCH', '/api/v1/prospects' ) && array() === $f['sales'] );
+}
+fx_reset( fx_identity() );
+$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+$token  = (string) $opened->data['token'];
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$paid = fx_pay( request( array( 'token' => $token, 'person' => array( 'document' => CPF_PESSOA ), 'card' => fx_card(), 'installments' => 1 ) ) );
+t( 'sem aceite dos termos: recusado no servidor, sem venda', 'dados_invalidos' === ( $paid->data['error'] ?? '' ) && array() === fx_calls( 'POST', '/api/v2/sales' ) );
 
 /* -------------------------------------------------------------
  * 6. Idempotencia
@@ -863,9 +935,9 @@ $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes',
 $token  = (string) $opened->data['token'];
 $body   = array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 );
 
-$first  = Contorno_Evo_Checkout_Rest::pay( request( $body ) );
-$second = Contorno_Evo_Checkout_Rest::pay( request( $body ) );
-$third  = Contorno_Evo_Checkout_Rest::pay( request( $body ) );
+$first  = fx_pay( request( $body ) );
+$second = fx_pay( request( $body ) );
+$third  = fx_pay( request( $body ) );
 
 $sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) );
 t( 'tres envios do mesmo pedido geram UMA venda', 1 === count( $sales ), count( $sales ) . ' vendas' );
@@ -880,11 +952,11 @@ $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes',
 $token  = (string) $opened->data['token'];
 $reentrant = null;
 $GLOBALS['routes']['/api/v2/sales'] = static function ( string $url, array $args ) use ( &$reentrant, $token ) {
-	$reentrant = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+	$reentrant = fx_pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 
 	return fx_json( array( 'idSale' => 778899 ) );
 };
-Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+fx_pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 $sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) );
 t( 'clique concorrente e barrado pela trava', null !== $reentrant && 'em_andamento' === ( $reentrant->data['error'] ?? '' ), (string) ( $reentrant->data['error'] ?? 'sem resposta' ) );
 t( 'e nao gerou segunda chamada de venda', 1 === count( $sales ), count( $sales ) . ' vendas' );
@@ -894,11 +966,11 @@ t( 'e nao gerou segunda chamada de venda', 1 === count( $sales ), count( $sales 
 // cobre.
 fx_reset( fx_routes_happy() );
 $first_open = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) $first_open->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+fx_pay( request( array( 'token' => (string) $first_open->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 
 $second_open = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 t( 'o refresh realmente abre outra sessao', $first_open->data['token'] !== $second_open->data['token'] );
-$again = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) $second_open->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$again = fx_pay( request( array( 'token' => (string) $second_open->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 
 $sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) );
 t( 'pagar apos refresh NAO gera segunda venda', 1 === count( $sales ), count( $sales ) . ' vendas' );
@@ -909,7 +981,7 @@ t( 'a impressao digital nao guarda o CPF', array() !== $fingerprints && ! str_co
 
 // Outro CPF, mesmo plano: e outra pessoa, e tem de conseguir comprar.
 $other = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$other_paid = Contorno_Evo_Checkout_Rest::pay(
+$other_paid = fx_pay(
 	request(
 		array(
 			'token'        => (string) $other->data['token'],
@@ -934,7 +1006,7 @@ fx_reset( fx_routes_happy() );
 $GLOBALS['routes']['/api/v2/sales'] = static fn () => new WP_Error( 'http_request_failed', 'Operation timed out' );
 $GLOBALS['routes']['/api/v1/sales/by-session-id'] = fx_json( 445566 );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$paid   = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$paid   = fx_pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 
 $sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) );
 t( 'POST /sales nao e reenviado automaticamente no timeout', 1 === count( $sales ), count( $sales ) . ' tentativas' );
@@ -946,7 +1018,7 @@ fx_reset( fx_routes_happy() );
 $GLOBALS['routes']['/api/v2/sales'] = static fn () => new WP_Error( 'http_request_failed', 'Operation timed out' );
 $GLOBALS['routes']['/api/v1/sales/by-session-id'] = fx_json( 0 );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$paid   = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$paid   = fx_pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 t( 'venda inexistente apos timeout permite nova tentativa', 'evo_indisponivel' === ( $paid->data['error'] ?? '' ) );
 t( 'e nao oferece checkout externo (a duvida ja foi resolvida, mas sem venda)', empty( $paid->data['fallback'] ) );
 
@@ -956,11 +1028,11 @@ $GLOBALS['routes']['/api/v2/sales'] = static fn () => new WP_Error( 'http_reques
 $GLOBALS['routes']['/api/v1/sales/by-session-id'] = fx_json( array( 'mensagens' => array( 'indisponivel' ) ), 503 );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
-$paid   = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$paid   = fx_pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 
 t( 'estado indeterminado e comunicado como indeterminado', 'indeterminado' === ( $paid->data['error'] ?? '' ) );
 t( 'indeterminado NAO oferece fallback (evitaria cobranca dupla)', empty( $paid->data['fallback'] ) );
-$retry = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$retry = fx_pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 t( 'nova tentativa em estado indeterminado e barrada', 'indeterminado' === ( $retry->data['error'] ?? '' ) );
 $sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) );
 t( 'nenhuma venda extra foi enviada', 1 === count( $sales ), count( $sales ) . ' tentativas' );
@@ -1044,11 +1116,11 @@ $GLOBALS['routes']['/api/v2/sales'] = static fn () => new WP_Error( 'http_reques
 $GLOBALS['routes']['/api/v1/sales/by-session-id'] = fx_by_session( 445566 );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
-$paid   = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$paid   = fx_pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 t( 'timeout + {idVenda} real: venda reconhecida, fluxo conclui', ! empty( $paid->data['ok'] ) && 'success' === ( $paid->data['status'] ?? '' ) );
 $state = Contorno_Evo_Checkout::load( $token );
 t( 'timeout + {idVenda} real: idSale gravado = 445566', 445566 === (int) ( $state['id_sale'] ?? 0 ) );
-$retry = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$retry = fx_pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 $sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) );
 t( 'timeout + {idVenda} real: repetir o pagamento NAO gera segunda venda', 1 === count( $sales ), count( $sales ) . ' POST /sales' );
 
@@ -1057,7 +1129,7 @@ fx_reset( fx_routes_happy() );
 $GLOBALS['routes']['/api/v2/sales'] = static fn () => new WP_Error( 'http_request_failed', 'Operation timed out' );
 $GLOBALS['routes']['/api/v1/sales/by-session-id'] = fx_by_session( 0 );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$paid   = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$paid   = fx_pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 t( 'timeout + {idVenda: 0} real: sem venda, permite nova tentativa', 'evo_indisponivel' === ( $paid->data['error'] ?? '' ) );
 
 // D2 — venda aprovada cuja resposta traz idVenda (nao idSale).
@@ -1065,7 +1137,7 @@ fx_reset( fx_routes_happy() );
 $GLOBALS['routes']['/api/v2/sales'] = fx_json( array( 'idVenda' => 778899 ) );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
-Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+fx_pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 t( 'POST /sales com {idVenda}: comprovante recebe o numero da venda', 778899 === (int) ( Contorno_Evo_Checkout::load( $token )['id_sale'] ?? 0 ) );
 
 /* -------------------------------------------------------------
@@ -1080,7 +1152,7 @@ $token  = (string) $opened->data['token'];
 
 // A promocao acabou: a EVO passa a cobrar o valor cheio.
 $GLOBALS['routes']['/api/v3/membership'] = fx_json( array( fx_membership( 219.90, 0.0 ) ) );
-$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$paid = fx_pay( request( array( 'token' => $token, 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 
 t( 'venda nao e enviada com o preco antigo', 'preco_mudou' === ( $paid->data['error'] ?? '' ) );
 $sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) );
@@ -1129,7 +1201,7 @@ foreach ( $refusals as $evo_text => $expected ) {
 	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 	$token  = (string) $opened->data['token'];
 	Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
-	$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
+	$paid = fx_pay( request( array( 'token' => $token, 'person' => array( 'document' => '52998224725', 'acceptedTerms' => true ), 'card' => fx_card(), 'installments' => 1 ) ) );
 	t( "400 \"$evo_text\" -> $expected", $expected === ( $paid->data['error'] ?? '' ), (string) ( $paid->data['error'] ?? '' ) );
 	t( "400 \"$evo_text\" -> " . ( 'cartao_recusado' === $expected ? 'sem' : 'com' ) . ' contato da unidade', ( 'cartao_recusado' === $expected ) === empty( $paid->data['fallback'] ) );
 }
@@ -1137,24 +1209,18 @@ $log_json = (string) json_encode( Contorno_Evo_Log::all(), JSON_UNESCAPED_UNICOD
 t( 'log mostra a mensagem da EVO legivel (nao o JSON cru)', str_contains( $log_json, 'Campo obrigatório não informado' ) && ! str_contains( $log_json, '\"errors\"' ) );
 t( 'log da recusa diz o motivo e para qual cadastro foi a venda', str_contains( $log_json, 'venda recusada [venda_recusada] (venda para prospect idProspect 5551' ) );
 
-// O caso de 15/10/2026: cadastro reaproveitado era de OUTRA filial.
+// O caso de 15/10/2026: contato de cadastro de OUTRA filial na etapa 1.
+// E-mail/WhatsApp nao provam identidade: o lead segue, sem vincular nada.
 fx_reset( fx_routes_happy() );
 $GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'idBranch' => 8, 'email' => 'maria@example.com' ) ) );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
 $res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+$state  = Contorno_Evo_Checkout::load( $token );
 $log_json = (string) json_encode( Contorno_Evo_Log::all(), JSON_UNESCAPED_UNICODE );
-t( 'log do lead: cadastro existente reaproveitado, com tipo, id e filial', str_contains( $log_json, 'cadastro existente reaproveitado, nenhum prospect novo criado (prospect idProspect 3131, filial 8)' ) );
-t( 'log do lead: alerta de OUTRA FILIAL', str_contains( $log_json, 'OUTRA FILIAL' ) );
-t( 'cadastro de outra filial: para na etapa 1, antes do cartao, com contato da unidade', 'cadastro_outra_filial' === ( $res->data['error'] ?? '' ) && ! empty( $res->data['fallback'] ) );
-t( 'cadastro de outra filial: nada criado nem alterado na EVO', array() === fx_calls( 'POST', '/api/v1/prospects' ) && array() === fx_calls( 'PATCH', '/api/v1/prospects' ) && array() === fx_calls( 'POST', '/api/v1/prospects/transfer' ) );
-t( 'cadastro de outra filial: sessao nao segue para o pagamento', empty( Contorno_Evo_Checkout::load( $token )['lead'] ) );
-
-fx_reset( fx_routes_happy() );
-$GLOBALS['routes']['/api/v1/members/basic'] = fx_json( array( array( 'idMember' => 4242, 'idBranch' => 3, 'contacts' => array( array( 'description' => 'maria@example.com' ) ) ) ) );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$res    = Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => (string) $opened->data['token'] ) ) ) );
-t( 'ALUNO de outra filial: tambem para na etapa 1', 'cadastro_outra_filial' === ( $res->data['error'] ?? '' ) && str_contains( (string) json_encode( Contorno_Evo_Log::all() ), 'aluno idMember 4242, filial 3' ) );
+t( 'log do lead: cadastro existente com o mesmo contato, com tipo, id e filial', str_contains( $log_json, 'prospect idProspect 3131, filial 8' ) );
+t( 'contato de outra filial na etapa 1: NAO vincula nem decide nada', ! empty( $res->data['ok'] ) && 0 === (int) $state['id_prospect'] && 0 === (int) $state['id_member'] );
+t( 'contato de outra filial na etapa 1: nada criado/alterado/transferido', array() === fx_calls( 'POST', '/api/v1/prospects' ) && array() === fx_calls( 'PATCH', '/api/v1/prospects' ) && array() === fx_calls( 'POST', '/api/v1/prospects/transfer' ) );
 
 fx_reset( fx_routes_happy() );
 $GLOBALS['routes']['/api/v1/prospects'] = static fn ( string $url, array $args ) => 'POST' === ( $args['method'] ?? 'GET' ) ? fx_json( 5551 ) : fx_json( array( array( 'idProspect' => 3131, 'idBranch' => 21, 'email' => 'maria@example.com' ) ) );
@@ -1171,7 +1237,7 @@ foreach ( array( 400 => 'venda_recusada', 401 => 'evo_indisponivel', 403 => 'evo
 	fx_reset( fx_routes_happy() );
 	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 	$GLOBALS['routes']['/api/v2/sales'] = fx_json( array( 'mensagens' => array( 'detalhe tecnico interno com token-de-teste' ) ), $code );
-	$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+	$paid = fx_pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 
 	t( "HTTP $code vira erro de negocio tratado", $expected === ( $paid->data['error'] ?? '' ), (string) ( $paid->data['error'] ?? '' ) );
 	t( "HTTP $code nao expoe resposta tecnica ao visitante", ! str_contains( (string) $paid->data['message'], 'detalhe tecnico' ) && ! str_contains( (string) $paid->data['message'], 'HTTP' ) );
@@ -1181,7 +1247,7 @@ foreach ( array( 400 => 'venda_recusada', 401 => 'evo_indisponivel', 403 => 'evo
 fx_reset( fx_routes_happy() );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $GLOBALS['routes']['/api/v2/sales'] = array( 'response' => array( 'code' => 200 ), 'body' => '<html>erro do proxy</html>' );
-$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$paid = fx_pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 t( 'JSON invalido nao e tratado como sucesso', empty( $paid->data['ok'] ) || 'success' !== ( $paid->data['status'] ?? '' ) );
 
 $log_json = (string) json_encode( Contorno_Evo_Log::all() );
@@ -1236,26 +1302,27 @@ fx_reset( fx_routes_happy() );
 $limited = false;
 for ( $i = 0; $i < 12; $i++ ) {
 	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-	$attempt = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) ( $opened->data['token'] ?? '' ), 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+	$attempt = fx_pay( request( array( 'token' => (string) ( $opened->data['token'] ?? '' ), 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 	if ( 'limite' === ( $attempt->data['error'] ?? '' ) ) { $limited = true; break; }
 }
 t( 'tentativas repetidas de venda batem no rate limit', $limited );
 
 fx_reset( fx_routes_happy() );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$paid = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
+$paid = fx_pay( request( array( 'token' => (string) $opened->data['token'], 'person' => fx_person(), 'card' => fx_card(), 'installments' => 1 ) ) );
 t( 'um erro normal de cartao nao bloqueia o cliente legitimo', ! empty( $paid->data['ok'] ) );
 
 section( 'Sessao e dados pessoais' );
 
 fx_reset( fx_routes_happy() );
-$bad = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => 'nao-existe', 'person' => fx_person(), 'card' => fx_card() ) ) );
+$bad = fx_pay( request( array( 'token' => 'nao-existe', 'person' => fx_person(), 'card' => fx_card() ) ) );
 t( 'token invalido nao paga', 'sessao_expirada' === ( $bad->data['error'] ?? '' ) );
 
 fx_reset( fx_routes_happy() );
 $opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
 $token  = (string) $opened->data['token'];
-Contorno_Evo_Checkout_Rest::identify( request( array( 'token' => $token, 'email' => 'maria@example.com', 'document' => '52998224725', 'phone' => '31999991234' ) ) );
+Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+Contorno_Evo_Checkout_Rest::verify( request( array( 'token' => $token, 'person' => fx_person() ) ) );
 $stored = (string) json_encode( $GLOBALS['tr'][ Contorno_Evo_Checkout::key( $token ) ] );
 t( 'sessao no servidor nao guarda e-mail', ! str_contains( $stored, 'maria@example.com' ) );
 t( 'sessao no servidor nao guarda CPF', ! str_contains( $stored, '52998224725' ) );
@@ -1268,21 +1335,21 @@ t( 'CPF valido passa', Contorno_Evo_Checkout_Rest::valid_cpf( '52998224725' ) );
 t( 'CPF com digito errado e recusado', ! Contorno_Evo_Checkout_Rest::valid_cpf( '52998224726' ) );
 t( 'CPF de digitos repetidos e recusado', ! Contorno_Evo_Checkout_Rest::valid_cpf( '11111111111' ) );
 
-fx_reset( fx_routes_happy() );
-$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
-$token  = (string) $opened->data['token'];
+// Nome, e-mail e WhatsApp sao validados no lead (etapa 1); no pagamento, CPF e aceite.
+$sales = 0;
 foreach ( array(
-	'e-mail invalido'      => array( 'email' => 'nao-e-email' ),
 	'CPF invalido'         => array( 'document' => '11111111111' ),
-	'telefone curto'       => array( 'phone' => '319999' ),
 	'aceite ausente'       => array( 'acceptedTerms' => false ),
-	'nome de uma letra'    => array( 'firstName' => 'M' ),
 ) as $label => $patch ) {
-	$attempt = Contorno_Evo_Checkout_Rest::pay( request( array( 'token' => $token, 'person' => array_merge( fx_person(), $patch ), 'card' => fx_card(), 'installments' => 1 ) ) );
+	fx_reset( fx_routes_happy() );
+	$opened = Contorno_Evo_Checkout_Rest::open( request( array( 'slug' => 'lourdes', 'plan' => 'black' ) ) );
+	$token  = (string) $opened->data['token'];
+	Contorno_Evo_Checkout_Rest::lead( request( fx_lead( array( 'token' => $token ) ) ) );
+	$attempt = fx_pay( request( array( 'token' => $token, 'person' => array_merge( fx_person(), $patch ), 'card' => fx_card(), 'installments' => 1 ) ) );
 	t( "venda com $label e recusada", empty( $attempt->data['ok'] ) );
+	$sales += count( fx_calls( 'POST', '/api/v2/sales' ) );
 }
-$sales = array_filter( $GLOBALS['calls'], static fn ( $c ) => 'POST' === $c['method'] && str_contains( $c['url'], '/api/v2/sales' ) );
-t( 'nenhuma venda foi enviada com dados invalidos', array() === $sales );
+t( 'nenhuma venda foi enviada com dados invalidos', 0 === $sales );
 
 /* -------------------------------------------------------------
  * 12. Feature flag

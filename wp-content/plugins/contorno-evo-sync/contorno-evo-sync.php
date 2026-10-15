@@ -62,6 +62,7 @@ foreach (
 		'includes/class-gateway.php',
 		'includes/class-activities.php',
 		'includes/class-checkout.php',
+		'includes/class-identity.php',
 		'includes/class-checkout-rest.php',
 		'includes/class-frontend.php',
 		'includes/class-cron.php',
@@ -159,7 +160,7 @@ function contorno_evo_checkout_boot_data(): array {
 		'requiresAddress' => (bool) Contorno_Evo_Settings::get( 'checkout_require_address', false ),
 		'routes'          => array(
 			'open'     => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/open' ),
-			'identify' => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/identify' ),
+			'verify'   => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/verify' ),
 			'lead'     => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/lead' ),
 			'pay'      => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/pay' ),
 			'status'   => rest_url( Contorno_Evo_Checkout_Rest::NAMESPACE . '/checkout/status' ),

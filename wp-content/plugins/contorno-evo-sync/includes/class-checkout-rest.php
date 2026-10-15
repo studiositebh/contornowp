@@ -9,7 +9,7 @@
  * Rotas (namespace contorno-evo/v1):
  *
  *   POST /checkout/open      selecao -> token de sessao + resumo oficial
- *   POST /checkout/identify  e-mail/CPF/telefone -> membro | prospect | novo
+ *   POST /checkout/verify    CPF -> identidade VERIFICADA (unico caminho para a venda)
  *   POST /checkout/lead      nome completo, e-mail, WhatsApp, aceite -> prospect na EVO (1a etapa)
  *   POST /checkout/pay       token + dados + cartao tokenizado -> venda
  *   POST /checkout/status    token -> situacao (para reabrir a aba)
@@ -46,7 +46,8 @@ final class Contorno_Evo_Checkout_Rest {
 	/** Limites por IP: [ tentativas, janela em segundos ]. */
 	private const LIMITS = array(
 		'open'     => array( 30, 300 ),
-		'identify' => array( 20, 300 ),
+		// Verificacao de identidade (CPF): consulta perfis na EVO.
+		'verify'   => array( 12, 900 ),
 		// Lead: cada envio cria cadastro na EVO. Folga para corrigir o e-mail,
 		// aperto para nao virar gerador de prospect.
 		'lead'     => array( 8, 900 ),
@@ -67,7 +68,7 @@ final class Contorno_Evo_Checkout_Rest {
 		);
 
 		register_rest_route( self::NAMESPACE, '/checkout/open', $common + array( 'callback' => array( __CLASS__, 'open' ) ) );
-		register_rest_route( self::NAMESPACE, '/checkout/identify', $common + array( 'callback' => array( __CLASS__, 'identify' ) ) );
+		register_rest_route( self::NAMESPACE, '/checkout/verify', $common + array( 'callback' => array( __CLASS__, 'verify' ) ) );
 		register_rest_route( self::NAMESPACE, '/checkout/lead', $common + array( 'callback' => array( __CLASS__, 'lead' ) ) );
 		register_rest_route( self::NAMESPACE, '/checkout/pay', $common + array( 'callback' => array( __CLASS__, 'pay' ) ) );
 		register_rest_route( self::NAMESPACE, '/checkout/status', $common + array( 'callback' => array( __CLASS__, 'status' ) ) );
@@ -271,50 +272,6 @@ final class Contorno_Evo_Checkout_Rest {
 		);
 	}
 
-	public static function identify( WP_REST_Request $request ): WP_REST_Response {
-		$guard = self::guard( $request, 'identify' );
-
-		if ( ! $guard['ok'] ) {
-			return self::fail( $guard['code'] );
-		}
-
-		$state = Contorno_Evo_Checkout::load( (string) $request->get_param( 'token' ) );
-
-		if ( null === $state ) {
-			return self::fail( 'sessao_expirada', array( 'fallback' => true ) );
-		}
-
-		$found = Contorno_Evo_Checkout::identify(
-			array(
-				'document' => (string) $request->get_param( 'document' ),
-				'email'    => (string) $request->get_param( 'email' ),
-				'phone'    => (string) $request->get_param( 'phone' ),
-			),
-			(int) $state['id_branch']
-		);
-
-		if ( ! $found['ok'] ) {
-			return self::fail( $found['error'], array( 'fallback' => 'evo_indisponivel' === $found['error'] ) );
-		}
-
-		// So os IDENTIFICADORES ficam na sessao. O e-mail e o CPF usados na
-		// consulta nao sao gravados.
-		$state['id_member']   = $found['id_member'];
-		$state['id_prospect'] = $found['id_prospect'];
-		$state['status']      = 'identified';
-		Contorno_Evo_Checkout::save( $state );
-
-		return new WP_REST_Response(
-			array(
-				'ok'   => true,
-				// "member" so informa que o cadastro ja existe; nao devolvemos
-				// nada do cadastro da pessoa para quem digitou o CPF.
-				'kind' => $found['kind'],
-			),
-			200
-		);
-	}
-
 	/**
 	 * Primeira etapa: registra o LEAD na EVO antes de qualquer pagamento.
 	 *
@@ -338,9 +295,11 @@ final class Contorno_Evo_Checkout_Rest {
 			return self::fail( 'sessao_expirada', array( 'fallback' => true ) );
 		}
 
-		if ( ! empty( $state['lead'] ) && ( (int) $state['id_prospect'] > 0 || (int) $state['id_member'] > 0 ) ) {
-			return new WP_REST_Response( array( 'ok' => true, 'kind' => (int) $state['id_member'] > 0 ? 'member' : 'prospect' ), 200 );
+		// Reenvio da mesma sessao: o lead ja foi tratado, nada de novo.
+		if ( ! empty( $state['lead'] ) ) {
+			return new WP_REST_Response( array( 'ok' => true ), 200 );
 		}
+
 
 		$name  = Contorno_Evo_Checkout::split_name( (string) $request->get_param( 'fullName' ) );
 		$email = sanitize_email( (string) $request->get_param( 'email' ) );
@@ -355,15 +314,19 @@ final class Contorno_Evo_Checkout_Rest {
 			return self::fail( 'dados_invalidos' );
 		}
 
-		$found = Contorno_Evo_Checkout::identify( array( 'email' => $email, 'phone' => $phone ), (int) $state['id_branch'] );
 
-		if ( ! $found['ok'] ) {
-			return self::fail( $found['error'], array( 'fallback' => 'evo_indisponivel' === $found['error'] ) );
+		// Identidade NAO e resolvida aqui (Contorno_Evo_Identity). E-mail e
+		// WhatsApp so evitam um segundo lead; nenhum idMember/idProspect desta
+		// etapa chega a uma venda.
+		$exists = Contorno_Evo_Identity::lead_exists( $email, $phone, $state );
+
+		if ( ! $exists['ok'] ) {
+			return self::fail( 'evo_indisponivel', array( 'fallback' => true ) );
 		}
 
-		$kind = $found['kind'];
+		$state['lead_prospect_id'] = 0;
 
-		if ( 'new' === $kind ) {
+		if ( ! $exists['existing'] ) {
 			$created = ( new Contorno_Evo_Client() )->create_prospect(
 				Contorno_Evo_Checkout::lead_payload(
 					array( 'first_name' => $name[0], 'last_name' => $name[1], 'email' => $email, 'phone' => $phone ),
@@ -378,52 +341,103 @@ final class Contorno_Evo_Checkout_Rest {
 				return self::fail( 400 === $created['http'] ? 'dados_invalidos' : 'evo_indisponivel', array( 'fallback' => 400 !== $created['http'] ) );
 			}
 
-			$found['id_prospect'] = $created['id_prospect'];
-			$found['branch']      = (int) $state['id_branch'];
-			$kind                 = 'prospect';
-			$ignored = (int) ( $found['ignored'] ?? 0 );
-			Contorno_Evo_Checkout::log(
-				$ignored > 0 ? 'warning' : 'info',
-				sprintf( 'lead registrado na EVO (prospect novo %d)', (int) $created['id_prospect'] )
-					. ( $ignored > 0 ? sprintf( ' — a busca da EVO devolveu %d cadastro(s) que NAO tem este e-mail/WhatsApp; ignorados', $ignored ) : '' ),
-				$state
-			);
-		} else {
-			// Cadastro ja existia (busca por e-mail/WhatsApp na rede toda):
-			// nenhum prospect novo e criado. O log precisa dizer qual e de
-			// que filial — venda para cadastro de outra filial a EVO recusa.
-			$branch = (int) ( $found['branch'] ?? 0 );
-			Contorno_Evo_Checkout::log(
-				$branch > 0 && $branch !== (int) $state['id_branch'] ? 'warning' : 'info',
-				sprintf(
-					'lead: cadastro existente reaproveitado, nenhum prospect novo criado (%s %d, filial %s)%s',
-					'member' === $kind ? 'aluno idMember' : 'prospect idProspect',
-					'member' === $kind ? (int) $found['id_member'] : (int) $found['id_prospect'],
-					$branch > 0 ? (string) $branch : '?',
-					$branch > 0 && $branch !== (int) $state['id_branch'] ? ' — OUTRA FILIAL: a EVO recusa vender este contrato para cadastro de outra filial' : ''
-				),
-				$state
-			);
-
-			// Decisao de 15/10/2026: cadastro de OUTRA filial para aqui, ja na
-			// 1a etapa — a EVO recusa a venda deste contrato e a pessoa so
-			// descobriria depois de digitar o cartao. Nada e alterado na EVO
-			// (sem transferencia automatica); o contato da unidade resolve.
-			if ( $branch > 0 && $branch !== (int) $state['id_branch'] ) {
-				return self::fail( 'cadastro_outra_filial', array( 'fallback' => true ) );
-			}
+			// Prospect criado POR ESTA SESSAO: o unico que a etapa de
+			// pagamento pode completar com o CPF (ver Identity::new_prospect).
+			$state['lead_prospect_id'] = (int) $created['id_prospect'];
+			Contorno_Evo_Checkout::log( 'info', sprintf( 'lead registrado na EVO (prospect novo %d)', (int) $created['id_prospect'] ), $state );
 		}
 
-		$state['person_kind']   = 'member' === $kind ? 'member' : 'prospect';
-		$state['person_branch'] = (int) ( $found['branch'] ?? 0 );
 		$state['lead']        = true;
-		$state['id_member']   = (int) $found['id_member'];
-		$state['id_prospect'] = (int) $found['id_prospect'];
-		$state['status']      = 'identified';
+		$state['id_member']   = 0;
+		$state['id_prospect'] = 0;
+		$state['identity']    = array();
 		Contorno_Evo_Checkout::save( $state );
 
-		// Nenhum dado do cadastro volta para o navegador, so o tipo.
-		return new WP_REST_Response( array( 'ok' => true, 'kind' => 'member' === $kind ? 'member' : 'prospect' ), 200 );
+		return new WP_REST_Response( array( 'ok' => true ), 200 );
+	}
+
+	/**
+	 * Etapa de pagamento, ANTES do cartao: resolve a identidade pelo CPF.
+	 *
+	 * Unico caminho que grava id_member/id_prospect na sessao. So devolve ok
+	 * para VERIFIED_*; qualquer outro estado para aqui, antes de o cartao
+	 * ser tokenizado (nada a cobrar).
+	 */
+	public static function verify( WP_REST_Request $request ): WP_REST_Response {
+		$guard = self::guard( $request, 'verify' );
+
+		if ( ! $guard['ok'] ) {
+			return self::fail( $guard['code'] );
+		}
+
+		$state = Contorno_Evo_Checkout::load( (string) $request->get_param( 'token' ) );
+
+		if ( null === $state ) {
+			return self::fail( 'sessao_expirada', array( 'fallback' => true ) );
+		}
+
+		if ( 'success' === $state['status'] ) {
+			return self::done( $state, 'ja_concluida' );
+		}
+
+		if ( in_array( $state['status'], array( 'processing', 'unknown' ), true ) ) {
+			return self::fail( 'unknown' === $state['status'] ? 'indeterminado' : 'em_andamento' );
+		}
+
+		$person = self::person( $request, true );
+
+		if ( ! $person['ok'] ) {
+			return self::fail( $person['code'] );
+		}
+
+		$raw = (array) $request->get_param( 'person' );
+
+		// Pessoa nova sem lead desta sessao: o prospect precisa dos contatos.
+		$split = Contorno_Evo_Checkout::split_name( (string) ( $raw['fullName'] ?? trim( (string) ( $raw['firstName'] ?? '' ) . ' ' . (string) ( $raw['lastName'] ?? '' ) ) ) );
+		$data  = $person['data'] + array(
+			'first_name' => $split[0] ?? '',
+			'last_name'  => $split[1] ?? '',
+			'email'      => sanitize_email( (string) ( $raw['email'] ?? '' ) ),
+			'phone'      => Contorno_Evo_Checkout::normalize_phone( (string) ( $raw['phone'] ?? '' ) ),
+		);
+
+		if ( null !== $split ) {
+			$data['first_name'] = $split[0];
+			$data['last_name']  = $split[1];
+		}
+
+		// Ja verificado nesta sessao para o MESMO CPF: nao consulta de novo.
+		$identity = (array) ( $state['identity'] ?? array() );
+		if ( in_array( (string) ( $identity['status'] ?? '' ), Contorno_Evo_Identity::VERIFIED, true )
+			&& hash_equals( (string) ( $identity['cpf_hash'] ?? '' ), Contorno_Evo_Identity::cpf_hash( $data['document'] ) )
+		) {
+			return new WP_REST_Response( array( 'ok' => true ), 200 );
+		}
+
+		$resolved = Contorno_Evo_Identity::resolve( $state, $data );
+
+		$state['identity'] = array(
+			'status'      => $resolved['status'],
+			'cpf_hash'    => Contorno_Evo_Identity::cpf_hash( $data['document'] ),
+			'id_member'   => $resolved['id_member'],
+			'id_prospect' => $resolved['id_prospect'],
+			'branch'      => $resolved['branch'],
+			'at'          => time(),
+		);
+
+		$verified = in_array( $resolved['status'], Contorno_Evo_Identity::VERIFIED, true );
+
+		// So identidade verificada entra nos campos que a venda usa.
+		$state['id_member']   = $verified && Contorno_Evo_Identity::VERIFIED_MEMBER === $resolved['status'] ? (int) $resolved['id_member'] : 0;
+		$state['id_prospect'] = $verified && Contorno_Evo_Identity::VERIFIED_MEMBER !== $resolved['status'] ? (int) $resolved['id_prospect'] : 0;
+		$state['status']      = $verified ? 'identified' : 'blocked';
+		Contorno_Evo_Checkout::save( $state );
+
+		if ( ! $verified ) {
+			return self::fail( $resolved['status'], array( 'fallback' => true ) );
+		}
+
+		return new WP_REST_Response( array( 'ok' => true ), 200 );
 	}
 
 	public static function status( WP_REST_Request $request ): WP_REST_Response {
@@ -517,7 +531,8 @@ final class Contorno_Evo_Checkout_Rest {
 
 			// 2. Dados da pessoa.
 			// Sessao com lead (1a etapa): nome, e-mail e WhatsApp ja estao na EVO.
-			$person = self::person( $request, ! empty( $state['lead'] ) );
+			// So CPF, nascimento e termos: nome e contatos ja foram na etapa 1.
+			$person = self::person( $request, true );
 
 			if ( ! $person['ok'] ) {
 				return self::fail( $person['code'] );
@@ -564,46 +579,25 @@ final class Contorno_Evo_Checkout_Rest {
 
 			$installments = max( 1, min( (int) $state['quote']['max_installments'], (int) $request->get_param( 'installments' ) ) );
 
-			// 4a. Lead da 1a etapa: completa o MESMO cadastro com o CPF (ou
-			// descobre que o CPF e de um aluno). Nada de prospect novo.
-			if ( ! empty( $state['lead'] ) && (int) $state['id_member'] <= 0 && (int) $state['id_prospect'] > 0 ) {
-				$completed = Contorno_Evo_Checkout::complete_lead( $state, $person['data'] );
-
-				if ( ! $completed['ok'] ) {
-					return self::fail( $completed['error'], array( 'fallback' => 'evo_indisponivel' === $completed['error'] ) );
-				}
-
-				$state['id_member']   = $completed['id_member'];
-				$state['id_prospect'] = $completed['id_prospect'];
-			}
-
-			// 4. Quem e a pessoa, se ainda nao sabemos.
-			if ( (int) $state['id_member'] <= 0 && (int) $state['id_prospect'] <= 0 ) {
-				$found = Contorno_Evo_Checkout::identify( $person['data'], (int) $state['id_branch'] );
-
-				if ( ! $found['ok'] ) {
-					return self::fail( $found['error'], array( 'fallback' => true ) );
-				}
-
-				$state['id_member']   = $found['id_member'];
-				$state['id_prospect'] = $found['id_prospect'];
-			}
-
-			// 5. Prospect novo, so agora.
-			if ( (int) $state['id_member'] <= 0 && (int) $state['id_prospect'] <= 0 ) {
-				$client  = new Contorno_Evo_Client();
-				$created = $client->create_prospect(
-					Contorno_Evo_Checkout::prospect_payload( $person['data'], (int) $state['id_branch'] )
+			// 4. GUARDA FINAL DE IDENTIDADE — imediatamente antes de POST /sales.
+			//
+			// So vende para identidade VERIFICADA pelo CPF em verify()
+			// (Contorno_Evo_Identity), para o MESMO CPF deste pedido, na MESMA
+			// filial do contrato. Nenhum idMember/idProspect de busca por
+			// e-mail/WhatsApp, "primeiro resultado" ou "resultado unico" passa.
+			if ( ! Contorno_Evo_Identity::sale_allowed( $state, (string) $person['data']['document'] ) ) {
+				Contorno_Evo_Checkout::log(
+					'error',
+					sprintf(
+						'sale_blocked_identity: identidade %s (idMember %d, idProspect %d) — POST /sales NAO enviado',
+						(string) ( $state['identity']['status'] ?? 'nao verificada' ),
+						(int) $state['id_member'],
+						(int) $state['id_prospect']
+					),
+					$state
 				);
 
-				if ( ! $created['ok'] ) {
-					Contorno_Evo_Checkout::log( 'error', 'falha ao criar prospect: ' . $created['message'], $state + array( 'http' => $created['http'] ) );
-
-					// Prospect nao criado = nenhuma venda criada. Fallback seguro.
-					return self::fail( 400 === $created['http'] ? 'dados_invalidos' : 'evo_indisponivel', array( 'fallback' => true ) );
-				}
-
-				$state['id_prospect'] = $created['id_prospect'];
+				return self::fail( 'sale_blocked_identity', array( 'fallback' => true ) );
 			}
 
 			// 6. Venda. Daqui em diante NAO existe fallback automatico.

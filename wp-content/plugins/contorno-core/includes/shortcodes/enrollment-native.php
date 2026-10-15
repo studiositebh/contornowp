@@ -176,6 +176,7 @@ function contorno_enrollment_native_markup( WP_Post $post, ?array $plan, string 
 				'cardMissing' => __( 'O pagamento por cartão ainda não está disponível nesta página.', 'contorno' ),
 				'payLabel'       => __( 'Finalizar matrícula', 'contorno' ),
 				'validatingCard' => __( 'Validando o cartão...', 'contorno' ),
+				'verifyingIdentity' => __( 'Confirmando seu cadastro...', 'contorno' ),
 				'cardTimeout'    => __( 'Não conseguimos validar o cartão a tempo. Confira os dados e tente novamente.', 'contorno' ),
 				'unavailable' => __( 'Não foi possível iniciar sua matrícula online no momento. A integração com o sistema da academia ainda não está disponível. Tente novamente em alguns instantes ou entre em contato com a unidade.', 'contorno' ),
 				'contactUnit' => __( 'Falar com a unidade', 'contorno' ),
