@@ -118,6 +118,8 @@ t('sem localStorage/indexedDB/cookie', !/localStorage|indexedDB|document.cookie/
 t('sessionStorage so guarda a flag "ja perguntei" (nunca a posicao)', (code.match(/sessionStorage/g) || []).length === 2 && /setItem\(ASKED_KEY, '1'\)/.test(code));
 t('posicao nao vai para a URL: so #perto-de-mim', /GEO_HASH = '#perto-de-mim'/.test(code) && /archive \|\| '\/unidades\/'\) \+ GEO_HASH/.test(code));
 t('modal so abre com permissao indecisa, uma vez por sessao, ao focar o campo', /permission\.state === 'prompt'/.test(code) && /wasAsked\(\)/.test(code) && /input\.addEventListener\('focus', maybePrompt\)/.test(code));
+t('modal nao abre se ja ha texto no campo (checa de novo apos a consulta assincrona)', (code.match(/input\.value\.trim\(\) !== ''/g) || []).length >= 2);
+t('"Agora nao"/Esc/fundo devolvem o foco ao campo; falha vinda do modal tambem', /modalBack = function \(\) \{\s*input\.focus\(\)/.test(code) && /addEventListener\('cancel'/.test(code) && /focusInputOnFail = true/.test(code));
 t('sem console.* (coordenadas nao vao para log)', !/console\./.test(code));
 t('sem analytics (dataLayer/gtag/fbq/ga/_paq)', !/dataLayer|gtag\(|fbq\(|\bga\(|_paq|sendBeacon/.test(code));
 t('sem XMLHttpRequest e um unico fetch', !/XMLHttpRequest/.test(code) && (code.match(/fetch\(/g) || []).length === 1);

@@ -219,6 +219,7 @@
 	var GEO_HASH = '#perto-de-mim';
 	var ASKED_KEY = 'contornoGeoAsked'; // so a flag "ja perguntei" — nunca a posicao.
 	var modalAccept = null;
+	var modalBack = null; // devolve o foco ao campo de busca (recusa, Esc ou fundo).
 
 	function wasAsked() {
 		try {
@@ -242,10 +243,29 @@
 		}
 		modal.dataset.contornoModalReady = '1';
 
+		// Devolve o foco ao campo uma unica vez (Esc, fundo, "Agora nao").
+		function giveBack() {
+			var back = modalBack;
+
+			modalBack = null;
+
+			if (back) {
+				back();
+			}
+		}
+
 		modal.addEventListener('click', function (event) {
 			if (event.target === modal) {
+				modalAccept = null;
 				modal.close('dismiss'); // clique no fundo escurecido.
+				giveBack();
 			}
+		});
+
+		// Esc: o navegador fecha o dialogo logo depois deste evento.
+		modal.addEventListener('cancel', function () {
+			modalAccept = null;
+			window.setTimeout(giveBack, 0);
 		});
 
 		Array.prototype.forEach.call(modal.querySelectorAll('[data-contorno-geo-modal-close]'), function (btn) {
@@ -258,7 +278,10 @@
 
 				// Direto no clique (nao no evento "close", assincrono): mantem o gesto do usuario.
 				if (choice === 'accept' && accept) {
+					modalBack = null;
 					accept();
+				} else {
+					giveBack(); // "Agora nao, prefiro digitar": foco no campo.
 				}
 			});
 		});
@@ -331,11 +354,20 @@
 			}
 		}
 
+		// Veio do modal: ao falhar, a busca manual ja fica pronta para digitar.
+		var focusInputOnFail = false;
+
 		function fail(message) {
 			state.busy = false;
 			paint();
 			say(message, true);
-			keepFocus();
+
+			if (focusInputOnFail) {
+				focusInputOnFail = false;
+				input.focus();
+			} else {
+				keepFocus();
+			}
 		}
 
 		/* ---- entradas da listagem (celula da grade + slide do carrossel) ---- */
@@ -822,7 +854,8 @@
 				state.busy ||
 				state.active ||
 				wasAsked() ||
-				!navigator.geolocation
+				!navigator.geolocation ||
+				input.value.trim() !== '' // ja esta digitando CEP, bairro ou cidade.
 			) {
 				return;
 			}
@@ -830,9 +863,22 @@
 			markAsked();
 
 			function open() {
+				// A consulta de permissao e assincrona: a pessoa pode ja ter comecado a digitar.
+				if (input.value.trim() !== '' || modal.open || state.busy || state.active) {
+					return;
+				}
+
 				wireModal(modal);
-				modalAccept = start;
+				modalAccept = function () {
+					focusInputOnFail = true;
+					start();
+				};
+				modalBack = function () {
+					input.focus();
+				};
 				modal.returnValue = '';
+				// Sem o teclado do celular aberto por baixo do modal.
+				input.blur();
 				modal.showModal();
 			}
 
