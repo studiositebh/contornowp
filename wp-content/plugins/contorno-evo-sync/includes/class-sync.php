@@ -454,11 +454,15 @@ final class Contorno_Evo_Sync {
 		return array( 'links' => $links, 'changes' => $changes );
 	}
 
-	/** Nome do contrato para comparar: sem acento, caixa ou espaco extra. */
+	/** Nome do contrato para comparar: sem acento, caixa, espaco extra nem "ASSINATURA". */
 	public static function family( string $name ): string {
 		$name = remove_accents( mb_strtolower( $name ) );
 
-		return trim( (string) preg_replace( '/[^a-z0-9]+/', ' ', $name ) );
+		$name = trim( (string) preg_replace( '/[^a-z0-9]+/', ' ', $name ) );
+
+		// nameMembership costuma ser "FIT" e displayName "ASSINATURA FIT": o
+		// prefixo nao distingue contratos.
+		return (string) preg_replace( '/^assinatura /', '', $name );
 	}
 
 	/**

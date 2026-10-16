@@ -148,6 +148,28 @@ check( 199.9 === (float) $out[2]['price'], 'Fit: o ativo (inativo de R$ 189,90 i
 check( ! in_array( 'Premium', array_column( $out, 'name' ), true ) && 3 === count( $out ), 'sem PREMIUM/COLABORADOR/GYMPASS' );
 check( array() === Contorno_Evo_Frontend::merge( array(), 98 ), 'unidade sem cards e sem sync: continua vazia' );
 
+// Lagoa da Prata (filial 69), nomes reais: nameMembership curto, sem "ASSINATURA".
+$lp = array(
+	6482 => m( 6482, 'FIT', 159.9 ),
+	6483 => m( 6483, 'SLIM', 139.9 ),
+	6547 => m( 6547, 'BLACK', 149.9 ),
+	6552 => m( 6552, 'BLACK - SEM FIDELIDADE', 149.9 ),
+	6553 => m( 6553, 'BLACK GRUPO VIP WHATSAPP - SEM FIDELIDADE', 139.9 ),
+	6523 => m( 6523, 'PERSONAL SLIM', 149.9 ),
+	6535 => m( 6535, 'PRIME', 279.9 ),
+);
+$GLOBALS['meta'][5][ CONTORNO_EVO_META_MEMBERSHIPS ] = json_encode( array_values( $lp ) );
+$out = Contorno_Evo_Frontend::merge( array(), 5 );
+check( array( 6547, 6483, 6482 ) === array_column( $out, 'evo_membership_id' ), 'nomes "BLACK/SLIM/FIT": Black 6547, Slim 6483, Fit 6482 (sem "sem fidelidade", "VIP", "PERSONAL")' );
+check( array( 'Black', 'Slim', 'Fit' ) === array_column( $out, 'name' ), 'nomes exibidos: Black, Slim, Fit' );
+// Nome interno curto com displayName "ASSINATURA ...": tambem casa.
+$dn = m( 7001, 'PLANO X', 99.9 );
+$dn['display_name'] = 'ASSINATURA SLIM';
+check( isset( Contorno_Evo_Frontend::standard( array( 7001 => $dn ) )['slim'] ), 'displayName "ASSINATURA SLIM" conta como Slim' );
+// Substituto com nomes curtos (nameMembership "FIT" nos dois).
+$r = Contorno_Evo_Sync::relink( array( array( 'id' => 'fit', 'checkout_url' => checkout( 61, 1 ) ) ), array(), array( 1 => m( 1, 'ASSINATURA FIT', 199.9, 'inactive' ), 2 => m( 2, 'FIT', 209.9 ) ) );
+check( 2 === ( $r['links']['fit'] ?? 0 ), '"ASSINATURA FIT" inativo -> "FIT" ativo' );
+
 check( 'CTN Slim' === Contorno_Evo_Frontend::pretty_name( 'ASSINATURA CTN SLIM ' ), 'nome de plano novo: "ASSINATURA CTN SLIM " -> "CTN Slim"' );
 check( 'Prime' === Contorno_Evo_Frontend::pretty_name( 'PRIME ' ), 'nome de plano novo: "PRIME " -> "Prime"' );
 

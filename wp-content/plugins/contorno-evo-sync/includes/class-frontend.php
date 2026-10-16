@@ -124,9 +124,9 @@ final class Contorno_Evo_Frontend {
 
 	/** Planos padrao da rede, na ordem dos cards. Nome da EVO normalizado. */
 	public const STANDARD = array(
-		'black' => 'assinatura black',
-		'slim'  => 'assinatura slim',
-		'fit'   => 'assinatura fit',
+		'black' => 'black',
+		'slim'  => 'slim',
+		'fit'   => 'fit',
 	);
 
 	/**
@@ -140,7 +140,8 @@ final class Contorno_Evo_Frontend {
 
 		foreach ( self::STANDARD as $key => $family ) {
 			foreach ( $memberships as $id => $m ) {
-				if ( 'active' !== ( $m['status'] ?? '' ) || (float) ( $m['value'] ?? 0 ) <= 0 || Contorno_Evo_Sync::family( (string) ( $m['name'] ?? '' ) ) !== $family ) {
+				$names = array( Contorno_Evo_Sync::family( (string) ( $m['name'] ?? '' ) ), Contorno_Evo_Sync::family( (string) ( $m['display_name'] ?? '' ) ) );
+				if ( 'active' !== ( $m['status'] ?? '' ) || (float) ( $m['value'] ?? 0 ) <= 0 || ! in_array( $family, $names, true ) ) {
 					continue;
 				}
 				$best = $out[ $key ] ?? null;
