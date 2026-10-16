@@ -297,7 +297,8 @@ contorno_add_shortcode(
 			);
 		}
 
-		$units = contorno_get_units( $query_args );
+		$units     = contorno_get_units( $query_args );
+		$all_count = count( $units );
 
 		// Busca por CEP (pipeline em includes/data/geo.php):
 		//   exact     -> distancia real (Haversine) e filtro pelo raio;
@@ -407,10 +408,10 @@ contorno_add_shortcode(
 		}
 		?>
 
-		<div class="contorno-units" data-contorno-units data-empty-text="<?php echo esc_attr( $empty_text ); ?>">
+		<div class="contorno-units" data-contorno-units data-total="<?php echo esc_attr( (string) $all_count ); ?>" data-all-rendered="<?php echo count( $units ) === $all_count ? '1' : '0'; ?>" data-empty-text="<?php echo esc_attr( $empty_text ); ?>">
 			<?php /* No catalogo a ordem e a do React: titulo, busca, contador/por pagina, grade. */ ?>
 			<?php if ( $is_catalog_mode && 'yes' === $a['show_search'] ) : ?>
-				<?php echo do_shortcode( '[contorno_units_search target="catalog"]' ); ?>
+				<?php echo do_shortcode( '[contorno_units_search target="catalog" gps="yes"]' ); ?>
 			<?php endif; ?>
 
 			<?php if ( $is_catalog_mode && ( $has_count || $has_per_page ) ) : ?>
@@ -454,7 +455,7 @@ contorno_add_shortcode(
 			<?php endif; ?>
 
 			<?php if ( ! $is_catalog_mode && 'yes' === $a['show_search'] ) : ?>
-				<?php echo do_shortcode( '[contorno_units_search target=""]' ); ?>
+				<?php echo do_shortcode( '[contorno_units_search target="" gps="yes"]' ); ?>
 			<?php endif; ?>
 
 			<?php if ( '' !== $geo_messages['notice'] ) : ?>
@@ -475,6 +476,7 @@ contorno_add_shortcode(
 								data-contorno-unit
 								data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 								data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
+								<?php echo contorno_unit_geo_attrs( $unit->ID ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- atributos escapados em contorno_unit_geo_attrs(). ?>
 							>
 								<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta, 'distance' => $distances[ $unit->ID ] ?? null, 'distance_approx' => $geo_approx ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</div>
@@ -496,6 +498,7 @@ contorno_add_shortcode(
 							data-contorno-unit
 							data-haystack="<?php echo esc_attr( contorno_unit_search_haystack( $unit->ID ) ); ?>"
 							data-postal="<?php echo esc_attr( contorno_unit_postal_digits( $unit->ID ) ); ?>"
+							<?php echo contorno_unit_geo_attrs( $unit->ID ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- atributos escapados em contorno_unit_geo_attrs(). ?>
 						>
 							<?php echo contorno_render_unit_card( $unit->ID, array( 'prescription' => 'yes' === $a['prescription'], 'dual_cta' => $has_dual_cta, 'distance' => $distances[ $unit->ID ] ?? null, 'distance_approx' => $geo_approx ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						</div>
@@ -551,6 +554,7 @@ contorno_add_shortcode(
 			array(
 				'placeholder' => '',
 				'target'      => '',
+				'gps'         => 'no',
 			),
 			(array) $atts,
 			'contorno_units_search'
@@ -564,7 +568,33 @@ contorno_add_shortcode(
 
 		$archive = (string) get_post_type_archive_link( CONTORNO_CPT_UNIT );
 
+		// "Usar minha localizacao": so em listagens (nunca no cartao do hero) e
+		// so quando o shortcode da listagem pede. Nada e enviado ao servidor.
+		$has_gps = 'yes' === $a['gps'] && 'hero' !== $a['target'];
+
+		$gps_i18n = array(
+			'idle'        => __( 'Usar minha localização', 'contorno' ),
+			'idleAria'    => __( 'Usar minha localização para ordenar as unidades da mais próxima para a mais distante', 'contorno' ),
+			'loading'     => __( 'Obtendo sua localização...', 'contorno' ),
+			'active'      => __( 'Localização atual ativada', 'contorno' ),
+			'activeAria'  => __( 'Localização atual ativada. Unidades ordenadas por distância', 'contorno' ),
+			'activeNote'  => __( 'Mostrando as unidades da mais próxima para a mais distante.', 'contorno' ),
+			'noCoords'    => __( 'Algumas unidades não têm localização cadastrada e aparecem ao final.', 'contorno' ),
+			'countOne'    => __( '1 unidade ordenada por distância', 'contorno' ),
+			'countMany'   => __( '%d unidades ordenadas por distância', 'contorno' ),
+			'distance'    => __( '%s de você', 'contorno' ),
+			'denied'      => __( 'Não foi possível acessar sua localização. Você pode buscar por CEP, bairro ou cidade.', 'contorno' ),
+			'unavailable' => __( 'Não conseguimos identificar sua localização agora. Tente buscar manualmente.', 'contorno' ),
+			'timeout'     => __( 'A localização demorou para responder. Tente novamente ou busque manualmente.', 'contorno' ),
+			'unsupported' => __( 'Seu navegador não permite usar a localização. Você pode buscar por CEP, bairro ou cidade.', 'contorno' ),
+			'loadError'   => __( 'Não conseguimos carregar todas as unidades agora. Tente buscar manualmente.', 'contorno' ),
+			'off'         => __( 'Voltar à busca manual', 'contorno' ),
+		);
+
 		ob_start();
+		if ( $has_gps ) {
+			echo '<div class="contorno-unit-search-wrap">';
+		}
 		?>
 		<div class="contorno-unit-search motion-search-wrap" data-contorno-unit-search data-target="<?php echo esc_attr( (string) $a['target'] ); ?>">
 			<?php echo contorno_icon( 'search', 'contorno-unit-search__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -601,6 +631,19 @@ contorno_add_shortcode(
 				</button>
 			<?php endif; ?>
 		</div>
+		<?php if ( $has_gps ) : ?>
+			<div class="contorno-unit-geo" data-contorno-unit-geo data-i18n="<?php echo esc_attr( (string) wp_json_encode( $gps_i18n ) ); ?>" hidden>
+				<div class="contorno-unit-geo__actions">
+					<button type="button" class="contorno-unit-geo__btn" data-contorno-unit-geo-btn aria-pressed="false" aria-label="<?php echo esc_attr( $gps_i18n['idleAria'] ); ?>">
+						<?php echo contorno_icon( 'locate', 'contorno-unit-geo__icon' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span data-contorno-unit-geo-label><?php echo esc_html( $gps_i18n['idle'] ); ?></span>
+					</button>
+					<button type="button" class="contorno-unit-geo__off" data-contorno-unit-geo-off hidden><?php echo esc_html( $gps_i18n['off'] ); ?></button>
+				</div>
+				<p class="contorno-unit-geo__status" role="status" aria-live="polite" data-contorno-unit-geo-status></p>
+			</div>
+			</div>
+		<?php endif; ?>
 		<?php
 
 		return (string) ob_get_clean();

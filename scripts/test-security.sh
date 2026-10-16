@@ -46,7 +46,7 @@ check_header 'X-Content-Type-Options' 'nosniff'
 check_header 'Referrer-Policy'        'strict-origin-when-cross-origin'
 check_header 'X-Frame-Options'        'SAMEORIGIN'
 check_header 'Content-Security-Policy' "frame-ancestors 'self'"
-check_header 'Permissions-Policy'     'geolocation=()'
+check_header 'Permissions-Policy'     'geolocation=(self)'
 check_header 'Strict-Transport-Security' 'max-age='
 
 # ---------------------------------------------------------------------------
@@ -170,7 +170,7 @@ for alvo in "/wp-login.php" "/wp-admin/"; do
 
 	for par in "X-Frame-Options:SAMEORIGIN" "Content-Security-Policy:frame-ancestors" \
 	           "X-Content-Type-Options:nosniff" "Referrer-Policy:strict-origin" \
-	           "Permissions-Policy:geolocation=()" "Strict-Transport-Security:max-age="; do
+	           "Permissions-Policy:geolocation=(self)" "Strict-Transport-Security:max-age="; do
 		nome="${par%%:*}"
 		esperado="${par#*:}"
 		if grep -iq "^$nome:.*$esperado" <<<"$h"; then

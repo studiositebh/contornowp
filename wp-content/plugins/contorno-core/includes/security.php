@@ -48,9 +48,12 @@ function contorno_security_headers(): array {
 		'X-Frame-Options'         => 'SAMEORIGIN',
 		'Content-Security-Policy' => "frame-ancestors 'self'",
 
-		// O site nao usa nenhum destes. fullscreen fica de fora da lista
-		// porque os iframes de video e da agenda EVO dependem dele.
-		'Permissions-Policy'      => 'geolocation=(), camera=(), microphone=(), payment=(), usb=(), magnetometer=(), gyroscope=()',
+		// O site nao usa nenhum destes, exceto geolocalizacao: so a PROPRIA
+		// origem pode pedi-la (botao "Usar minha localizacao" na busca de
+		// unidades); iframes de terceiros continuam sem acesso. fullscreen
+		// fica de fora da lista porque os iframes de video e da agenda EVO
+		// dependem dele.
+		'Permissions-Policy'      => 'geolocation=(self), camera=(), microphone=(), payment=(), usb=(), magnetometer=(), gyroscope=()',
 	);
 }
 

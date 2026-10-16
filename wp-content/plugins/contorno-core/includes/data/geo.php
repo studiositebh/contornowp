@@ -80,6 +80,27 @@ function contorno_unit_coords( int $post_id ): ?array {
 }
 
 /**
+ * Atributos data-* (ja escapados) que entregam ao JS da busca por GPS apenas
+ * id, slug e coordenadas da unidade — dado publico. Sem coordenadas validas
+ * devolve so id/slug e a unidade fica fora da ordenacao por proximidade.
+ */
+function contorno_unit_geo_attrs( int $post_id ): string {
+	$attrs = sprintf(
+		' data-unit-id="%d" data-slug="%s"',
+		$post_id,
+		esc_attr( (string) get_post_field( 'post_name', $post_id ) )
+	);
+
+	$coords = contorno_unit_coords( $post_id );
+
+	if ( null !== $coords && abs( $coords[0] ) <= 90.0 && abs( $coords[1] ) <= 180.0 ) {
+		$attrs .= sprintf( ' data-lat="%s" data-lng="%s"', esc_attr( (string) $coords[0] ), esc_attr( (string) $coords[1] ) );
+	}
+
+	return $attrs;
+}
+
+/**
  * Distancia em km em linha reta (Haversine).
  */
 function contorno_distance_km( float $lat1, float $lng1, float $lat2, float $lng2 ): float {

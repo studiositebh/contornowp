@@ -93,6 +93,157 @@
 	cursor: pointer;
 }
 
+/* "Usar minha localizacao": botao + status logo abaixo do campo de busca. */
+.contorno-unit-search-wrap {
+	margin-bottom: var(--space-8, 2rem);
+	max-width: 34rem;
+}
+
+.units-section--archive .contorno-unit-search-wrap {
+	max-width: 48rem;
+}
+
+/* A margem e o limite de largura passam para o wrapper. */
+.contorno-units .contorno-unit-search-wrap > .contorno-unit-search[data-contorno-unit-search] {
+	margin-bottom: 0;
+	max-width: none;
+}
+
+.contorno-unit-geo {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--space-2, 0.5rem);
+	margin-top: var(--space-3, 0.75rem);
+}
+
+.contorno-unit-geo[hidden],
+.contorno-unit-geo__off[hidden],
+.contorno-units__pagination[hidden],
+.contorno-units__notice[hidden],
+.contorno-units__per-page[hidden],
+.unit-card__distance[hidden] {
+	display: none !important;
+}
+
+.contorno-unit-geo__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-3, 0.75rem);
+	max-width: 100%;
+}
+
+.contorno-unit-geo__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	min-height: 2.75rem;
+	max-width: 100%;
+	padding: 0.5rem 1.1rem;
+	border: 1px solid rgb(16 184 177 / 0.45);
+	border-radius: var(--radius-full, 999px);
+	background: var(--card, #fff);
+	color: #087a74;
+	font: inherit;
+	font-size: var(--text-sm, 0.875rem);
+	font-weight: 600;
+	line-height: 1.25;
+	cursor: pointer;
+	transition:
+		background-color 220ms var(--motion-ease, ease),
+		border-color 220ms var(--motion-ease, ease);
+}
+
+.contorno-unit-geo__btn:hover:not([disabled]) {
+	background: rgb(16 184 177 / 0.08);
+	border-color: var(--brand, #10b8b1);
+}
+
+.contorno-unit-geo__btn:focus-visible,
+.contorno-unit-geo__off:focus-visible {
+	outline: 2px solid var(--brand, #10b8b1);
+	outline-offset: 2px;
+}
+
+.contorno-unit-geo__btn[disabled] {
+	cursor: progress;
+	opacity: 0.75;
+}
+
+.contorno-unit-geo__btn.is-active {
+	background: rgb(16 184 177 / 0.12);
+	border-color: var(--brand, #10b8b1);
+	cursor: default;
+}
+
+.contorno-unit-geo__icon {
+	width: 1.15rem;
+	height: 1.15rem;
+	flex: none;
+}
+
+.contorno-unit-geo__btn.is-loading .contorno-unit-geo__icon {
+	animation: contorno-unit-geo-pulse 1s ease-in-out infinite;
+}
+
+@keyframes contorno-unit-geo-pulse {
+	50% {
+		opacity: 0.35;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.contorno-unit-geo__btn.is-loading .contorno-unit-geo__icon {
+		animation: none;
+	}
+}
+
+.contorno-unit-geo__off {
+	min-height: 2.75rem;
+	padding: 0.25rem 0.5rem;
+	border: 0;
+	background: transparent;
+	color: #5d5c61;
+	font: inherit;
+	font-size: var(--text-sm, 0.875rem);
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.contorno-unit-geo__status {
+	margin: 0;
+	color: #5d5c61;
+	font-size: var(--text-sm, 0.875rem);
+}
+
+.contorno-unit-geo__status:empty {
+	display: none;
+}
+
+.contorno-unit-geo__status.is-error {
+	color: #b3261e;
+}
+
+/* Celular: o botao ocupa a largura toda — alvo de toque grande. */
+@media (max-width: 639px) {
+	.contorno-unit-geo,
+	.contorno-unit-geo__actions {
+		align-items: stretch;
+		width: 100%;
+	}
+
+	.contorno-unit-geo__btn {
+		width: 100%;
+		min-height: 3rem;
+	}
+
+	.contorno-unit-geo__off {
+		align-self: center;
+	}
+}
+
 /* ====================================================================
  * Listagem de unidades
  * ================================================================== */
