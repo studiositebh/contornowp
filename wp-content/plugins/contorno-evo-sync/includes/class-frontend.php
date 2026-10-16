@@ -83,6 +83,24 @@ final class Contorno_Evo_Frontend {
 			$out[] = self::apply( $plan, $m );
 		}
 
+		// Unidade sem nenhum card cadastrado (unidade nova): mostra os planos
+		// padrao da rede que estiverem ativos na filial, no lugar de pagina
+		// sem plano. Contratos internos nunca entram.
+		if ( array() === $out && array() === $local ) {
+			foreach ( self::standard( $memberships ) as $key => $m ) {
+				$out[] = self::apply(
+					array(
+						'id'       => 'evo-' . $key,
+						'name'     => '',
+						'benefits' => (array) ( $m['differentials'] ?? array() ),
+						'badge'    => '',
+						'featured' => 'black' === $key ? '1' : '',
+					),
+					$m
+				);
+			}
+		}
+
 		if ( $add_new ) {
 			foreach ( $memberships as $id => $m ) {
 				if ( isset( $used[ $id ] ) || 'active' !== ( $m['status'] ?? 'active' ) ) {
@@ -98,6 +116,37 @@ final class Contorno_Evo_Frontend {
 					),
 					$m
 				);
+			}
+		}
+
+		return $out;
+	}
+
+	/** Planos padrao da rede, na ordem dos cards. Nome da EVO normalizado. */
+	public const STANDARD = array(
+		'black' => 'assinatura black',
+		'slim'  => 'assinatura slim',
+		'fit'   => 'assinatura fit',
+	);
+
+	/**
+	 * O contrato ativo mais recente de cada plano padrao presente na filial.
+	 *
+	 * @param array<int,array<string,mixed>> $memberships
+	 * @return array<string,array<string,mixed>>
+	 */
+	public static function standard( array $memberships ): array {
+		$out = array();
+
+		foreach ( self::STANDARD as $key => $family ) {
+			foreach ( $memberships as $id => $m ) {
+				if ( 'active' !== ( $m['status'] ?? '' ) || (float) ( $m['value'] ?? 0 ) <= 0 || Contorno_Evo_Sync::family( (string) ( $m['name'] ?? '' ) ) !== $family ) {
+					continue;
+				}
+				$best = $out[ $key ] ?? null;
+				if ( null === $best || array( (string) ( $m['update_date'] ?? '' ), (int) $id ) > array( (string) ( $best['update_date'] ?? '' ), (int) ( $best['id_membership'] ?? 0 ) ) ) {
+					$out[ $key ] = $m;
+				}
 			}
 		}
 

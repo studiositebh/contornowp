@@ -87,6 +87,17 @@ final class Contorno_Evo_Checkout {
 			}
 		}
 
+		// Unidade sem cards: o site mostra os planos padrao da EVO (evo-black,
+		// evo-slim, evo-fit; ver Contorno_Evo_Frontend::standard). O mesmo
+		// contrato que a pagina exibiu e o que se vende.
+		if ( null === $plan && str_starts_with( $plan_id, 'evo-' ) && array() === Contorno_Evo_Mapping::local_plans( $post->ID ) ) {
+			$standard = Contorno_Evo_Frontend::standard( Contorno_Evo_Sync::stored( $post->ID ) );
+			$key      = substr( $plan_id, 4 );
+			if ( isset( $standard[ $key ] ) ) {
+				$plan = array( 'id' => $plan_id, 'evo_membership_id' => (int) $standard[ $key ]['id_membership'] );
+			}
+		}
+
 		if ( null === $plan ) {
 			return $fail( 'plano_invalido' );
 		}

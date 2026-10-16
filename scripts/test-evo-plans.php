@@ -138,6 +138,16 @@ $GLOBALS['opt']['contorno_evo_settings'] = array( 'add_new_plans' => true );
 check( 3 === count( Contorno_Evo_Frontend::merge( $local, 1 ) ), 'add_new_plans antigo (true no banco) e ignorado' );
 unset( $GLOBALS['opt']['contorno_evo_settings'] );
 
+// Unidade nova sem nenhum card (Lagoa da Prata, Campos de Ourique).
+$GLOBALS['meta'][4][ CONTORNO_EVO_META_MEMBERSHIPS ] = json_encode( array_values( $barbacena + array( 7000 => m( 7000, 'ASSINATURA FIT', 189.9, 'inactive' ) ) ) );
+$out = Contorno_Evo_Frontend::merge( array(), 4 );
+check( array( 'Black', 'Slim', 'Fit' ) === array_column( $out, 'name' ), 'unidade sem cards: Black, Slim e Fit da EVO, nessa ordem' );
+check( array( 'evo-black', 'evo-slim', 'evo-fit' ) === array_column( $out, 'id' ), 'ids estaveis para a matricula (evo-black...)' );
+check( 6564 === $out[0]['evo_membership_id'], 'Black: dois ativos sem data -> o mais novo (maior id)' );
+check( 199.9 === (float) $out[2]['price'], 'Fit: o ativo (inativo de R$ 189,90 ignorado)' );
+check( ! in_array( 'Premium', array_column( $out, 'name' ), true ) && 3 === count( $out ), 'sem PREMIUM/COLABORADOR/GYMPASS' );
+check( array() === Contorno_Evo_Frontend::merge( array(), 98 ), 'unidade sem cards e sem sync: continua vazia' );
+
 check( 'CTN Slim' === Contorno_Evo_Frontend::pretty_name( 'ASSINATURA CTN SLIM ' ), 'nome de plano novo: "ASSINATURA CTN SLIM " -> "CTN Slim"' );
 check( 'Prime' === Contorno_Evo_Frontend::pretty_name( 'PRIME ' ), 'nome de plano novo: "PRIME " -> "Prime"' );
 
