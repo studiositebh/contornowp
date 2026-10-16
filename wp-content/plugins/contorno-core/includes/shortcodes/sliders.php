@@ -92,7 +92,7 @@ function contorno_render_slider_search_overlay( string $title ): string {
 	return sprintf(
 		'<div class="contorno-hero__search-outer"><div class="site-container"><div class="contorno-hero__search-card" role="search"><p class="contorno-hero__search-title">%s</p>%s</div></div></div>',
 		esc_html( $title ),
-		do_shortcode( '[contorno_units_search target="hero" placeholder="Digite o CEP, bairro ou cidade"]' )
+		do_shortcode( '[contorno_units_search target="hero" gps="yes" placeholder="Digite o CEP, bairro ou cidade"]' )
 	);
 }
 

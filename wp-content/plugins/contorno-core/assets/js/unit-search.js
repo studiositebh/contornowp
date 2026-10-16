@@ -216,15 +216,58 @@
 		return text;
 	}
 
+	var GEO_HASH = '#perto-de-mim';
+	var ASKED_KEY = 'contornoGeoAsked'; // so a flag "ja perguntei" — nunca a posicao.
+	var modalAccept = null;
+
+	function wasAsked() {
+		try {
+			return window.sessionStorage.getItem(ASKED_KEY) === '1';
+		} catch (e) {
+			return false;
+		}
+	}
+
+	function markAsked() {
+		try {
+			window.sessionStorage.setItem(ASKED_KEY, '1');
+		} catch (e) {
+			// Sem storage o modal pode reaparecer em outra pagina; nada mais depende disso.
+		}
+	}
+
+	function wireModal(modal) {
+		if (modal.dataset.contornoModalReady === '1') {
+			return;
+		}
+		modal.dataset.contornoModalReady = '1';
+
+		modal.addEventListener('click', function (event) {
+			if (event.target === modal) {
+				modal.close('dismiss'); // clique no fundo escurecido.
+			}
+		});
+
+		Array.prototype.forEach.call(modal.querySelectorAll('[data-contorno-geo-modal-close]'), function (btn) {
+			btn.addEventListener('click', function () {
+				var choice = btn.getAttribute('data-contorno-geo-modal-close');
+				var accept = modalAccept;
+
+				modalAccept = null;
+				modal.close(choice);
+
+				// Direto no clique (nao no evento "close", assincrono): mantem o gesto do usuario.
+				if (choice === 'accept' && accept) {
+					accept();
+				}
+			});
+		});
+	}
+
 	function setupGeo(root, input, container, hooks) {
 		var geo = root.nextElementSibling;
 
 		if (!geo || !geo.hasAttribute('data-contorno-unit-geo')) {
-			return null;
-		}
-
-		// Sem listagem para reordenar (campo solto na pagina): o recurso nao se aplica.
-		if (!container) {
 			return null;
 		}
 
@@ -239,10 +282,13 @@
 
 		var text = readText(geo);
 		var isCatalog = root.dataset.target === 'catalog';
-		var grid = container.querySelector('.contorno-units__grid');
-		var track = container.querySelector('[data-contorno-carousel-track]');
+		// Sem listagem na pagina (busca do hero da Home): a permissao e pedida aqui e
+		// a ordenacao acontece em /unidades, aberta com #perto-de-mim (sem posicao na URL).
+		var redirectMode = !container;
+		var grid = container ? container.querySelector('.contorno-units__grid') : null;
+		var track = container ? container.querySelector('[data-contorno-carousel-track]') : null;
 
-		var state = { active: false, busy: false, token: 0 };
+		var state ={ active: false, busy: false, token: 0 };
 		var snapshot = null; // estado original da listagem, para "voltar a busca manual".
 		var inserted = []; // blocos criados pelo JS (listagem que chegou vazia).
 		var createdLists = false;
@@ -658,7 +704,12 @@
 				return;
 			}
 
-			var needsFetch = isCatalog && (container.getAttribute('data-all-rendered') !== '1' || !grid);
+			if (redirectMode) {
+				window.location.href = (input.dataset.archive || '/unidades/') + GEO_HASH;
+				return;
+			}
+
+			var needsFetch =isCatalog && (container.getAttribute('data-all-rendered') !== '1' || !grid);
 			var ready = needsFetch
 				? loadFetchedPool().then(function (pool) {
 						ensureLists(pool.blocks);
@@ -698,10 +749,12 @@
 			fail(code === 1 ? text.denied : code === 3 ? text.timeout : text.unavailable);
 		}
 
-		button.addEventListener('click', function () {
+		function start() {
 			if (state.busy || state.active) {
 				return;
 			}
+
+			markAsked();
 
 			if (!('geolocation' in navigator) || !navigator.geolocation) {
 				say(text.unsupported, true);
@@ -736,13 +789,78 @@
 			} catch (e) {
 				fail(text.unavailable);
 			}
-		});
+		}
+
+		button.addEventListener('click', start);
 
 		if (off) {
 			off.addEventListener('click', deactivate);
 		}
 
+		// Voltar pelo historico (bfcache) com o botao preso em "Obtendo...".
+		window.addEventListener('pageshow', function (event) {
+			if (event.persisted && state.busy) {
+				state.token += 1;
+				state.busy = false;
+				paint();
+				say('', false);
+			}
+		});
+
+		/*
+		 * Modal de contexto ao COMECAR a buscar (foco no campo): uma vez por
+		 * sessao e so quando o navegador ainda nao decidiu a permissao. Nunca
+		 * ao abrir o site, nunca repetido apos "Agora nao" ou negativa.
+		 */
+		var modal = document.querySelector('[data-contorno-geo-modal]');
+
+		function maybePrompt() {
+			if (
+				!modal ||
+				typeof modal.showModal !== 'function' ||
+				modal.open ||
+				state.busy ||
+				state.active ||
+				wasAsked() ||
+				!navigator.geolocation
+			) {
+				return;
+			}
+
+			markAsked();
+
+			function open() {
+				wireModal(modal);
+				modalAccept = start;
+				modal.returnValue = '';
+				modal.showModal();
+			}
+
+			if (navigator.permissions && navigator.permissions.query) {
+				navigator.permissions.query({ name: 'geolocation' }).then(
+					function (permission) {
+						if (permission.state === 'prompt') {
+							open();
+						}
+					},
+					open
+				);
+			} else {
+				open();
+			}
+		}
+
+		input.addEventListener('focus', maybePrompt);
+
 		paint();
+
+		// Chegada de /unidades#perto-de-mim: a pessoa ja pediu a localizacao na Home.
+		if (!redirectMode && window.location.hash === GEO_HASH) {
+			if (window.history && window.history.replaceState) {
+				window.history.replaceState(null, '', window.location.pathname + window.location.search);
+			}
+			start();
+		}
 
 		return {
 			isActive: function () {

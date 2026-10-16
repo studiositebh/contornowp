@@ -244,6 +244,107 @@
 	}
 }
 
+/* Hero da Home: o wrapper nao ganha margem/limite proprios. */
+.contorno-hero__search-card .contorno-unit-search-wrap {
+	max-width: none;
+	margin: 0;
+}
+
+/* Modal "Encontre a unidade mais perto de voce" (ao comecar a buscar). */
+.contorno-geo-modal {
+	width: min(26rem, calc(100vw - 2rem));
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-xl, 1rem);
+	background: var(--card, #fff);
+	color: var(--foreground, #111);
+	box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.45);
+}
+
+.contorno-geo-modal::backdrop {
+	background: rgb(0 0 0 / 0.55);
+}
+
+.contorno-geo-modal__box {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-3, 0.75rem);
+	padding: 2rem 1.5rem 1.5rem;
+	text-align: center;
+}
+
+.contorno-geo-modal__icon {
+	display: grid;
+	place-items: center;
+	width: 3.5rem;
+	height: 3.5rem;
+	border-radius: 50%;
+	background: rgb(16 184 177 / 0.12);
+	color: #087a74;
+}
+
+.contorno-geo-modal__svg {
+	width: 1.75rem;
+	height: 1.75rem;
+}
+
+.contorno-geo-modal__title {
+	margin: 0;
+	font-size: var(--text-xl, 1.25rem);
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.contorno-geo-modal__text {
+	margin: 0;
+	color: #5d5c61;
+	font-size: var(--text-sm, 0.875rem);
+	line-height: 1.5;
+}
+
+.contorno-geo-modal__actions {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2, 0.5rem);
+	width: 100%;
+	margin-top: var(--space-2, 0.5rem);
+}
+
+.contorno-geo-modal__accept,
+.contorno-geo-modal__decline {
+	min-height: 3rem;
+	padding: 0.6rem 1.25rem;
+	border-radius: var(--radius-full, 999px);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.contorno-geo-modal__accept {
+	border: 0;
+	background: var(--brand, #10b8b1);
+	color: #00201f;
+}
+
+.contorno-geo-modal__accept:hover {
+	filter: brightness(0.95);
+}
+
+.contorno-geo-modal__decline {
+	border: 0;
+	background: transparent;
+	color: #5d5c61;
+	font-weight: 500;
+	text-decoration: underline;
+}
+
+.contorno-geo-modal__accept:focus-visible,
+.contorno-geo-modal__decline:focus-visible {
+	outline: 2px solid var(--brand, #10b8b1);
+	outline-offset: 2px;
+}
+
 /* ====================================================================
  * Listagem de unidades
  * ================================================================== */

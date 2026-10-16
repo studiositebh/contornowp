@@ -568,9 +568,11 @@ contorno_add_shortcode(
 
 		$archive = (string) get_post_type_archive_link( CONTORNO_CPT_UNIT );
 
-		// "Usar minha localizacao": so em listagens (nunca no cartao do hero) e
-		// so quando o shortcode da listagem pede. Nada e enviado ao servidor.
-		$has_gps = 'yes' === $a['gps'] && 'hero' !== $a['target'];
+		// "Usar minha localizacao": so quando o shortcode pede (listagens e hero da
+		// Home). No hero o JS so pede a permissao e abre /unidades#perto-de-mim;
+		// a ordenacao acontece la, no navegador. Nada e enviado ao servidor.
+		$has_gps = 'yes' === $a['gps'];
+		static $modal_printed = false;
 
 		$gps_i18n = array(
 			'idle'        => __( 'Usar minha localização', 'contorno' ),
@@ -643,6 +645,21 @@ contorno_add_shortcode(
 				<p class="contorno-unit-geo__status" role="status" aria-live="polite" data-contorno-unit-geo-status></p>
 			</div>
 			</div>
+			<?php if ( ! $modal_printed ) : ?>
+				<?php $modal_printed = true; ?>
+				<?php /* Aparece so ao comecar a buscar (foco no campo), uma vez por sessao; ver unit-search.js. */ ?>
+				<dialog class="contorno-geo-modal" data-contorno-geo-modal aria-labelledby="contorno-geo-modal-title" aria-describedby="contorno-geo-modal-text">
+					<div class="contorno-geo-modal__box">
+						<span class="contorno-geo-modal__icon"><?php echo contorno_icon( 'locate', 'contorno-geo-modal__svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+						<h2 class="contorno-geo-modal__title" id="contorno-geo-modal-title"><?php esc_html_e( 'Encontre a unidade mais perto de você', 'contorno' ); ?></h2>
+						<p class="contorno-geo-modal__text" id="contorno-geo-modal-text"><?php esc_html_e( 'Permita o acesso à sua localização para mostrarmos as unidades mais próximas, com a distância até cada uma. Usamos só para isso: sua posição não é salva nem enviada.', 'contorno' ); ?></p>
+						<div class="contorno-geo-modal__actions">
+							<button type="button" class="contorno-geo-modal__accept" data-contorno-geo-modal-close="accept"><?php esc_html_e( 'Usar minha localização', 'contorno' ); ?></button>
+							<button type="button" class="contorno-geo-modal__decline" data-contorno-geo-modal-close="decline"><?php esc_html_e( 'Agora não, prefiro digitar', 'contorno' ); ?></button>
+						</div>
+					</div>
+				</dialog>
+			<?php endif; ?>
 		<?php endif; ?>
 		<?php
 

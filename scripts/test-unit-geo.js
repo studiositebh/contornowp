@@ -114,11 +114,14 @@ t('todas sem coordenada mantem a ordem', geo.sortByDistance([{ coords: null, ind
 
 console.log('Privacidade e dependencias');
 const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-t('sem localStorage/sessionStorage/indexedDB/cookie', !/localStorage|sessionStorage|indexedDB|document\.cookie/.test(code));
+t('sem localStorage/indexedDB/cookie', !/localStorage|indexedDB|document.cookie/.test(code));
+t('sessionStorage so guarda a flag "ja perguntei" (nunca a posicao)', (code.match(/sessionStorage/g) || []).length === 2 && /setItem\(ASKED_KEY, '1'\)/.test(code));
+t('posicao nao vai para a URL: so #perto-de-mim', /GEO_HASH = '#perto-de-mim'/.test(code) && /archive \|\| '\/unidades\/'\) \+ GEO_HASH/.test(code));
+t('modal so abre com permissao indecisa, uma vez por sessao, ao focar o campo', /permission\.state === 'prompt'/.test(code) && /wasAsked\(\)/.test(code) && /input\.addEventListener\('focus', maybePrompt\)/.test(code));
 t('sem console.* (coordenadas nao vao para log)', !/console\./.test(code));
 t('sem analytics (dataLayer/gtag/fbq/ga/_paq)', !/dataLayer|gtag\(|fbq\(|\bga\(|_paq|sendBeacon/.test(code));
 t('sem XMLHttpRequest e um unico fetch', !/XMLHttpRequest/.test(code) && (code.match(/fetch\(/g) || []).length === 1);
-t('sem Google Maps / Places / Distance Matrix / geocoder', !/google|maps\.|places|distancematrix|geocod/i.test(code));
+t('sem Google Maps / Places / Distance Matrix / geocoder', !/google|maps\.|\bplaces\b|distancematrix|geocod/i.test(code));
 t('fetch so leva a URL da listagem (sem lat/lng)', /fetch\(listUrl\(page\)/.test(code));
 t('listUrl nao recebe posicao', /function listUrl\(page\)/.test(code));
 t('usa navigator.geolocation.getCurrentPosition', /navigator\.geolocation\.getCurrentPosition/.test(code));
@@ -130,7 +133,11 @@ t('Permissions-Policy: geolocation=(self)', /'Permissions-Policy'\s*=>\s*'geoloc
 
 const units = fs.readFileSync(path.join(plugin, 'includes', 'shortcodes', 'units.php'), 'utf8');
 t('botao e <button type="button"> com aria-label e status aria-live', /<button type="button" class="contorno-unit-geo__btn"[^>]*aria-label=/.test(units) && /role="status" aria-live="polite"/.test(units));
-t('GPS desligado por padrao e ausente no hero', /'gps'\s*=>\s*'no'/.test(units) && /'hero' !== \$a\['target'\]/.test(units));
+t('GPS desligado por padrao e ligado no hero/listagens', /'gps'\s*=>\s*'no'/.test(units));
+const sliders = fs.readFileSync(path.join(plugin, 'includes', 'shortcodes', 'sliders.php'), 'utf8');
+const institutional = fs.readFileSync(path.join(plugin, 'includes', 'shortcodes', 'institutional.php'), 'utf8');
+t('hero da Home (slider e hero institucional) tem GPS', /target="hero" gps="yes"/.test(sliders) && /target="hero" gps="yes"/.test(institutional));
+t('modal e <dialog> acessivel, impresso uma vez', /<dialog class="contorno-geo-modal"[^>]*aria-labelledby/.test(units) && /static \$modal_printed/.test(units));
 t('o servidor nao le coordenadas do visitante', !/\$_(GET|POST|REQUEST)\[\s*'(lat|lng|latitude|longitude)'/.test(units));
 
 console.log('\n' + ok + ' ok, ' + fail + ' falhas');
