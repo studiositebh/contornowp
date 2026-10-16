@@ -124,6 +124,14 @@ final class Contorno_Evo_Admin {
 
 		$dry_run = ! empty( $_POST['dry_run'] );
 		$post_id = (int) ( $_POST['post_id'] ?? 0 );
+
+		// A rede inteira (~330 GETs, ~9 min) nao cabe numa requisicao: o botao
+		// recomeca o rodizio do cron, que sincroniza em lotes de 5 em 5 min.
+		if ( ! $dry_run && 0 === $post_id ) {
+			Contorno_Evo_Cron::start_cycle();
+			self::redirect( self::PAGE_MAIN, array( 'notice' => 'queued' ) );
+		}
+
 		$summary = Contorno_Evo_Sync::run( array( 'dry_run' => $dry_run, 'post_id' => $post_id, 'trigger' => 'admin' ) );
 
 		set_transient( 'contorno_evo_last_result_' . get_current_user_id(), $summary, 10 * MINUTE_IN_SECONDS );
@@ -226,6 +234,7 @@ final class Contorno_Evo_Admin {
 			'token_cleared'   => array( 'warning', __( 'Token removido.', 'contorno-evo' ) ),
 			'token_failed'    => array( 'error', __( 'Não foi possível proteger o token: nem libsodium nem OpenSSL estão disponíveis no PHP.', 'contorno-evo' ) ),
 			'synced'          => array( 'success', __( 'Sincronização executada.', 'contorno-evo' ) ),
+			'queued'          => array( 'success', __( 'Sincronização iniciada em lotes: todas as unidades são atualizadas ao longo do intervalo configurado (o primeiro lote roda agora).', 'contorno-evo' ) ),
 			'dry_run'         => array( 'info', __( 'Simulação concluída — nada foi gravado.', 'contorno-evo' ) ),
 			'mapped'          => array( 'success', __( 'Vínculos de filial salvos.', 'contorno-evo' ) ),
 			'rolled_back'     => array( 'warning', __( 'Unidade restaurada para a versão anterior.', 'contorno-evo' ) ),

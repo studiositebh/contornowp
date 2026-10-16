@@ -94,6 +94,13 @@ final class Contorno_Evo_Cron {
 		wp_schedule_event( time() + MINUTE_IN_SECONDS, self::SCHEDULE, CONTORNO_EVO_CRON_HOOK );
 	}
 
+	/** Recomeca o rodizio do inicio e roda o primeiro lote ja. */
+	public static function start_cycle(): void {
+		update_option( self::OPT_CURSOR, 0, false );
+		wp_schedule_single_event( time(), CONTORNO_EVO_CRON_HOOK );
+		self::ensure();
+	}
+
 	public static function unschedule(): void {
 		$timestamp = wp_next_scheduled( CONTORNO_EVO_CRON_HOOK );
 

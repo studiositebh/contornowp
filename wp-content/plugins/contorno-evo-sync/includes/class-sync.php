@@ -114,6 +114,13 @@ final class Contorno_Evo_Sync {
 			$mode      = (string) ( $args['fetch_mode'] ?? Contorno_Evo_Settings::get( 'fetch_mode', 'auto' ) );
 			$global_ok = false;
 
+			// Poucas unidades (botao por unidade, --branch, lote do cron): o
+			// global pagina o catalogo da rede inteira (~360 paginas com a chave
+			// multi-filial, ~10 min) para usar meia duzia de filiais.
+			if ( 'auto' === $mode && count( $targets ) <= 10 ) {
+				$mode = 'per-branch';
+			}
+
 			if ( 'per-branch' !== $mode ) {
 				$global = $client->memberships( null );
 				$summary['requests'] += $global['pages'];
