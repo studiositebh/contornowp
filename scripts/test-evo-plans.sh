@@ -23,6 +23,11 @@ if grep -rq "'add_new_plans'" "$EVO/includes"; then
 	fail=1
 fi
 
+if ! grep -q 'array() === $items && array() !== self::stored' "$EVO/includes/class-sync.php"; then
+	echo "  [FALHOU]   resposta vazia da EVO nao pode apagar os planos da unidade" >&2
+	fail=1
+fi
+
 "$PHP_BIN" "$SCRIPT_DIR/test-evo-plans.php" "$EVO" || fail=1
 
 exit $fail

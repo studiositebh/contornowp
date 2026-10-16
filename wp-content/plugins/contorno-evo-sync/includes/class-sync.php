@@ -186,6 +186,17 @@ final class Contorno_Evo_Sync {
 				// garante que so os da filial vinculada entrem.
 				$items = array_values( array_filter( $items, static fn ( array $i ): bool => (int) ( $i['idBranch'] ?? $branch ) === $branch ) );
 
+				// Lista vazia para uma filial que tinha contratos: no staging a EVO
+				// devolveu 200 sem itens uma vez (Rua Carangola). Reconciliar isso
+				// marcaria tudo como ausente e tiraria os planos do site.
+				if ( array() === $items && array() !== self::stored( $post->ID ) ) {
+					++$summary['errors'];
+					$message = __( 'EVO devolveu a filial sem nenhum contrato; unidade mantida como estava.', 'contorno-evo' );
+					self::log( 'warning', $message, array( 'action' => 'fetch', 'unit' => $post->post_name, 'id_branch' => $branch ), $dry_run );
+					$summary['messages'][] = sprintf( '%s: %s', $post->post_title, $message );
+					continue;
+				}
+
 				$result = self::reconcile( $post->ID, $branch, $items, $dry_run );
 
 				$summary['received']  += $result['received'];
