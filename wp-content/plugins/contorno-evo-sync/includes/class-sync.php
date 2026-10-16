@@ -32,7 +32,7 @@ final class Contorno_Evo_Sync {
 	private const COMPARE = array( 'name', 'display_name', 'value', 'description', 'url_sale', 'duration', 'duration_type', 'max_installments', 'inactive', 'promo_value', 'promo_months', 'promo_days', 'promo_installments', 'promo_type', 'differentials', 'external_sale' );
 
 	/**
-	 * @param array{dry_run?:bool,branch?:int,post_id?:int,trigger?:string} $args
+	 * @param array{dry_run?:bool,branch?:int,post_id?:int,post_ids?:int[],fetch_mode?:string,trigger?:string} $args
 	 * @return array<string,mixed> resumo + diffs
 	 */
 	public static function run( array $args = array() ): array {
@@ -40,6 +40,7 @@ final class Contorno_Evo_Sync {
 		$trigger = (string) ( $args['trigger'] ?? 'manual' );
 		$only_branch = (int) ( $args['branch'] ?? 0 );
 		$only_post   = (int) ( $args['post_id'] ?? 0 );
+		$only_posts  = array_map( 'intval', (array) ( $args['post_ids'] ?? array() ) );
 
 		$summary = array(
 			'dry_run'    => $dry_run,
@@ -80,6 +81,9 @@ final class Contorno_Evo_Sync {
 				if ( $only_post > 0 && $post->ID !== $only_post ) {
 					continue;
 				}
+				if ( array() !== $only_posts && ! in_array( $post->ID, $only_posts, true ) ) {
+					continue;
+				}
 
 				$branch = Contorno_Evo_Mapping::branch( $post->ID );
 
@@ -107,7 +111,7 @@ final class Contorno_Evo_Sync {
 			// as filiais; chave de filial devolve so a dela). Filiais que nao
 			// vierem no global sao buscadas por idBranch quando o modo permitir.
 			$by_branch = array();
-			$mode      = (string) Contorno_Evo_Settings::get( 'fetch_mode', 'auto' );
+			$mode      = (string) ( $args['fetch_mode'] ?? Contorno_Evo_Settings::get( 'fetch_mode', 'auto' ) );
 			$global_ok = false;
 
 			if ( 'per-branch' !== $mode ) {
@@ -305,6 +309,16 @@ final class Contorno_Evo_Sync {
 			self::learn_links( $post_id, $next );
 		}
 
+		// Toda rodada, mesmo sem mudanca: um vinculo antigo (URL de checkout do
+		// dataset) pode apontar para um plano que ja estava inativo.
+		$relinked = self::relink( Contorno_Evo_Mapping::local_plans( $post_id ), Contorno_Evo_Mapping::links( $post_id ), $next );
+		if ( array() !== $relinked['changes'] ) {
+			Contorno_Evo_Mapping::save_links( $post_id, $relinked['links'] );
+			foreach ( $relinked['changes'] as $change ) {
+				self::log( 'info', sprintf( 'plano %s: %d inativo/ausente na EVO, agora %d (%s)', $change['plan'], $change['from'], $change['to'], $change['name'] ), array( 'action' => 'relink', 'unit' => (string) get_post_field( 'post_name', $post_id ), 'id_branch' => $branch, 'id_membership' => $change['to'] ), false );
+			}
+		}
+
 		update_post_meta(
 			$post_id,
 			CONTORNO_EVO_META_LAST_SYNC,
@@ -341,6 +355,73 @@ final class Contorno_Evo_Sync {
 		if ( array() !== $links ) {
 			Contorno_Evo_Mapping::save_links( $post_id, $links );
 		}
+	}
+
+	/**
+	 * Plano substituto: quando o membership vinculado a um card fica inativo
+	 * (ou some) na EVO, o card passa para o membership ATIVO da mesma filial
+	 * com o mesmo nome na EVO (ex.: outro "ASSINATURA FIT"). E assim que a
+	 * academia troca preco/condicao: cria um contrato novo e inativa o velho.
+	 *
+	 * Mais de um candidato: vence o de updateDate mais recente, depois o maior
+	 * id (o mais novo). Membership ja usado por outro card nao e candidato.
+	 * Sem candidato: nada muda (o card some pelo soft-disable, como antes).
+	 * Vinculo explicito do editor (evo_membership_id) nunca e trocado.
+	 *
+	 * @param array<int,array<string,mixed>> $local_plans
+	 * @param array<string,int>              $links
+	 * @param array<int,array<string,mixed>> $memberships  id => normalizado (com status)
+	 * @return array{links:array<string,int>,changes:array<int,array{plan:string,from:int,to:int,name:string}>}
+	 */
+	public static function relink( array $local_plans, array $links, array $memberships ): array {
+		$changes = array();
+		$used    = array();
+
+		foreach ( $local_plans as $plan ) {
+			$id = Contorno_Evo_Mapping::membership_for_plan( $plan, $links );
+			if ( $id > 0 && 'active' === ( $memberships[ $id ]['status'] ?? '' ) ) {
+				$used[ $id ] = true;
+			}
+		}
+
+		foreach ( $local_plans as $plan ) {
+			$local_id = (string) ( $plan['id'] ?? '' );
+			$id       = Contorno_Evo_Mapping::membership_for_plan( $plan, $links );
+
+			if ( '' === $local_id || $id <= 0 || (int) ( $plan['evo_membership_id'] ?? 0 ) > 0 || ! isset( $memberships[ $id ] ) || 'active' === ( $memberships[ $id ]['status'] ?? '' ) ) {
+				continue;
+			}
+
+			$name = self::family( (string) ( $memberships[ $id ]['name'] ?? '' ) );
+			if ( '' === $name ) {
+				continue;
+			}
+
+			$best = 0;
+			foreach ( $memberships as $cid => $m ) {
+				if ( 'active' !== ( $m['status'] ?? '' ) || isset( $used[ $cid ] ) || self::family( (string) ( $m['name'] ?? '' ) ) !== $name ) {
+					continue;
+				}
+				if ( 0 === $best || array( (string) ( $m['update_date'] ?? '' ), $cid ) > array( (string) ( $memberships[ $best ]['update_date'] ?? '' ), $best ) ) {
+					$best = (int) $cid;
+				}
+			}
+
+			if ( $best > 0 ) {
+				$links[ $local_id ] = $best;
+				$used[ $best ]      = true;
+				$changes[]          = array( 'plan' => $local_id, 'from' => $id, 'to' => $best, 'name' => (string) ( $memberships[ $best ]['name'] ?? '' ) );
+			}
+		}
+
+		return array( 'links' => $links, 'changes' => $changes );
+	}
+
+	/** Nome do contrato para comparar: sem acento, caixa ou espaco extra. */
+	public static function family( string $name ): string {
+		$name = remove_accents( mb_strtolower( $name ) );
+
+		return trim( (string) preg_replace( '/[^a-z0-9]+/', ' ', $name ) );
 	}
 
 	/**

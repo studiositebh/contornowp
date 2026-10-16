@@ -57,7 +57,7 @@ final class Contorno_Evo_Frontend {
 
 		$links         = Contorno_Evo_Mapping::links( $post_id );
 		$hide_inactive = (bool) Contorno_Evo_Settings::get( 'hide_inactive', true );
-		$add_new       = (bool) Contorno_Evo_Settings::get( 'add_new_plans', true );
+		$add_new       = (bool) Contorno_Evo_Settings::get( 'show_unlisted_plans', false );
 		$used          = array();
 		$out           = array();
 
@@ -104,6 +104,14 @@ final class Contorno_Evo_Frontend {
 		return $out;
 	}
 
+	/** "ASSINATURA CTN SLIM " -> "CTN Slim". */
+	public static function pretty_name( string $name ): string {
+		$name = trim( (string) preg_replace( '/^\s*assinatura\s+/iu', '', $name ) );
+		$name = mb_convert_case( mb_strtolower( $name ), MB_CASE_TITLE );
+
+		return (string) preg_replace_callback( '/\b(ctn|cdc|vip)\b/iu', static fn ( array $m ): string => mb_strtoupper( $m[1] ), $name );
+	}
+
 	/**
 	 * Aplica os dados comerciais do EVO sobre um card local.
 	 *
@@ -115,9 +123,11 @@ final class Contorno_Evo_Frontend {
 		// stored() so exige id_membership; um registro gravado por outra versao
 		// (ou restaurado de backup) pode nao ter estas chaves. Sem as guardas,
 		// cada render do card emitia warning do PHP 8 no log.
+		// Nome: o do card do site ("Black") vale; o da EVO e interno
+		// ("ASSINATURA BLACK"). So um card sem nome (plano novo) usa o da EVO.
 		$display = (string) ( ( $m['display_name'] ?? '' ) ?: ( $m['name'] ?? '' ) );
-		if ( '' !== $display ) {
-			$plan['name'] = $display;
+		if ( '' !== $display && '' === trim( (string) ( $plan['name'] ?? '' ) ) ) {
+			$plan['name'] = self::pretty_name( $display );
 		}
 
 		$value = (float) ( $m['value'] ?? 0 );

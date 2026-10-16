@@ -4,7 +4,7 @@
  *
  * Options (todas autoload = no):
  *   contorno_evo_settings  array  dns, base_url, auto_sync, interval_minutes,
- *                                 add_new_plans, hide_inactive, fetch_mode
+ *                                 show_unlisted_plans, hide_inactive, fetch_mode
  *   contorno_evo_token     string token cifrado (Contorno_Evo_Crypto)
  *   contorno_evo_status    array  ultimo teste de conexao / ultima execucao
  *
@@ -35,9 +35,9 @@ final class Contorno_Evo_Settings {
 		return array(
 			'dns'              => '',
 			'base_url'         => CONTORNO_EVO_DEFAULT_BASE_URL,
-			'auto_sync'        => false,
-			'interval_minutes' => 360,
-			'add_new_plans'    => true,
+			'auto_sync'        => true, // o site so reflete a EVO com a reconciliacao periodica
+			'interval_minutes' => 60,
+			'show_unlisted_plans' => false, // substitui add_new_plans (era true): a EVO tem dezenas de contratos internos ativos
 			'hide_inactive'    => true,
 			'fetch_mode'       => 'auto', // auto | global | per-branch
 
@@ -126,7 +126,7 @@ final class Contorno_Evo_Settings {
 			'base_url'         => self::sanitize_base_url( (string) ( $values['base_url'] ?? $current['base_url'] ) ),
 			'auto_sync'        => ! empty( $values['auto_sync'] ),
 			'interval_minutes' => max( self::MIN_INTERVAL, min( self::MAX_INTERVAL, (int) ( $values['interval_minutes'] ?? $current['interval_minutes'] ) ) ),
-			'add_new_plans'    => ! empty( $values['add_new_plans'] ),
+			'show_unlisted_plans' => ! empty( $values['show_unlisted_plans'] ),
 			'hide_inactive'    => ! empty( $values['hide_inactive'] ),
 			'fetch_mode'       => in_array( (string) ( $values['fetch_mode'] ?? '' ), array( 'auto', 'global', 'per-branch' ), true ) ? (string) $values['fetch_mode'] : $current['fetch_mode'],
 

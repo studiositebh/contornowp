@@ -111,6 +111,23 @@ function contorno_evo_branch_for_slug( string $slug ): string {
  * Precedencia: URL explicita > ID de filial no campo > mapa por slug.
  * Devolve string vazia quando a secao nao deve aparecer.
  */
+/**
+ * A filial tem aulas na grade em cache da EVO (semana corrente)?
+ *
+ * Nunca chama a API: Contorno_Evo_Schedule::week() so le o cache e, se faltar,
+ * enfileira a filial para o cron. Sem cache ainda, responde false (secao
+ * oculta) ate o cron preencher.
+ */
+function contorno_evo_branch_has_classes( int $branch, int $post_id ): bool {
+	if ( $branch <= 0 || 'iframe' === contorno_field_text( 'classes_mode', $post_id ) || ! class_exists( 'Contorno_Evo_Schedule' ) ) {
+		return false;
+	}
+
+	$week = Contorno_Evo_Schedule::week( $branch );
+
+	return is_array( $week ) && (int) ( $week['total'] ?? 0 ) > 0;
+}
+
 function contorno_schedule_url( ?int $post_id = null ): string {
 	$post_id = $post_id ?: get_the_ID();
 
@@ -123,13 +140,17 @@ function contorno_schedule_url( ?int $post_id = null ): string {
 		return $explicit;
 	}
 
-	if ( ! contorno_field( 'classes_enabled', $post_id ) ) {
-		return '';
-	}
-
 	$branch = contorno_field_text( 'evo_branch_id', $post_id );
 	if ( '' === $branch ) {
 		$branch = contorno_evo_branch_for_slug( (string) get_post_field( 'post_name', $post_id ) );
+	}
+
+	// Chave desligada: a secao aparece sozinha quando a EVO tem aulas para a
+	// filial (grade nativa em cache). Unidade nova com aulas na EVO nao
+	// depende de alguem lembrar de ligar a chave; filial sem aulas continua
+	// sem secao. Modo "iframe" exige a chave, como antes.
+	if ( ! contorno_field( 'classes_enabled', $post_id ) && ! contorno_evo_branch_has_classes( (int) $branch, $post_id ) ) {
+		return '';
 	}
 
 	return contorno_evo_agenda_url( $branch );

@@ -91,7 +91,7 @@ final class Contorno_Evo_Admin {
 				'base_url'         => wp_unslash( (string) ( $_POST['base_url'] ?? '' ) ),
 				'auto_sync'        => isset( $_POST['auto_sync'] ),
 				'interval_minutes' => (int) ( $_POST['interval_minutes'] ?? 360 ),
-				'add_new_plans'    => isset( $_POST['add_new_plans'] ),
+				'show_unlisted_plans' => isset( $_POST['show_unlisted_plans'] ),
 				'hide_inactive'    => isset( $_POST['hide_inactive'] ),
 				'fetch_mode'       => sanitize_key( (string) ( $_POST['fetch_mode'] ?? 'auto' ) ),
 
@@ -386,7 +386,7 @@ final class Contorno_Evo_Admin {
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Comportamento', 'contorno-evo' ); ?></th>
 						<td>
-							<label><input type="checkbox" name="add_new_plans" value="1" <?php checked( (bool) $settings['add_new_plans'] ); ?> /> <?php esc_html_e( 'Exibir planos novos do EVO que ainda não têm card cadastrado na unidade', 'contorno-evo' ); ?></label><br />
+							<label><input type="checkbox" name="show_unlisted_plans" value="1" <?php checked( (bool) ( $settings['show_unlisted_plans'] ?? false ) ); ?> /> <?php esc_html_e( 'Exibir TODOS os contratos ativos do EVO sem card na unidade (não recomendado: inclui bolsa, colaborador, Gympass, personal…)', 'contorno-evo' ); ?></label><br />
 							<label><input type="checkbox" name="hide_inactive" value="1" <?php checked( (bool) $settings['hide_inactive'] ); ?> /> <?php esc_html_e( 'Ocultar do site planos inativos ou ausentes no EVO (soft-disable)', 'contorno-evo' ); ?></label>
 							<p>
 								<label for="contorno-evo-fetch"><?php esc_html_e( 'Estratégia de leitura', 'contorno-evo' ); ?></label>
