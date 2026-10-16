@@ -644,7 +644,26 @@ wp contorno evo sync --branch=18</pre>
 								<?php endif; ?>
 							</td>
 							<td><?php echo esc_html( is_array( $last ) && ! empty( $last['time'] ) ? wp_date( 'd/m/Y H:i', (int) $last['time'] ) : '—' ); ?></td>
-							<td><?php echo esc_html( sprintf( /* translators: 1: evo active, 2: local cards */ __( '%1$d EVO · %2$d cards', 'contorno-evo' ), $active, $local ) ); ?></td>
+							<td>
+								<?php if ( $active > 0 ) : ?>
+									<?php
+									// O que o site mostra agora (mesma sobreposicao do frontend).
+									$on_site = array_filter( array_map( 'intval', array_column( Contorno_Evo_Frontend::merge( Contorno_Evo_Mapping::local_plans( $post->ID ), $post->ID ), 'evo_membership_id' ) ) );
+									?>
+									<details>
+										<summary><?php echo esc_html( sprintf( /* translators: 1: evo active, 2: local cards */ __( '%1$d EVO · %2$d cards', 'contorno-evo' ), $active, $local ) ); ?></summary>
+										<ul class="contorno-evo__plans">
+											<?php foreach ( $stored as $id => $m ) : ?>
+												<?php if ( 'active' === ( $m['status'] ?? 'active' ) ) : ?>
+													<li<?php echo in_array( (int) $id, $on_site, true ) ? ' style="font-weight:600"' : ''; ?>><?php echo esc_html( sprintf( '%s — %s (#%d)%s', (string) ( $m['name'] ?? '' ), contorno_format_price( (float) ( $m['value'] ?? 0 ) ), (int) $id, in_array( (int) $id, $on_site, true ) ? ' · ' . __( 'no site', 'contorno-evo' ) : '' ) ); ?></li>
+												<?php endif; ?>
+											<?php endforeach; ?>
+										</ul>
+									</details>
+								<?php else : ?>
+									<?php echo esc_html( sprintf( /* translators: 1: evo active, 2: local cards */ __( '%1$d EVO · %2$d cards', 'contorno-evo' ), $active, $local ) ); ?>
+								<?php endif; ?>
+							</td>
 							<td class="contorno-evo__row-actions">
 								<button type="submit" class="button button-small" formaction="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" name="sync_one" value="<?php echo esc_attr( (string) $post->ID ); ?>" data-evo-sync-one="<?php echo esc_attr( (string) $post->ID ); ?>" <?php disabled( $branch <= 0 || ! Contorno_Evo_Settings::has_credentials() ); ?>><?php esc_html_e( 'Sincronizar', 'contorno-evo' ); ?></button>
 								<?php if ( '' !== (string) get_post_meta( $post->ID, CONTORNO_EVO_META_SNAPSHOT, true ) ) : ?>

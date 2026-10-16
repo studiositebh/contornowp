@@ -207,6 +207,12 @@ $gone = array( 10 => m( 10, 'ASSINATURA SLIM', 129.9, 'missing-from-evo' ), 11 =
 $r    = Contorno_Evo_Sync::relink( array( array( 'id' => 'slim', 'checkout_url' => checkout( 1, 10 ) ) ), array(), $gone );
 check( 11 === ( $r['links']['slim'] ?? 0 ), 'plano ausente da EVO -> substituto' );
 
+// URL de checkout cadastrada no painel sem o "/0" final (Divinopolis Sidil).
+check( 5271 === Contorno_Evo_Mapping::membership_for_plan( array( 'checkout_url' => 'https://checkout.contornodocorpo.com.br/contornodocorpo/61/site/landing-page/checkout/5271' ), array() ), 'URL sem "/0" final tambem vincula (5271)' );
+check( 5271 === Contorno_Evo_Mapping::membership_for_plan( array( 'checkout_url' => checkout( 61, 5271 ) . '?utm=x' ), array() ), 'URL com /0 e querystring vincula' );
+$r = Contorno_Evo_Sync::relink( array( array( 'id' => 'fit', 'checkout_url' => 'https://checkout.contornodocorpo.com.br/contornodocorpo/61/site/landing-page/checkout/5271' ) ), array(), $sidil );
+check( 5733 === ( $r['links']['fit'] ?? 0 ), 'URL sem "/0": Fit inativo passa para 5733' );
+
 // Vinculo explicito do editor nunca e trocado.
 $r = Contorno_Evo_Sync::relink( array( array( 'id' => 'fit', 'evo_membership_id' => 5271 ) ), array(), $sidil );
 check( array() === $r['changes'], 'vinculo explicito (evo_membership_id) nao e trocado' );

@@ -185,7 +185,7 @@ foreach ( $units as &$u ) {
 	$u['ds_plans']   = array();
 	foreach ( array_merge( array( array( 'checkout_url' => $f['checkout_url'] ?? '' ) ), (array) ( $f['plans'] ?? array() ) ) as $i => $pl ) {
 		$mid = (int) ( $pl['evo_membership_id'] ?? 0 );
-		if ( preg_match( '#/contornodocorpo/(\d+)/site/landing-page/checkout/(\d+)/#', (string) ( $pl['checkout_url'] ?? '' ), $m ) ) {
+		if ( preg_match( '#/contornodocorpo/(\d+)/site/landing-page/checkout/(\d+)(?!\d)#', (string) ( $pl['checkout_url'] ?? '' ), $m ) ) {
 			$u['url_branches'][ (int) $m[1] ] = true;
 			$mid = $mid ?: (int) $m[2];
 		}

@@ -327,8 +327,10 @@ final class Contorno_Evo_Sync {
 		$changed = $counts['created'] + $counts['updated'] + $counts['disabled'] + $counts['restored'] > 0;
 
 		if ( $changed ) {
-			update_post_meta( $post_id, CONTORNO_EVO_META_SNAPSHOT, wp_json_encode( array( 'time' => $now, 'memberships' => array_values( $stored ) ) ) );
-			update_post_meta( $post_id, CONTORNO_EVO_META_MEMBERSHIPS, wp_json_encode( array_values( $next ) ) );
+			update_post_meta( $post_id, CONTORNO_EVO_META_SNAPSHOT, wp_slash( (string) wp_json_encode( array( 'time' => $now, 'memberships' => array_values( $stored ) ) ) ) );
+			// wp_slash: update_post_meta tira as barras; sem isto "á" virava "u00e1"
+			// (acentos corrompidos e diff de differentials em toda rodada).
+			update_post_meta( $post_id, CONTORNO_EVO_META_MEMBERSHIPS, wp_slash( (string) wp_json_encode( array_values( $next ) ) ) );
 			self::learn_links( $post_id, $next );
 		}
 
@@ -348,7 +350,19 @@ final class Contorno_Evo_Sync {
 			array( 'time' => $now, 'branch' => $branch, 'received' => $counts['received'], 'created' => $counts['created'], 'updated' => $counts['updated'], 'disabled' => $counts['disabled'] )
 		);
 
+		// Log com limite de entradas: uma linha por contrato (~80 por filial,
+		// quase todos bolsa/colaborador/historicos) expulsava o resto, inclusive
+		// o registro das vendas do checkout. Detalhe so do que aparece no site.
+		$on_site = array_filter( array_map( 'intval', array_column( Contorno_Evo_Frontend::merge( Contorno_Evo_Mapping::local_plans( $post_id ), $post_id ), 'evo_membership_id' ) ) );
+
+		if ( $changed ) {
+			self::log( 'info', sprintf( '%d novos, %d atualizados, %d desativados, %d restaurados (%d recebidos)', $counts['created'], $counts['updated'], $counts['disabled'], $counts['restored'], $counts['received'] ), array( 'action' => 'upsert', 'unit' => (string) get_post_field( 'post_name', $post_id ), 'id_branch' => $branch ), false );
+		}
+
 		foreach ( $counts['diffs'] as $diff ) {
+			if ( ! in_array( (int) $diff['id_membership'], $on_site, true ) && 'missing' !== $diff['type'] ) {
+				continue;
+			}
 			self::log( 'info', sprintf( '%s: %s (%s)', $diff['type'], $diff['name'], implode( ', ', array_keys( $diff['changes'] ) ) ), array( 'action' => 'upsert', 'unit' => (string) get_post_field( 'post_name', $post_id ), 'id_branch' => $branch, 'id_membership' => $diff['id_membership'] ), false );
 		}
 
@@ -545,7 +559,7 @@ final class Contorno_Evo_Sync {
 			return false;
 		}
 
-		update_post_meta( $post_id, CONTORNO_EVO_META_MEMBERSHIPS, wp_json_encode( array_values( (array) $snap['memberships'] ) ) );
+		update_post_meta( $post_id, CONTORNO_EVO_META_MEMBERSHIPS, wp_slash( (string) wp_json_encode( array_values( (array) $snap['memberships'] ) ) ) );
 		self::log( 'warning', 'rollback para snapshot de ' . wp_date( 'd/m/Y H:i', (int) ( $snap['time'] ?? 0 ) ), array( 'action' => 'rollback', 'unit' => (string) get_post_field( 'post_name', $post_id ) ), false );
 
 		return true;

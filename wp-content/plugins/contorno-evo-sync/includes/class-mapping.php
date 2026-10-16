@@ -20,7 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Contorno_Evo_Mapping {
 
-	public const CHECKOUT_PATTERN = '#/contornodocorpo/(\d+)/site/landing-page/checkout/(\d+)/#i';
+	// O "/0" final nem sempre vem: cadastros feitos no painel tem .../checkout/5271 puro.
+	public const CHECKOUT_PATTERN = '#/contornodocorpo/(\d+)/site/landing-page/checkout/(\d+)(?!\d)#i';
 
 	/**
 	 * Todas as unidades e CTNs publicadas.
