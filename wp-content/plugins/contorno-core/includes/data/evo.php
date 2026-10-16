@@ -134,3 +134,23 @@ function contorno_schedule_url( ?int $post_id = null ): string {
 
 	return contorno_evo_agenda_url( $branch );
 }
+
+/**
+ * Filial EVO cuja grade nativa pode substituir o iframe, ou 0.
+ *
+ * So devolve filial quando a agenda e mesmo o EVO Totem: URL explicita de
+ * outro servico (Google Agenda etc.) continua sempre em iframe, e o campo
+ * `classes_mode` = iframe desliga a grade nativa na unidade.
+ */
+function contorno_schedule_native_branch( ?int $post_id = null ): int {
+	$post_id = $post_id ?: get_the_ID();
+
+	if ( ! $post_id || 'iframe' === contorno_field_text( 'classes_mode', $post_id ) ) {
+		return 0;
+	}
+
+	$url    = contorno_schedule_url( $post_id );
+	$prefix = preg_quote( CONTORNO_EVO_TOTEM_BASE, '#' );
+
+	return preg_match( '#^' . $prefix . '/(\d+)/page/landing-page/agenda/?$#', $url, $m ) ? (int) $m[1] : 0;
+}

@@ -1373,12 +1373,136 @@ contorno_add_shortcode(
 );
 
 /**
+ * Grade semanal nativa (seg a dom) a partir de Contorno_Evo_Schedule::week().
+ *
+ * Filtros Manha/Tarde/Noite e abas de dia no celular sao progressivos: sem
+ * JS a grade aparece inteira, dia abaixo de dia. Nao exibe foto do professor
+ * (URL assinada da EVO que expira).
+ *
+ * @param array<string,mixed> $week  Contorno_Evo_Schedule::week()
+ */
+function contorno_render_native_schedule( array $week, string $official_url, int $post_id ): string {
+	$tz     = wp_timezone();
+	$monday = DateTimeImmutable::createFromFormat( '!Y-m-d', (string) $week['monday'], $tz );
+
+	if ( false === $monday ) {
+		return '';
+	}
+
+	$today     = ( new DateTimeImmutable( 'now', $tz ) )->format( 'Y-m-d' );
+	$names     = array( 1 => __( 'Segunda', 'contorno' ), __( 'Terça', 'contorno' ), __( 'Quarta', 'contorno' ), __( 'Quinta', 'contorno' ), __( 'Sexta', 'contorno' ), __( 'Sábado', 'contorno' ), __( 'Domingo', 'contorno' ) );
+	$short     = array( 1 => __( 'Seg', 'contorno' ), __( 'Ter', 'contorno' ), __( 'Qua', 'contorno' ), __( 'Qui', 'contorno' ), __( 'Sex', 'contorno' ), __( 'Sáb', 'contorno' ), __( 'Dom', 'contorno' ) );
+	$periods   = array(
+		'all'       => __( 'Todos', 'contorno' ),
+		'morning'   => __( 'Manhã', 'contorno' ),
+		'afternoon' => __( 'Tarde', 'contorno' ),
+		'night'     => __( 'Noite', 'contorno' ),
+	);
+	$updated   = ( new DateTimeImmutable( '@' . (int) $week['fetched_at'] ) )->setTimezone( $tz )->format( 'H:i' );
+	$id_prefix = 'contorno-schedule-' . $post_id;
+
+	contorno_enqueue_component( 'schedule' );
+
+	ob_start();
+	?>
+	<div class="contorno-schedule" data-contorno-schedule>
+		<div class="contorno-schedule__toolbar">
+			<div class="contorno-schedule__filters" role="group" aria-label="<?php esc_attr_e( 'Filtrar por período', 'contorno' ); ?>">
+				<?php foreach ( $periods as $key => $label ) : ?>
+					<button type="button" class="contorno-schedule__chip" data-period="<?php echo esc_attr( $key ); ?>" aria-pressed="<?php echo 'all' === $key ? 'true' : 'false'; ?>"><?php echo esc_html( $label ); ?></button>
+				<?php endforeach; ?>
+			</div>
+			<div class="contorno-schedule__tabs" role="group" aria-label="<?php esc_attr_e( 'Dia da semana', 'contorno' ); ?>" hidden>
+				<?php for ( $d = 1; $d <= 7; $d++ ) : ?>
+					<?php $date = $monday->modify( '+' . ( $d - 1 ) . ' days' ); ?>
+					<button type="button" class="contorno-schedule__tab" data-day="<?php echo esc_attr( (string) $d ); ?>" aria-controls="<?php echo esc_attr( $id_prefix . '-d' . $d ); ?>" aria-pressed="false"<?php echo $date->format( 'Y-m-d' ) === $today ? ' data-today' : ''; ?>>
+						<span><?php echo esc_html( $short[ $d ] ); ?></span>
+						<strong><?php echo esc_html( $date->format( 'd' ) ); ?></strong>
+					</button>
+				<?php endfor; ?>
+			</div>
+		</div>
+
+		<div class="contorno-schedule__grid">
+			<?php for ( $d = 1; $d <= 7; $d++ ) : ?>
+				<?php
+				$date    = $monday->modify( '+' . ( $d - 1 ) . ' days' );
+				$classes = (array) ( $week['days'][ $d ] ?? array() );
+				?>
+				<section class="contorno-schedule__day<?php echo $date->format( 'Y-m-d' ) === $today ? ' is-today' : ''; ?>" id="<?php echo esc_attr( $id_prefix . '-d' . $d ); ?>" data-day="<?php echo esc_attr( (string) $d ); ?>">
+					<h3 class="contorno-schedule__day-title">
+						<?php echo esc_html( $names[ $d ] ); ?>
+						<span><?php echo esc_html( $date->format( 'd/m' ) ); ?></span>
+					</h3>
+					<ul class="contorno-schedule__list">
+						<?php foreach ( $classes as $class ) : ?>
+							<?php
+							$state = (string) ( $class['state'] ?? 'open' );
+							$left  = $class['spots_left'] ?? null;
+							?>
+							<li class="contorno-schedule__class is-<?php echo esc_attr( $state ); ?>" data-period="<?php echo esc_attr( (string) $class['period'] ); ?>">
+								<p class="contorno-schedule__time">
+									<time datetime="<?php echo esc_attr( $class['date'] . 'T' . $class['start'] ); ?>"><?php echo esc_html( (string) $class['start'] ); ?></time><?php if ( '' !== (string) $class['end'] ) : ?><span aria-hidden="true">–</span><span class="screen-reader-text"><?php esc_html_e( 'até', 'contorno' ); ?></span><?php echo esc_html( (string) $class['end'] ); ?><?php endif; ?>
+								</p>
+								<p class="contorno-schedule__name"><?php echo esc_html( (string) $class['name'] ); ?></p>
+								<?php if ( '' !== (string) $class['area'] || '' !== (string) $class['instructor'] ) : ?>
+									<p class="contorno-schedule__meta">
+										<?php echo esc_html( implode( ' · ', array_filter( array( (string) $class['area'], (string) $class['instructor'] ) ) ) ); ?>
+									</p>
+								<?php endif; ?>
+								<p class="contorno-schedule__badges">
+									<?php if ( 'canceled' === $state ) : ?>
+										<span class="contorno-schedule__badge is-muted"><?php esc_html_e( 'Cancelada', 'contorno' ); ?></span>
+									<?php elseif ( 'finished' === $state ) : ?>
+										<span class="contorno-schedule__badge is-muted"><?php esc_html_e( 'Encerrada', 'contorno' ); ?></span>
+									<?php elseif ( 'full' === $state ) : ?>
+										<span class="contorno-schedule__badge is-full"><?php esc_html_e( 'Lotada', 'contorno' ); ?></span>
+									<?php elseif ( null !== $left ) : ?>
+										<span class="contorno-schedule__badge"><?php echo esc_html( sprintf( /* translators: %d: free spots */ _n( '%d vaga', '%d vagas', (int) $left, 'contorno' ), (int) $left ) ); ?></span>
+									<?php endif; ?>
+									<?php if ( ! empty( $class['experimental'] ) && in_array( $state, array( 'open', 'full' ), true ) ) : ?>
+										<span class="contorno-schedule__badge is-trial"><?php esc_html_e( 'Aceita aula experimental', 'contorno' ); ?></span>
+									<?php endif; ?>
+								</p>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+					<p class="contorno-schedule__empty"<?php echo array() === $classes ? '' : ' hidden'; ?>><?php esc_html_e( 'Sem aulas neste período.', 'contorno' ); ?></p>
+				</section>
+			<?php endfor; ?>
+		</div>
+	</div>
+
+	<p class="unit-collective-classes__footnote">
+		<span>
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: %s: time (HH:MM) */
+					__( 'Horários e vagas da EVO, atualizados às %s. Podem mudar a qualquer momento.', 'contorno' ),
+					$updated
+				)
+			);
+			?>
+		</span>
+		<a href="<?php echo esc_url( $official_url ); ?>" target="_blank" rel="noopener noreferrer">
+			<?php esc_html_e( 'Abrir agenda oficial', 'contorno' ); ?>
+			<?php echo contorno_icon( 'external', 'unit-collective-classes__external' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</a>
+	</p>
+	<?php
+
+	return (string) ob_get_clean();
+}
+
+/**
  * CONTORNO — Aulas Coletivas.
  *
- * COMPONENTE FUNCIONAL. A grade semanal (horarios nas linhas, dias nas
- * A grade vem de uma URL publica (Google Agenda, EVO/W12 ou outro embed)
- * configurada no cadastro da unidade. O editor configura apenas titulo,
- * banner e URL/filial.
+ * COMPONENTE FUNCIONAL. A grade vem da EVO (grade nativa, ver
+ * contorno_render_native_schedule) ou, quando a EVO nao tem grade valida em
+ * cache, de uma URL publica (EVO Totem, Google Agenda ou outro embed)
+ * configurada no cadastro da unidade, em iframe. O editor configura apenas
+ * titulo, banner, URL/filial e o formato (automatico ou sempre iframe).
  *
  * Esta secao deve ser a ULTIMA de conteudo antes do footer.
  */
@@ -1429,6 +1553,21 @@ contorno_add_shortcode(
 
 		contorno_enqueue_component( 'lazy-video' );
 
+		// Grade nativa so com cache valido da EVO; caso contrario, o iframe
+		// de sempre. A pagina nunca chama a API (ver Contorno_Evo_Schedule).
+		$native = '';
+		$branch = contorno_schedule_native_branch( $post_id );
+		if ( $branch > 0 && class_exists( 'Contorno_Evo_Schedule' ) ) {
+			$week = Contorno_Evo_Schedule::week( $branch );
+			if ( null !== $week ) {
+				$native = contorno_render_native_schedule( $week, $url, $post_id );
+			}
+		}
+
+		if ( '' !== $native && '' === trim( (string) $a['text'] ) ) {
+			$text = __( 'Grade semanal desta unidade, direto do sistema da academia.', 'contorno' );
+		}
+
 		ob_start();
 		?>
 		<section class="unit-collective-classes" aria-labelledby="contorno-classes-title-<?php echo esc_attr( (string) $post_id ); ?>">
@@ -1445,6 +1584,9 @@ contorno_add_shortcode(
 			</div>
 
 			<div class="site-container">
+				<?php if ( '' !== $native ) : ?>
+					<?php echo $native; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escapado em contorno_render_native_schedule(). ?>
+				<?php else : ?>
 				<div class="unit-collective-classes-frame">
 					<div
 						class="unit-collective-classes-scroll"
@@ -1471,6 +1613,7 @@ contorno_add_shortcode(
 						<?php echo contorno_icon( 'external', 'unit-collective-classes__external' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					</a>
 				</p>
+				<?php endif; ?>
 			</div>
 		</section>
 		<?php

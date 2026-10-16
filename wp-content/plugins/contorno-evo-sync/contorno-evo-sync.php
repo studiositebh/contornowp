@@ -61,6 +61,7 @@ foreach (
 		'includes/class-sync.php',
 		'includes/class-gateway.php',
 		'includes/class-activities.php',
+		'includes/class-schedule.php',
 		'includes/class-checkout.php',
 		'includes/class-identity.php',
 		'includes/class-checkout-rest.php',
@@ -93,6 +94,7 @@ add_action(
 
 		Contorno_Evo_Frontend::boot();
 		Contorno_Evo_Cron::boot();
+		Contorno_Evo_Schedule::boot();
 		Contorno_Evo_Admin::boot();
 		Contorno_Evo_Checkout_Rest::boot();
 	},
@@ -180,5 +182,6 @@ register_deactivation_hook(
 	__FILE__,
 	static function (): void {
 		Contorno_Evo_Cron::unschedule();
+		wp_clear_scheduled_hook( Contorno_Evo_Schedule::HOOK );
 	}
 );

@@ -4374,3 +4374,250 @@
 		font-size: 1.25rem;
 	}
 }
+
+/* ====================================================================
+ * Grade nativa de aulas coletivas (contorno_render_native_schedule).
+ * Desktop: 7 colunas (seg..dom). Celular: abas de dia + lista do dia.
+ * Sem JS: dias empilhados, tudo visivel.
+ * ================================================================== */
+.contorno-schedule {
+	border: 1px solid rgb(255 255 255 / 0.1);
+	border-radius: var(--radius-2xl, 1.25rem);
+	background: #121212;
+	padding: var(--space-4, 1rem);
+}
+
+.contorno-schedule .screen-reader-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.contorno-schedule__toolbar {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin-bottom: var(--space-4, 1rem);
+}
+
+.contorno-schedule__filters,
+.contorno-schedule__tabs {
+	display: flex;
+	gap: 0.5rem;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.contorno-schedule__tabs[hidden] {
+	display: none;
+}
+
+.contorno-schedule__chip,
+.contorno-schedule__tab {
+	flex: 0 0 auto;
+	border: 1px solid rgb(255 255 255 / 0.18);
+	border-radius: 999px;
+	background: transparent;
+	color: rgb(255 255 255 / 0.8);
+	font: inherit;
+	font-size: var(--text-sm, 0.875rem);
+	line-height: 1;
+	padding: 0.6rem 1rem;
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.contorno-schedule__chip[aria-pressed="true"],
+.contorno-schedule__tab[aria-pressed="true"] {
+	background: var(--brand, #10b8b1);
+	border-color: var(--brand, #10b8b1);
+	color: #0b0b0b;
+	font-weight: 600;
+}
+
+.contorno-schedule__chip:focus-visible,
+.contorno-schedule__tab:focus-visible {
+	outline: 2px solid var(--brand, #10b8b1);
+	outline-offset: 2px;
+}
+
+.contorno-schedule__tab {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.25rem;
+	min-width: 3.25rem;
+	border-radius: var(--radius-lg, 0.75rem);
+	padding: 0.5rem 0.6rem;
+}
+
+.contorno-schedule__tab span {
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.contorno-schedule__tab strong {
+	font-size: var(--text-base, 1rem);
+}
+
+.contorno-schedule__grid {
+	display: grid;
+	gap: var(--space-4, 1rem);
+}
+
+.contorno-schedule__day-title {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.5rem;
+	margin: 0 0 0.75rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px solid rgb(255 255 255 / 0.1);
+	color: #fff;
+	font-size: var(--text-base, 1rem);
+}
+
+.contorno-schedule__day-title span {
+	color: rgb(255 255 255 / 0.5);
+	font-size: var(--text-xs, 0.75rem);
+	font-weight: 400;
+}
+
+.contorno-schedule__day.is-today .contorno-schedule__day-title {
+	border-bottom-color: var(--brand, #10b8b1);
+}
+
+.contorno-schedule__list {
+	display: grid;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.contorno-schedule__class {
+	border-radius: var(--radius-lg, 0.75rem);
+	background: rgb(255 255 255 / 0.05);
+	padding: 0.75rem;
+}
+
+.contorno-schedule__class[hidden] {
+	display: none;
+}
+
+.contorno-schedule__class.is-finished,
+.contorno-schedule__class.is-canceled {
+	opacity: 0.5;
+}
+
+.contorno-schedule__class.is-canceled .contorno-schedule__name {
+	text-decoration: line-through;
+}
+
+.contorno-schedule__class p {
+	margin: 0;
+}
+
+.contorno-schedule__time {
+	display: flex;
+	gap: 0.25rem;
+	color: var(--brand, #10b8b1);
+	font-size: var(--text-sm, 0.875rem);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.contorno-schedule__name {
+	margin-top: 0.15rem;
+	color: #fff;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.contorno-schedule__meta {
+	margin-top: 0.25rem;
+	color: rgb(255 255 255 / 0.6);
+	font-size: var(--text-xs, 0.75rem);
+	line-height: 1.4;
+}
+
+.contorno-schedule__badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	margin-top: 0.5rem;
+}
+
+.contorno-schedule__badges:empty {
+	display: none;
+}
+
+.contorno-schedule__badge {
+	border-radius: 999px;
+	background: rgb(16 184 177 / 0.15);
+	color: var(--brand, #10b8b1);
+	font-size: 0.7rem;
+	font-weight: 600;
+	padding: 0.2rem 0.55rem;
+}
+
+.contorno-schedule__badge.is-full {
+	background: rgb(255 120 90 / 0.15);
+	color: #ff8a6b;
+}
+
+.contorno-schedule__badge.is-muted {
+	background: rgb(255 255 255 / 0.08);
+	color: rgb(255 255 255 / 0.7);
+}
+
+.contorno-schedule__badge.is-trial {
+	background: rgb(255 255 255 / 0.1);
+	color: #fff;
+}
+
+.contorno-schedule__empty {
+	color: rgb(255 255 255 / 0.5);
+	font-size: var(--text-sm, 0.875rem);
+	margin: 0;
+}
+
+.contorno-schedule__empty[hidden] {
+	display: none;
+}
+
+@media (max-width: 767px) {
+	.contorno-schedule.is-enhanced .contorno-schedule__day {
+		display: none;
+	}
+
+	.contorno-schedule.is-enhanced .contorno-schedule__day.is-active {
+		display: block;
+	}
+}
+
+@media (min-width: 768px) {
+	.contorno-schedule__tabs {
+		display: none !important;
+	}
+
+	.contorno-schedule__grid {
+		grid-template-columns: repeat(7, minmax(0, 1fr));
+		gap: 0.75rem;
+	}
+
+	.contorno-schedule__class {
+		padding: 0.6rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.contorno-schedule__chip,
+	.contorno-schedule__tab {
+		transition: none;
+	}
+}

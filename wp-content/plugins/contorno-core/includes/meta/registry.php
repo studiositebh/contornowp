@@ -291,6 +291,15 @@ function contorno_field_schema(): array {
 					'evo_branch_id'   => array( 'type' => 'text', 'label' => __( 'ID da filial no EVO', 'contorno' ), 'help' => __( 'Se preenchido, a URL da agenda é derivada automaticamente.', 'contorno' ) ),
 					'classes_url'     => array( 'type' => 'url', 'label' => __( 'URL da agenda (Google Agenda ou EVO)', 'contorno' ), 'help' => __( 'Cole aqui o link público/embutível da agenda. Este campo tem prioridade sobre o ID da filial.', 'contorno' ) ),
 					'classes_title'   => array( 'type' => 'text', 'label' => __( 'Título da seção', 'contorno' ), 'placeholder' => 'Aulas Coletivas - Horarios' ),
+					'classes_mode'    => array(
+						'type'    => 'select',
+						'label'   => __( 'Formato da grade', 'contorno' ),
+						'help'    => __( 'Automático: grade do site com os horários da EVO; se a EVO não responder, volta sozinho para o quadro do EVO Totem.', 'contorno' ),
+						'options' => array(
+							''       => __( 'Automático (grade do site)', 'contorno' ),
+							'iframe' => __( 'Sempre o quadro do EVO Totem (iframe)', 'contorno' ),
+						),
+					),
 				),
 			),
 			'integracao' => array(
@@ -538,6 +547,15 @@ function contorno_field_schema(): array {
 					'evo_branch_id'   => array( 'type' => 'text', 'label' => __( 'ID da filial no EVO', 'contorno' ) ),
 					'classes_url'     => array( 'type' => 'url', 'label' => __( 'URL da agenda (Google Agenda ou EVO)', 'contorno' ) ),
 					'classes_title'   => array( 'type' => 'text', 'label' => __( 'Título da seção', 'contorno' ) ),
+					'classes_mode'    => array(
+						'type'    => 'select',
+						'label'   => __( 'Formato da grade', 'contorno' ),
+						'help'    => __( 'Automático: grade do site com os horários da EVO; se a EVO não responder, volta sozinho para o quadro do EVO Totem.', 'contorno' ),
+						'options' => array(
+							''       => __( 'Automático (grade do site)', 'contorno' ),
+							'iframe' => __( 'Sempre o quadro do EVO Totem (iframe)', 'contorno' ),
+						),
+					),
 				),
 			),
 			'editorial' => array(
