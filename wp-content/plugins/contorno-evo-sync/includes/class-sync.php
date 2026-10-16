@@ -28,11 +28,14 @@ final class Contorno_Evo_Sync {
 
 	public const LOCK = 'contorno_evo_sync_lock';
 
+	/** Segundos; renovada a cada unidade (ver touch_lock). */
+	public const LOCK_TTL = 180;
+
 	/** Campos comerciais comparados no diff. */
 	private const COMPARE = array( 'name', 'display_name', 'value', 'description', 'url_sale', 'duration', 'duration_type', 'max_installments', 'inactive', 'promo_value', 'promo_months', 'promo_days', 'promo_installments', 'promo_type', 'differentials', 'external_sale' );
 
 	/**
-	 * @param array{dry_run?:bool,branch?:int,post_id?:int,post_ids?:int[],fetch_mode?:string,trigger?:string} $args
+	 * @param array{dry_run?:bool,branch?:int,post_id?:int,post_ids?:int[],fetch_mode?:string,deadline?:int,trigger?:string} $args
 	 * @return array<string,mixed> resumo + diffs
 	 */
 	public static function run( array $args = array() ): array {
@@ -40,6 +43,7 @@ final class Contorno_Evo_Sync {
 		$trigger = (string) ( $args['trigger'] ?? 'manual' );
 		$only_branch = (int) ( $args['branch'] ?? 0 );
 		$only_post   = (int) ( $args['post_id'] ?? 0 );
+		$deadline    = (int) ( $args['deadline'] ?? 0 );
 		$only_posts  = array_map( 'intval', (array) ( $args['post_ids'] ?? array() ) );
 
 		$summary = array(
@@ -57,6 +61,7 @@ final class Contorno_Evo_Sync {
 			'requests'   => 0,
 			'diffs'      => array(),
 			'messages'   => array(),
+			'processed'  => array(),
 		);
 
 		if ( ! Contorno_Evo_Settings::has_credentials() ) {
@@ -144,6 +149,17 @@ final class Contorno_Evo_Sync {
 			foreach ( $targets as $target ) {
 				/** @var WP_Post $post */
 				$post   = $target['post'];
+
+				// Orcamento de tempo (lote do cron): para antes do limite da
+				// requisicao; o que faltou fica para o proximo lote.
+				if ( $deadline > 0 && time() >= $deadline ) {
+					break;
+				}
+
+				$summary['processed'][] = (int) $post->ID;
+				if ( ! $dry_run ) {
+					self::touch_lock();
+				}
 				$branch = (int) $target['branch'];
 				$items  = $by_branch[ $branch ] ?? null;
 
@@ -539,9 +555,18 @@ final class Contorno_Evo_Sync {
 		if ( get_transient( self::LOCK ) ) {
 			return false;
 		}
-		set_transient( self::LOCK, time(), 15 * MINUTE_IN_SECONDS );
+		self::touch_lock();
 
 		return true;
+	}
+
+	/**
+	 * Trava curta, renovada a cada unidade. Um processo encerrado pelo servidor
+	 * no meio (timeout) nao roda o finally/unlock: com 15 min de trava, cada
+	 * lote seguinte do cron encontrava "outra sincronizacao" e nada andava.
+	 */
+	private static function touch_lock(): void {
+		set_transient( self::LOCK, time(), self::LOCK_TTL );
 	}
 
 	private static function unlock(): void {

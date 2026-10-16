@@ -230,12 +230,19 @@ do {
 } while ( 0 !== $cur && $runs < 100 );
 
 check( $ids === $seen, '60 min: todas as 66 unidades, cada uma uma vez, em ordem' );
-check( $runs <= 12, "ciclo cabe no intervalo: $runs lotes de 5 min <= 60 min" );
-check( $max <= 6, "lote pequeno: no maximo $max unidades (~30 chamadas)" );
-check( array( 'batch' => array( 101, 102, 103, 104, 105, 106 ), 'cursor' => 6 ) === Contorno_Evo_Cron::batch( $ids, 999, 60 ), 'cursor invalido (unidade removida) volta ao inicio' );
-check( array( 'batch' => array(), 'cursor' => 0 ) === Contorno_Evo_Cron::batch( array(), 5, 60 ), 'sem unidades: lote vazio' );
-check( 11 === count( Contorno_Evo_Cron::batch( $ids, 0, 1 )['batch'] ), 'intervalo abaixo do minimo usa o minimo (30 min)' );
-check( 11 === count( Contorno_Evo_Cron::batch( $ids, 0, 30 )['batch'] ), '30 min: lotes de 11' );
+check( $runs * Contorno_Evo_Cron::BATCH_MINUTES <= 60, "ciclo cabe no intervalo: $runs lotes de " . Contorno_Evo_Cron::BATCH_MINUTES . ' min <= 60 min' );
+check( $max <= 4, "lote pequeno: no maximo $max unidades" );
+$b = Contorno_Evo_Cron::batch( $ids, 999, 60 );
+check( array( 101, 102, 103, 104 ) === $b['batch'] && 0 === $b['start'], 'cursor invalido (unidade removida) volta ao inicio' );
+check( array() === Contorno_Evo_Cron::batch( array(), 5, 60 )['batch'], 'sem unidades: lote vazio' );
+check( 7 === count( Contorno_Evo_Cron::batch( $ids, 0, 1 )['batch'] ), 'intervalo abaixo do minimo usa o minimo (30 min -> lotes de 7)' );
+check( Contorno_Evo_Cron::BUDGET_SECONDS < 90, 'orcamento por lote abaixo do timeout do servidor (~90-120 s)' );
+
+// Cursor avanca so pelo que o lote concluiu (orcamento de tempo, trava ocupada).
+check( 12 === Contorno_Evo_Cron::advance( 10, 2, 66 ), 'lote cortado pelo tempo: avanca 2, as outras ficam para o proximo' );
+check( 10 === Contorno_Evo_Cron::advance( 10, 0, 66 ), 'trava ocupada (nada feito): cursor parado' );
+check( 0 === Contorno_Evo_Cron::advance( 64, 2, 66 ), 'fim da lista: volta ao inicio' );
+check( Contorno_Evo_Sync::LOCK_TTL <= 300, 'trava curta: processo morto pelo servidor libera em ' . Contorno_Evo_Sync::LOCK_TTL . ' s' );
 
 /* =============================================================
  * Agenda automatica (contorno-core/includes/data/evo.php)

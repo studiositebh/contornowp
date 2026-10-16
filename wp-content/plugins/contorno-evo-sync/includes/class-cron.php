@@ -4,7 +4,7 @@
  *
  * A EVO nao tem webhook para alteracao de plano (eventos oficiais: NewSale,
  * CreateMember, AlterMember, NewInvoice), entao a reconciliacao periodica e o
- * mecanismo principal. Roda em lotes a cada 5 min; o ciclo completo (todas
+ * mecanismo principal. Roda em lotes a cada 3 min; o ciclo completo (todas
  * as unidades) cabe no intervalo configuravel (30 min a 24 h).
  *
  * Recomendacao de servidor: DISABLE_WP_CRON + cron do sistema chamando
@@ -22,7 +22,13 @@ final class Contorno_Evo_Cron {
 	public const SCHEDULE = 'contorno_evo_interval';
 
 	/** Um lote a cada BATCH_MINUTES; o ciclo inteiro cabe em interval_minutes. */
-	public const BATCH_MINUTES = 5;
+	public const BATCH_MINUTES = 3;
+
+	/**
+	 * Segundos de trabalho por lote. O servidor do staging encerra requisicoes
+	 * por volta de 90-120 s; um processo morto no meio nao libera a trava.
+	 */
+	public const BUDGET_SECONDS = 45;
 
 	private const OPT_CURSOR = 'contorno_evo_sync_cursor';
 
@@ -62,18 +68,19 @@ final class Contorno_Evo_Cron {
 	 *
 	 * Uma rodada inteira sao ~330 GETs (66 filiais, ate 9 paginas de planos):
 	 * ~9 min no limite da EVO, mais do que uma requisicao de WP-Cron aguenta.
-	 * Em lotes de ceil(unidades / (intervalo / 5 min)), cada unidade e
-	 * reconciliada uma vez por intervalo (60 min -> 12 lotes de ~6 unidades,
-	 * ~30 chamadas, menos de 1 min).
+	 * Em lotes de ate ceil(unidades / (intervalo / 3 min)), cada unidade e
+	 * reconciliada uma vez por intervalo (60 min -> 20 lotes de ate 4
+	 * unidades). O lote tambem para em BUDGET_SECONDS; o cursor so avanca
+	 * pelo que foi feito (advance).
 	 *
 	 * @param int[] $post_ids  todas as unidades vinculadas, em ordem estavel
-	 * @return array{batch:int[],cursor:int}
+	 * @return array{batch:int[],cursor:int,start:int}
 	 */
 	public static function batch( array $post_ids, int $cursor, int $interval_minutes ): array {
 		$total = count( $post_ids );
 
 		if ( 0 === $total ) {
-			return array( 'batch' => array(), 'cursor' => 0 );
+			return array( 'batch' => array(), 'cursor' => 0, 'start' => 0 );
 		}
 
 		$runs   = max( 1, intdiv( max( Contorno_Evo_Settings::MIN_INTERVAL, $interval_minutes ), self::BATCH_MINUTES ) );
@@ -81,7 +88,14 @@ final class Contorno_Evo_Cron {
 		$cursor = $cursor >= $total || $cursor < 0 ? 0 : $cursor;
 		$next   = $cursor + $size;
 
-		return array( 'batch' => array_slice( $post_ids, $cursor, $size ), 'cursor' => $next >= $total ? 0 : $next );
+		return array( 'batch' => array_slice( $post_ids, $cursor, $size ), 'cursor' => $next >= $total ? 0 : $next, 'start' => $cursor );
+	}
+
+	/** Cursor depois de um lote que concluiu $done unidades a partir de $start. */
+	public static function advance( int $start, int $done, int $total ): int {
+		$next = $start + max( 0, $done );
+
+		return $total <= 0 || $next >= $total ? 0 : $next;
 	}
 
 	public static function schedule(): void {
@@ -127,8 +141,6 @@ final class Contorno_Evo_Cron {
 		}
 
 		$plan = self::batch( $ids, (int) get_option( self::OPT_CURSOR, 0 ), (int) Contorno_Evo_Settings::get( 'interval_minutes', 60 ) );
-		update_option( self::OPT_CURSOR, $plan['cursor'], false );
-
 		if ( array() === $plan['batch'] ) {
 			return;
 		}
@@ -138,7 +150,10 @@ final class Contorno_Evo_Cron {
 		}
 
 		// Por filial: o modo global paginaria o catalogo da rede inteira a cada lote.
-		Contorno_Evo_Sync::run( array( 'trigger' => 'cron', 'post_ids' => $plan['batch'], 'fetch_mode' => 'per-branch' ) );
+		$summary = Contorno_Evo_Sync::run( array( 'trigger' => 'cron', 'post_ids' => $plan['batch'], 'fetch_mode' => 'per-branch', 'deadline' => time() + self::BUDGET_SECONDS ) );
+
+		// Trava ocupada ou nada feito: o cursor fica, o proximo lote tenta de novo.
+		update_option( self::OPT_CURSOR, self::advance( $plan['start'], count( (array) ( $summary['processed'] ?? array() ) ), count( $ids ) ), false );
 	}
 
 	public static function next_run(): int {
