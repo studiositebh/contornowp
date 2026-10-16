@@ -93,8 +93,14 @@
 	cursor: pointer;
 }
 
-/* "Usar minha localizacao": botao + status logo abaixo do campo de busca. */
+/* "Usar minha localizacao": link discreto na MESMA linha do campo (abaixo dele
+ * so quando nao cabe, no celular); o status/erro ocupa a linha de baixo. */
 .contorno-unit-search-wrap {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: var(--space-4, 1rem);
+	row-gap: var(--space-1, 0.25rem);
 	margin-bottom: var(--space-8, 2rem);
 	max-width: 34rem;
 }
@@ -105,16 +111,15 @@
 
 /* A margem e o limite de largura passam para o wrapper. */
 .contorno-units .contorno-unit-search-wrap > .contorno-unit-search[data-contorno-unit-search] {
+	flex: 1 1 16rem;
+	min-width: 0;
 	margin-bottom: 0;
 	max-width: none;
 }
 
+/* O bloco some da arvore de layout: link e status viram itens da linha. */
 .contorno-unit-geo {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: var(--space-2, 0.5rem);
-	margin-top: var(--space-3, 0.75rem);
+	display: contents;
 }
 
 .contorno-unit-geo[hidden],
@@ -128,59 +133,59 @@
 
 .contorno-unit-geo__actions {
 	display: flex;
+	flex: 0 0 auto;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: var(--space-3, 0.75rem);
+	column-gap: var(--space-3, 0.75rem);
 	max-width: 100%;
 }
 
 .contorno-unit-geo__btn {
 	display: inline-flex;
 	align-items: center;
-	justify-content: center;
-	gap: 0.5rem;
+	gap: 0.4rem;
 	min-height: 2.75rem;
-	max-width: 100%;
-	padding: 0.5rem 1.1rem;
-	border: 1px solid rgb(16 184 177 / 0.45);
-	border-radius: var(--radius-full, 999px);
-	background: var(--card, #fff);
+	padding: 0 0.25rem;
+	border: 0;
+	background: transparent;
 	color: #087a74;
 	font: inherit;
 	font-size: var(--text-sm, 0.875rem);
-	font-weight: 600;
+	font-weight: 500;
 	line-height: 1.25;
+	white-space: nowrap;
+	text-decoration: underline;
+	text-decoration-color: transparent;
+	text-underline-offset: 0.2em;
 	cursor: pointer;
-	transition:
-		background-color 220ms var(--motion-ease, ease),
-		border-color 220ms var(--motion-ease, ease);
+	transition: text-decoration-color 160ms var(--motion-ease, ease);
 }
 
 .contorno-unit-geo__btn:hover:not([disabled]) {
-	background: rgb(16 184 177 / 0.08);
-	border-color: var(--brand, #10b8b1);
+	text-decoration-color: currentColor;
 }
 
 .contorno-unit-geo__btn:focus-visible,
 .contorno-unit-geo__off:focus-visible {
 	outline: 2px solid var(--brand, #10b8b1);
 	outline-offset: 2px;
+	border-radius: 0.25rem;
 }
 
 .contorno-unit-geo__btn[disabled] {
 	cursor: progress;
-	opacity: 0.75;
+	opacity: 0.7;
 }
 
 .contorno-unit-geo__btn.is-active {
-	background: rgb(16 184 177 / 0.12);
-	border-color: var(--brand, #10b8b1);
+	font-weight: 600;
+	text-decoration: none;
 	cursor: default;
 }
 
 .contorno-unit-geo__icon {
-	width: 1.15rem;
-	height: 1.15rem;
+	width: 1rem;
+	height: 1rem;
 	flex: none;
 }
 
@@ -202,17 +207,19 @@
 
 .contorno-unit-geo__off {
 	min-height: 2.75rem;
-	padding: 0.25rem 0.5rem;
+	padding: 0 0.25rem;
 	border: 0;
 	background: transparent;
 	color: #5d5c61;
 	font: inherit;
 	font-size: var(--text-sm, 0.875rem);
+	white-space: nowrap;
 	text-decoration: underline;
 	cursor: pointer;
 }
 
 .contorno-unit-geo__status {
+	flex: 1 0 100%;
 	margin: 0;
 	color: #5d5c61;
 	font-size: var(--text-sm, 0.875rem);
@@ -226,28 +233,20 @@
 	color: #b3261e;
 }
 
-/* Celular: o botao ocupa a largura toda — alvo de toque grande. */
-@media (max-width: 639px) {
-	.contorno-unit-geo,
-	.contorno-unit-geo__actions {
-		align-items: stretch;
-		width: 100%;
-	}
-
-	.contorno-unit-geo__btn {
-		width: 100%;
-		min-height: 3rem;
-	}
-
-	.contorno-unit-geo__off {
-		align-self: center;
-	}
-}
-
-/* Hero da Home: o wrapper nao ganha margem/limite proprios. */
+/* Hero da Home: o campo ja tem o botao "Buscar"; o link fica logo abaixo. */
 .contorno-hero__search-card .contorno-unit-search-wrap {
+	display: block;
 	max-width: none;
 	margin: 0;
+}
+
+.contorno-hero__search-card .contorno-unit-geo {
+	display: block;
+	margin-top: var(--space-1, 0.25rem);
+}
+
+.contorno-hero__search-card .contorno-unit-geo__actions {
+	justify-content: flex-start;
 }
 
 /* Modal "Encontre a unidade mais perto de voce" (ao comecar a buscar). */
