@@ -484,7 +484,31 @@ final class Contorno_Migration {
 			$was_existing = (bool) $post_id;
 
 			if ( $this->dry_run ) {
-				$this->report->log( sprintf( '%s %s: %s', $post_id ? 'Atualizaria' : 'Criaria', $post_type, $slug ) );
+				$keeps = $was_existing && ! $this->force && CONTORNO_CPT_UNIT === $post_type
+					&& (bool) apply_filters( 'contorno_migrate_seed_only_units', true );
+				$verb  = ! $post_id ? 'Criaria' : ( $keeps ? 'Preservaria (ja existe, sem alteracao)' : 'Atualizaria' );
+				$this->report->log( sprintf( '%s %s: %s', $verb, $post_type, $slug ) );
+				$this->report->bump( $counter );
+				continue;
+			}
+
+			/*
+			 * Dataset = semente, nao fonte continua. Unidade que ja existe e
+			 * do painel: titulo, resumo, ordem, campos, planos, fotos e termos
+			 * ficam como estao. So unidade NOVA recebe o dataset. Isso tambem
+			 * preserva campo esvaziado de proposito (o meta e apagado quando
+			 * vazio, entao "vazio" nao distingue "nunca preenchido" de
+			 * "limpo pelo cliente"). A sincronizacao EVO nao passa por aqui:
+			 * ela grava em metas proprias (_contorno_evo_*).
+			 * Para reaplicar o dataset: --force, ou desligar pelo filtro.
+			 */
+			if ( $was_existing && ! $this->force && CONTORNO_CPT_UNIT === $post_type
+				&& (bool) apply_filters( 'contorno_migrate_seed_only_units', true ) ) {
+				if ( ! metadata_exists( 'post', $post_id, '_wpb_vc_js_status' ) ) {
+					update_post_meta( $post_id, '_wpb_vc_js_status', 'true' );
+				}
+
+				$this->report->log( sprintf( 'Unidade %s ja existe — dados do painel preservados.', $slug ) );
 				$this->report->bump( $counter );
 				continue;
 			}
