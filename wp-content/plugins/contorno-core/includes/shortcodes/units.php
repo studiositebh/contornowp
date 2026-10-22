@@ -1146,6 +1146,13 @@ contorno_add_shortcode(
 		 * no tablet, 1 no celular) — controles em .contorno-plans__controls.
 		 */
 		contorno_enqueue_component( 'units-carousel' );
+
+		// Quantos benefícios o card reduzido mostra antes do "Ver mais".
+		if ( ! defined( 'CONTORNO_PLAN_BENEFITS_VISIBLE' ) ) {
+			define( 'CONTORNO_PLAN_BENEFITS_VISIBLE', 3 );
+		}
+
+		$plan_index = 0;
 		?>
 		<div class="contorno-plans-carousel" data-contorno-carousel>
 		<div class="contorno-plans is-columns-<?php echo esc_attr( (string) (int) $a['columns'] ); ?> motion-stagger" data-contorno-reveal data-contorno-carousel-track>
@@ -1205,11 +1212,21 @@ contorno_add_shortcode(
 					</ul>
 
 					<?php if ( array() !== $benefits ) : ?>
-						<ul class="contorno-plan__benefits">
-							<?php foreach ( $benefits as $benefit ) : ?>
-								<li><?php echo contorno_icon( 'check', 'contorno-plan__check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( (string) $benefit ); ?></span></li>
+						<?php
+						// Card reduzido: so os primeiros benefícios; o resto abre em "Ver mais".
+						// Sem JavaScript tudo continua visível (o botão nasce `hidden`).
+						$benefits_id = 'plan-benefits-' . $post_id . '-' . (int) $plan_index;
+						$collapsible = count( $benefits ) > CONTORNO_PLAN_BENEFITS_VISIBLE;
+						++$plan_index;
+						?>
+						<ul class="contorno-plan__benefits" id="<?php echo esc_attr( $benefits_id ); ?>">
+							<?php foreach ( array_values( $benefits ) as $benefit_index => $benefit ) : ?>
+								<li<?php echo $benefit_index >= CONTORNO_PLAN_BENEFITS_VISIBLE ? ' class="contorno-plan__extra"' : ''; ?>><?php echo contorno_icon( 'check', 'contorno-plan__check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( (string) $benefit ); ?></span></li>
 							<?php endforeach; ?>
 						</ul>
+						<?php if ( $collapsible ) : ?>
+							<button type="button" class="contorno-plan__toggle" data-contorno-plan-toggle aria-expanded="false" aria-controls="<?php echo esc_attr( $benefits_id ); ?>" data-label-more="<?php esc_attr_e( 'Ver mais', 'contorno' ); ?>" data-label-less="<?php esc_attr_e( 'Ver menos', 'contorno' ); ?>" hidden><?php esc_html_e( 'Ver mais', 'contorno' ); ?></button>
+						<?php endif; ?>
 					<?php endif; ?>
 
 					<?php

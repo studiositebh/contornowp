@@ -142,10 +142,41 @@
 		sync();
 	}
 
+	/**
+	 * Card de plano reduzido: "Ver mais" / "Ver menos" nos benefícios.
+	 * O botão nasce `hidden`; sem JS o card mostra todos os benefícios.
+	 */
+	function setupPlanToggle(button) {
+		if (button.dataset.contornoPlanReady === '1') {
+			return;
+		}
+		button.dataset.contornoPlanReady = '1';
+
+		var card = button.closest('.contorno-plan');
+
+		if (!card) {
+			return;
+		}
+
+		card.classList.add('is-collapsible');
+		button.hidden = false;
+
+		button.addEventListener('click', function () {
+			var open = card.classList.toggle('is-open');
+
+			button.setAttribute('aria-expanded', open ? 'true' : 'false');
+			button.textContent = open ? button.dataset.labelLess : button.dataset.labelMore;
+		});
+	}
+
 	function init() {
 		Array.prototype.forEach.call(
 			document.querySelectorAll('[data-contorno-carousel]'),
 			setupCarousel
+		);
+		Array.prototype.forEach.call(
+			document.querySelectorAll('[data-contorno-plan-toggle]'),
+			setupPlanToggle
 		);
 	}
 

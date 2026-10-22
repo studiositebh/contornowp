@@ -1482,6 +1482,7 @@
 	scroll-snap-type: x mandatory;
 	scrollbar-width: none;
 	-webkit-overflow-scrolling: touch;
+	justify-content: safe center;
 	/* Espaco para a sombra dos cards nao ser cortada pelo overflow. */
 	padding: 0.5rem 0 1.5rem;
 	margin-bottom: -1.5rem;
@@ -1508,9 +1509,11 @@
 }
 
 @media (min-width: 1024px) {
+	/* Linha centralizada qualquer que seja a quantidade de planos (2, 3, 4...). */
 	.contorno-plans {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
 		overflow: visible;
 		scroll-snap-type: none;
 		padding: 0;
@@ -1518,7 +1521,8 @@
 	}
 
 	.contorno-plans > .contorno-plan {
-		flex: initial;
+		flex: 0 1 calc((100% - 2 * var(--contorno-plans-gap)) / 3);
+		min-width: 0;
 	}
 
 	.contorno-plans__controls,
@@ -1528,8 +1532,8 @@
 }
 
 @media (min-width: 1280px) {
-	.contorno-plans.is-columns-4 {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+	.contorno-plans.is-columns-4 > .contorno-plan {
+		flex-basis: calc((100% - 3 * var(--contorno-plans-gap)) / 4);
 	}
 }
 
@@ -1622,6 +1626,34 @@
 	flex: none;
 	margin-top: 0.2rem;
 	color: var(--brand, #10b8b1);
+}
+
+/* Card reduzido: so com JS (sem JS os botoes ficam hidden e tudo aparece). */
+.contorno-plan.is-collapsible:not(.is-open) .contorno-plan__extra {
+	display: none;
+}
+
+.contorno-plan__toggle {
+	align-self: flex-start;
+	margin: 0.5rem 0 0.25rem;
+	padding: 0.25rem 0;
+	background: none;
+	border: 0;
+	font: inherit;
+	font-size: var(--text-sm, 0.875rem);
+	font-weight: 600;
+	color: var(--brand, #10b8b1);
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.contorno-plan__toggle[hidden] {
+	display: none;
+}
+
+.contorno-plan__toggle:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 3px;
 }
 
 .contorno-plan .contorno-btn {
@@ -3920,10 +3952,6 @@
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.14em;
-}
-
-.contorno-post-card.is-placeholder {
-	cursor: default;
 }
 
 .contorno-blog-empty {
